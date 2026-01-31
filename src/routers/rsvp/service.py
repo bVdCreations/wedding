@@ -17,9 +17,7 @@ class RSVPService:
         """
         Get guest and event info by RSVP token.
         """
-        guest_result = await db.execute(
-            select(Guest).where(Guest.rsvp_token == token)
-        )
+        guest_result = await db.execute(select(Guest).where(Guest.rsvp_token == token))
         guest = guest_result.scalar_one_or_none()
 
         if not guest:
@@ -76,12 +74,11 @@ class RSVPService:
         event = event_result.scalar_one_or_none()
 
         if event:
-            dietary_str = ", ".join(
-                [
-                    f"{req['requirement_type'].value}"
-                    for req in dietary_requirements
-                ]
-            ) if dietary_requirements else "None"
+            dietary_str = (
+                ", ".join([f"{req['requirement_type'].value}" for req in dietary_requirements])
+                if dietary_requirements
+                else "None"
+            )
 
             await email_service.send_confirmation(
                 to_address=guest.email,

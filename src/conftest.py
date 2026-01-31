@@ -43,6 +43,7 @@ async def test_db():
 @pytest.fixture(scope="function")
 async def client(test_db: AsyncSession):
     """Create a test client."""
+
     async def override_get_db():
         yield test_db
 

@@ -16,6 +16,7 @@ from typing import Optional
 @dataclass
 class DomainEvent:
     """Base domain event."""
+
     timestamp: datetime = None
     event_type: str = ""
 
@@ -27,6 +28,7 @@ class DomainEvent:
 @dataclass
 class GuestCreatedEvent(DomainEvent):
     """Event fired when a new guest is created."""
+
     guest_id: str
     guest_name: str
     guest_email: str
@@ -40,6 +42,7 @@ class GuestCreatedEvent(DomainEvent):
 @dataclass
 class GuestInvitedEvent(DomainEvent):
     """Event fired when an invitation is sent to a guest."""
+
     guest_id: str
     guest_email: str
     rsvp_token: str
@@ -52,6 +55,7 @@ class GuestInvitedEvent(DomainEvent):
 @dataclass
 class RSVPResponseEvent(DomainEvent):
     """Event fired when a guest responds to an invitation."""
+
     guest_id: str
     guest_name: str
     attending: bool
