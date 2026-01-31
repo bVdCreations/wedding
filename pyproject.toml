@@ -35,10 +35,8 @@ dev = [
     "pytest-asyncio>=0.23.3",
     "pytest-cov>=4.1.0",
     "httpx>=0.26.0",
-
     "ruff>=0.2.1",
-    "mypy>=1.8.0",
-    "pyright>=1.1.350",
+    "ty>=0.1.0",
 ]
 
 [tool.pytest.ini_options]
@@ -59,8 +57,6 @@ ignore = ["E501"]
 quote-style = "double"
 indent-style = "space"
 
-[tool.mypy]
-python_version = "3.12"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
+[tool.ty]
+python-version = "3.12"
+

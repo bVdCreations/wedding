@@ -32,7 +32,7 @@ test:
 # Run linter
 lint:
 	ruff check src/
-	mypy src/
+	ty check src/
 
 # Format code
 format:
