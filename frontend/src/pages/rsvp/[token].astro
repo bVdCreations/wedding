@@ -1,0 +1,344 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+interface Props {
+  token: string;
+}
+
+const { token } = Astro.params;
+---
+
+<Layout title="RSVP - Our Wedding">
+  <main>
+    <div class="container">
+      <div class="rsvp-card">
+        <h1>You're Invited!</h1>
+        <p class="intro">Please let us know if you can make it to our special day.</p>
+        
+        <form id="rsvp-form" data-token={token}>
+          <div class="form-section">
+            <h2>Will you be attending?</h2>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="attending" value="yes" required />
+                <span class="radio-custom"></span>
+                Yes, I'll be there!
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="attending" value="no" required />
+                <span class="radio-custom"></span>
+                Unfortunately, I can't make it
+              </label>
+            </div>
+          </div>
+
+          <div class="form-section" id="plus-one-section" style="display: none;">
+            <h2>Plus One</h2>
+            <label class="checkbox-label">
+              <input type="checkbox" name="plus_one" id="plus-one-checkbox" />
+              <span class="checkbox-custom"></span>
+              I'm bringing a plus one
+            </label>
+            
+            <div id="plus-one-name-section" style="display: none; margin-top: 1rem;">
+              <label for="plus_one_name">Plus One's Name</label>
+              <input type="text" id="plus_one_name" name="plus_one_name" placeholder="Enter their name" />
+            </div>
+          </div>
+
+          <div class="form-section" id="dietary-section" style="display: none;">
+            <h2>Dietary Requirements</h2>
+            <p class="help-text">Select all that apply to you (and your plus one if applicable)</p>
+            
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" name="dietary" value="vegetarian" />
+                <span class="checkbox-custom"></span>
+                Vegetarian
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="dietary" value="vegan" />
+                <span class="checkbox-custom"></span>
+                Vegan
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="dietary" value="gluten_free" />
+                <span class="checkbox-custom"></span>
+                Gluten Free
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="dietary" value="dairy_free" />
+                <span class="checkbox-custom"></span>
+                Dairy Free
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="dietary" value="halal" />
+                <span class="checkbox-custom"></span>
+                Halal
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="dietary" value="kosher" />
+                <span class="checkbox-custom"></span>
+                Kosher
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="dietary" value="nut_allergy" />
+                <span class="checkbox-custom"></span>
+                Nut Allergy
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="dietary" value="other" />
+                <span class="checkbox-custom"></span>
+                Other (please specify below)
+              </label>
+            </div>
+
+            <div style="margin-top: 1rem;">
+              <label for="dietary_notes">Additional dietary notes</label>
+              <textarea id="dietary_notes" name="dietary_notes" rows="3" placeholder="Please specify any other requirements..."></textarea>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="submit-btn">Submit RSVP</button>
+          </div>
+        </form>
+
+        <div id="success-message" class="success-message" style="display: none;">
+          <h2>Thank you for your response!</h2>
+          <p id="success-text"></p>
+        </div>
+
+        <div id="error-message" class="error-message" style="display: none;">
+          <p id="error-text"></p>
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  const form = document.getElementById('rsvp-form') as HTMLFormElement;
+  const attendingInputs = document.getElementsByName('attending') as NodeListOf<HTMLInputElement>;
+  const plusOneSection = document.getElementById('plus-one-section') as HTMLElement;
+  const plusOneCheckbox = document.getElementById('plus-one-checkbox') as HTMLInputElement;
+  const plusOneNameSection = document.getElementById('plus-one-name-section') as HTMLElement;
+  const dietarySection = document.getElementById('dietary-section') as HTMLElement;
+  const successMessage = document.getElementById('success-message') as HTMLElement;
+  const errorMessage = document.getElementById('error-message') as HTMLElement;
+  const submitBtn = document.querySelector('.submit-btn') as HTMLButtonElement;
+
+  // Show/hide sections based on attendance
+  attendingInputs.forEach(input => {
+    input.addEventListener('change', (e) => {
+      const attending = (e.target as HTMLInputElement).value;
+      if (attending === 'yes') {
+        plusOneSection.style.display = 'block';
+        dietarySection.style.display = 'block';
+      } else {
+        plusOneSection.style.display = 'none';
+        dietarySection.style.display = 'none';
+        plusOneCheckbox.checked = false;
+        plusOneNameSection.style.display = 'none';
+      }
+    });
+  });
+
+  // Show/hide plus one name input
+  plusOneCheckbox.addEventListener('change', (e) => {
+    const checked = (e.target as HTMLInputElement).checked;
+    plusOneNameSection.style.display = checked ? 'block' : 'none';
+  });
+
+  // Handle form submission
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const token = form.dataset.token;
+    const attending = document.querySelector('input[name="attending"]:checked') as HTMLInputElement;
+    const attendingValue = attending?.value === 'yes';
+    const plusOne = plusOneCheckbox.checked;
+    const plusOneName = (document.getElementById('plus-one-name') as HTMLInputElement)?.value || null;
+    
+    // Collect dietary requirements
+    const dietaryCheckboxes = document.querySelectorAll('input[name="dietary"]:checked');
+    const dietaryRequirements = Array.from(dietaryCheckboxes).map(cb => ({
+      requirement_type: (cb as HTMLInputElement).value,
+      notes: (cb as HTMLInputElement).value === 'other' 
+        ? (document.getElementById('dietary_notes') as HTMLTextAreaElement)?.value || null 
+        : null
+    }));
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+
+    try {
+      const response = await fetch(`/api/rsvp/${token}/respond`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          attending: attendingValue,
+          plus_one: plusOne,
+          plus_one_name: plusOneName,
+          dietary_requirements: dietaryRequirements
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        form.style.display = 'none';
+        successMessage.style.display = 'block';
+        (document.getElementById('success-text') as HTMLElement).textContent = data.message;
+      } else {
+        errorMessage.style.display = 'block';
+        (document.getElementById('error-text') as HTMLElement).textContent = data.detail || 'Something went wrong. Please try again.';
+      }
+    } catch (error) {
+      errorMessage.style.display = 'block';
+      (document.getElementById('error-text') as HTMLElement).textContent = 'Network error. Please try again.';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit RSVP';
+    }
+  });
+</script>
+
+<style>
+  main {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .rsvp-card {
+    background-color: var(--color-white);
+    border-radius: 10px;
+    padding: 40px;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  h1 {
+    text-align: center;
+    color: var(--color-secondary);
+    margin-bottom: 0.5rem;
+  }
+
+  .intro {
+    text-align: center;
+    color: var(--color-text-light);
+    margin-bottom: 2rem;
+  }
+
+  .form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .form-section:last-of-type {
+    border-bottom: none;
+  }
+
+  .form-section h2 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
+
+  .help-text {
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+    margin-bottom: 1rem;
+  }
+
+  .radio-group, .checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .radio-label, .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    padding: 0.75rem;
+    border-radius: 5px;
+    transition: background-color 0.2s;
+  }
+
+  .radio-label:hover, .checkbox-label:hover {
+    background-color: var(--color-background);
+  }
+
+  input[type="radio"], input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--color-primary);
+  }
+
+  input[type="text"], textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  input[type="text"]:focus, textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+
+  .form-actions {
+    text-align: center;
+    margin-top: 2rem;
+  }
+
+  .submit-btn {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+    padding: 15px 40px;
+    font-size: 1.1rem;
+    border-radius: 5px;
+    transition: background-color 0.2s;
+  }
+
+  .submit-btn:hover {
+    background-color: var(--color-secondary);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .success-message {
+    text-align: center;
+    padding: 2rem;
+    background-color: var(--color-success);
+    color: var(--color-white);
+    border-radius: 5px;
+  }
+
+  .success-message h2 {
+    color: var(--color-white);
+  }
+
+  .error-message {
+    text-align: center;
+    padding: 1rem;
+    background-color: var(--color-error);
+    color: var(--color-white);
+    border-radius: 5px;
+    margin-top: 1rem;
+  }
+</style>

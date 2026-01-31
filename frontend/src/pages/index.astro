@@ -1,0 +1,119 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Our Wedding - Save the Date">
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>Save the Date</h1>
+        <p class="couple-names">[Couple Names]</p>
+        <p class="date">June 15, 2024</p>
+        <p class="location">[Wedding Location]</p>
+      </div>
+    </section>
+
+    <section class="intro">
+      <div class="container">
+        <p>
+          We are thrilled to invite you to celebrate our special day with us!
+          Join us as we begin our journey together.
+        </p>
+      </div>
+    </section>
+
+    <section class="rsvp-info">
+      <div class="container">
+        <h2>RSVP</h2>
+        <p>Please respond by May 1, 2024</p>
+        <p>You should have received an email with a unique link to respond.</p>
+        <p>If you haven't received your invitation, please contact us.</p>
+      </div>
+    </section>
+
+    <section class="contact">
+      <div class="container">
+        <h2>Contact Us</h2>
+        <p>For any questions, please reach out to us.</p>
+        <a href="mailto:contact@example.com">contact@example.com</a>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  main {
+    min-height: 100vh;
+  }
+
+  section {
+    padding: 60px 20px;
+  }
+
+  .hero {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    text-align: center;
+    padding: 100px 20px;
+  }
+
+  .hero h1 {
+    font-size: 3rem;
+    color: var(--color-white);
+    margin-bottom: 1rem;
+  }
+
+  .couple-names {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .date {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .location {
+    font-size: 1.2rem;
+    opacity: 0.9;
+  }
+
+  .intro {
+    text-align: center;
+    background-color: var(--color-white);
+  }
+
+  .intro p {
+    font-size: 1.2rem;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .rsvp-info {
+    text-align: center;
+    background-color: var(--color-background);
+  }
+
+  .rsvp-info p {
+    margin-bottom: 1rem;
+  }
+
+  .contact {
+    text-align: center;
+    background-color: var(--color-white);
+  }
+
+  .contact a {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 10px 20px;
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border-radius: 5px;
+  }
+
+  .contact a:hover {
+    background-color: var(--color-secondary);
+    text-decoration: none;
+  }
+</style>

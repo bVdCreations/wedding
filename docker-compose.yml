@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: wedding_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: wedding_rsvp
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  api:
+    build: .
+    container_name: wedding_api
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/wedding_rsvp
+      SECRET_KEY: your-super-secret-key-change-in-production
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+      EMAILS_FROM: wedding@example.com
+      FRONTEND_URL: http://localhost:4321
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    volumes:
+      - .:/app
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: wedding_frontend
+    ports:
+      - "4321:4321"
+    depends_on:
+      - api
+
+  # Mailhog (for development email testing)
+  mailhog:
+    image: mailhog/mailhog
+    container_name: wedding_mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  postgres_data:
