@@ -34,7 +34,7 @@ dev = [
     "pytest-asyncio>=0.23.3",
     "pytest-cov>=4.1.0",
     "httpx>=0.26.0",
-    "black>=24.1.1",
+
     "ruff>=0.2.1",
     "mypy>=1.8.0",
     "pyright>=1.1.350",
@@ -47,17 +47,16 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 
-[tool.black]
-line-length = 100
-target-version = ["py312"]
-include = "\\.pyi?$"
-
 [tool.ruff]
 line-length = 100
 target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "W"]
 ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
 
 [tool.mypy]
 python_version = "3.12"
