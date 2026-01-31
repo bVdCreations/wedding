@@ -23,7 +23,6 @@ start-db:
 # Install dependencies
 install:
 	uv sync
-	uv sync --extra dev
 
 # Run tests
 test:
