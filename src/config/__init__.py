@@ -1,11 +1,10 @@
 from .settings import settings
-from .database import get_db, engine, async_session_factory
+from .database import async_session_manager, engine
 from .table_names import TableNames
 
 __all__ = [
     "settings",
-    "get_db",
+    "async_session_manager",
     "engine",
-    "async_session_factory",
     "TableNames",
 ]

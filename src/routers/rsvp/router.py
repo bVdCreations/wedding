@@ -1,17 +1,12 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from src.config.database import get_db
+from fastapi import APIRouter, HTTPException
+
+from src.email.service import EmailService, email_service
 from src.routers.rsvp.schemas import (
-    RSVPTokenResponse,
-    RSVPResponseSubmit,
     RSVPResponse,
-    DietaryRequirementCreate,
+    RSVPResponseSubmit,
+    RSVPTokenResponse,
 )
 from src.routers.rsvp.service import RSVPReadService, RSVPWriteService
-from src.email.service import email_service, EmailService
-from src.models.guest import GuestStatus
-
 
 router = APIRouter()
 
@@ -24,13 +19,12 @@ def get_email_service() -> EmailService:
 @router.get("/{token}", response_model=RSVPTokenResponse)
 async def get_rsvp_page(
     token: str,
-    db: AsyncSession = Depends(get_db),
 ) -> RSVPTokenResponse:
     """
     Get RSVP page information by token.
     Returns guest and event details for rendering the RSVP form.
     """
-    guest, event = await RSVPReadService.get_rsvp_info(db, token)
+    guest, event = await RSVPReadService.get_rsvp_info(token)
 
     if not guest:
         raise HTTPException(status_code=404, detail="Invalid or expired RSVP link")
@@ -54,8 +48,7 @@ async def get_rsvp_page(
 async def submit_rsvp(
     token: str,
     rsvp_data: RSVPResponseSubmit,
-    db: AsyncSession = Depends(get_db),
-    email_svc: EmailService = Depends(get_email_service),
+    email_svc: EmailService = get_email_service(),
 ) -> RSVPResponse:
     """
     Submit RSVP response for a guest.
@@ -63,7 +56,6 @@ async def submit_rsvp(
     try:
         write_service = RSVPWriteService(email_service=email_svc)
         guest = await write_service.submit_rsvp(
-            db=db,
             token=token,
             attending=rsvp_data.attending,
             plus_one=rsvp_data.plus_one,
