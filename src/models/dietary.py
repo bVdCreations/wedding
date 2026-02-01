@@ -1,8 +1,7 @@
 from enum import Enum as PyEnum
 from uuid import UUID
 
-import sqlalchemy as sa
-from sqlalchemy import ForeignKey, Text
+from sqlalchemy import Enum, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.config.table_names import TableNames
@@ -24,12 +23,14 @@ class DietaryOption(Base, TimeStamp):
     __tablename__ = TableNames.DIETARY_OPTIONS.value
 
     guest_id: Mapped[UUID] = mapped_column(
-        ForeignKey(f"{TableNames.GUESTS.value}.id", ondelete="CASCADE"),
+        ForeignKey(f"{TableNames.GUESTS.value}.uuid", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
 
-    requirement_type: Mapped[str] = mapped_column(sa.String(255), nullable=False)
+    requirement_type: Mapped[str] = mapped_column(
+        Enum(DietaryType, name="dietary_type_enum"), nullable=False
+    )
     notes: Mapped[str] = mapped_column(Text, nullable=True)
 
     def __repr__(self) -> str:

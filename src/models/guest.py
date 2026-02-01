@@ -18,7 +18,7 @@ class Guest(Base, TimeStamp):
     __tablename__ = TableNames.GUESTS.value
 
     user_id: Mapped[UUID] = mapped_column(
-        ForeignKey(f"{TableNames.USERS.value}.id", ondelete="CASCADE"),
+        ForeignKey(f"{TableNames.USERS.value}.uuid", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -36,7 +36,7 @@ class Guest(Base, TimeStamp):
     # Plus one
     is_plus_one: Mapped[bool] = mapped_column(Boolean, default=False)
     plus_one_of_id: Mapped[UUID] = mapped_column(
-        ForeignKey(f"{TableNames.USERS.value}.id", ondelete="SET NULL"),
+        ForeignKey(f"{TableNames.USERS.value}.uuid", ondelete="SET NULL"),
         nullable=True,
     )
     plus_one_name: Mapped[str] = mapped_column(String(255), nullable=True)
