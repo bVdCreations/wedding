@@ -1,7 +1,7 @@
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import Optional
+
 from src.config.settings import settings
 from src.email.templates import EmailTemplates
 
