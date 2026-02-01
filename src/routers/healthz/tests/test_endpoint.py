@@ -1,14 +1,10 @@
 import pytest
-from httpx import AsyncClient
-from src.main import app
 
 
 @pytest.mark.asyncio
-async def test_health_check():
+async def test_health_check(client):
     """Test the health check endpoint returns healthy status."""
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        response = await client.get("/healthz/")
+    response = await client.get("/healthz/")
 
     assert response.status_code == 200
     data = response.json()
@@ -17,11 +13,9 @@ async def test_health_check():
 
 
 @pytest.mark.asyncio
-async def test_root_endpoint():
+async def test_root_endpoint(client):
     """Test the root endpoint returns welcome message."""
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        response = await client.get("/")
+    response = await client.get("/")
 
     assert response.status_code == 200
     data = response.json()
