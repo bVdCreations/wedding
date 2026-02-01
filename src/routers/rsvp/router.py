@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from src.email.service import EmailService, email_service
 from src.routers.rsvp.schemas import (
@@ -48,7 +48,7 @@ async def get_rsvp_page(
 async def submit_rsvp(
     token: str,
     rsvp_data: RSVPResponseSubmit,
-    email_svc: EmailService = get_email_service(),
+    email_svc: EmailService = Depends(get_email_service),
 ) -> RSVPResponse:
     """
     Submit RSVP response for a guest.
