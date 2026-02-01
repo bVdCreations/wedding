@@ -1,11 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 
-interface Props {
-  token: string;
-}
-
-const { token } = Astro.params;
+const token = Astro.url.searchParams.get('token');
 ---
 
 <Layout title="RSVP - Our Wedding">
