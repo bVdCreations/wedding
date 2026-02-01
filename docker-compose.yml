@@ -54,8 +54,8 @@ services:
     image: mailhog/mailhog
     container_name: wedding_mailhog
     ports:
-      - "1025:1025"
-      - "8025:8025"
+      - "11025:1025"
+      - "18025:8025"
 
 volumes:
   postgres_data:
