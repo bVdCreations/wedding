@@ -1,10 +1,8 @@
-from typing import Optional
 from sqlalchemy import select
+
 from src.config.database import async_session_manager
-from src.models.guest import Guest, GuestStatus
 from src.models.dietary import DietaryOption, DietaryType
-from src.models.event import Event
-from src.email.service import email_service
+from src.models.guest import Guest, GuestStatus
 
 
 class RSVPReadService:
@@ -13,27 +11,22 @@ class RSVPReadService:
     @staticmethod
     async def get_rsvp_info(
         token: str,
-    ) -> tuple[Optional[Guest], Optional[Event]]:
+    ) -> Guest | None:
         """
         Get guest and event info by RSVP token.
         """
         async with async_session_manager() as session:
             guest = await RSVPReadService.get_guest_by_token(session, token)
             if not guest:
-                return None, None
+                return None
 
-            event_result = await session.execute(
-                select(Event).where(Event.id == guest.event_id)
-            )
-            event = event_result.scalar_one_or_none()
-
-            return guest, event
+            return guest
 
     @staticmethod
     async def get_guest_by_token(
         session,
         token: str,
-    ) -> Optional[Guest]:
+    ) -> Guest | None:
         """
         Get guest by RSVP token.
         """
@@ -52,7 +45,7 @@ class RSVPWriteService:
         token: str,
         attending: bool,
         plus_one: bool,
-        plus_one_name: Optional[str],
+        plus_one_name: str | None,
         dietary_requirements: list[dict],
     ) -> Guest:
         """
@@ -90,25 +83,19 @@ class RSVPWriteService:
 
             # Send confirmation email if email_service is available
             if self.email_service:
-                event_result = await session.execute(
-                    select(Event).where(Event.id == guest.event_id)
+                dietary_str = (
+                    ", ".join([f"{req['requirement_type'].value}" for req in dietary_requirements])
+                    if dietary_requirements
+                    else "None"
                 )
-                event = event_result.scalar_one_or_none()
 
-                if event:
-                    dietary_str = (
-                        ", ".join([f"{req['requirement_type'].value}" for req in dietary_requirements])
-                        if dietary_requirements
-                        else "None"
-                    )
-
-                    await self.email_service.send_confirmation(
-                        to_address=guest.email,
-                        guest_name=guest.name,
-                        attending="Yes" if attending else "No",
-                        plus_one="Yes" if plus_one else "No",
-                        dietary=dietary_str,
-                        couple_names="[Couple Names]",  # TODO: Make configurable
-                    )
+                await self.email_service.send_confirmation(
+                    to_address=guest.email,
+                    guest_name=guest.name,
+                    attending="Yes" if attending else "No",
+                    plus_one="Yes" if plus_one else "No",
+                    dietary=dietary_str,
+                    couple_names="[Couple Names]",  # TODO: Make configurable
+                )
 
             return guest
