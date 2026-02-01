@@ -4,11 +4,11 @@ from sqlalchemy import select
 from src.models.guest import Guest, GuestStatus
 from src.models.dietary import DietaryOption, DietaryType
 from src.models.event import Event
-from src.email.service import email_service
-from src.config.settings import settings
 
 
-class RSVPService:
+class RSVPReadService:
+    """Read-only operations for RSVP."""
+
     @staticmethod
     async def get_rsvp_info(
         db: AsyncSession,
@@ -17,9 +17,7 @@ class RSVPService:
         """
         Get guest and event info by RSVP token.
         """
-        guest_result = await db.execute(select(Guest).where(Guest.rsvp_token == token))
-        guest = guest_result.scalar_one_or_none()
-
+        guest = await RSVPReadService.get_guest_by_token(db, token)
         if not guest:
             return None, None
 
@@ -29,7 +27,25 @@ class RSVPService:
         return guest, event
 
     @staticmethod
+    async def get_guest_by_token(
+        db: AsyncSession,
+        token: str,
+    ) -> Optional[Guest]:
+        """
+        Get guest by RSVP token.
+        """
+        result = await db.execute(select(Guest).where(Guest.rsvp_token == token))
+        return result.scalar_one_or_none()
+
+
+class RSVPWriteService:
+    """Write operations for RSVP."""
+
+    def __init__(self, email_service=None):
+        self.email_service = email_service
+
     async def submit_rsvp(
+        self,
         db: AsyncSession,
         token: str,
         attending: bool,
@@ -40,12 +56,12 @@ class RSVPService:
         """
         Submit RSVP response for a guest.
         """
-        guest = await RSVPService.get_guest_by_token(db, token)
+        guest = await RSVPReadService.get_guest_by_token(db, token)
         if not guest:
             raise ValueError("Invalid RSVP token")
 
         # Update guest status
-        guest.status = GuestStatus.CONIRMED if attending else GuestStatus.DECLINED
+        guest.status = GuestStatus.CONFIRMED if attending else GuestStatus.DECLINED
         guest.is_plus_one = plus_one
         guest.plus_one_name = plus_one_name if attending else None
 
@@ -69,35 +85,25 @@ class RSVPService:
         await db.commit()
         await db.refresh(guest)
 
-        # Send confirmation email
-        event_result = await db.execute(select(Event).where(Event.id == guest.event_id))
-        event = event_result.scalar_one_or_none()
+        # Send confirmation email if email_service is available
+        if self.email_service:
+            event_result = await db.execute(select(Event).where(Event.id == guest.event_id))
+            event = event_result.scalar_one_or_none()
 
-        if event:
-            dietary_str = (
-                ", ".join([f"{req['requirement_type'].value}" for req in dietary_requirements])
-                if dietary_requirements
-                else "None"
-            )
+            if event:
+                dietary_str = (
+                    ", ".join([f"{req['requirement_type'].value}" for req in dietary_requirements])
+                    if dietary_requirements
+                    else "None"
+                )
 
-            await email_service.send_confirmation(
-                to_address=guest.email,
-                guest_name=guest.name,
-                attending="Yes" if attending else "No",
-                plus_one="Yes" if plus_one else "No",
-                dietary=dietary_str,
-                couple_names="[Couple Names]",  # TODO: Make configurable
-            )
+                await self.email_service.send_confirmation(
+                    to_address=guest.email,
+                    guest_name=guest.name,
+                    attending="Yes" if attending else "No",
+                    plus_one="Yes" if plus_one else "No",
+                    dietary=dietary_str,
+                    couple_names="[Couple Names]",  # TODO: Make configurable
+                )
 
         return guest
-
-    @staticmethod
-    async def get_guest_by_token(
-        db: AsyncSession,
-        token: str,
-    ) -> Optional[Guest]:
-        """
-        Get guest by RSVP token.
-        """
-        result = await db.execute(select(Guest).where(Guest.rsvp_token == token))
-        return result.scalar_one_or_none()
