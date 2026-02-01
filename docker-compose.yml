@@ -1,3 +1,7 @@
+volumes:
+  local_postgres_data:
+    name: wedding_postgres_volume
+
 services:
   # PostgreSQL Database
   db:
@@ -8,7 +12,8 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: wedding_rsvp
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - local_postgres_data:/var/lib/postgresql/data
+      - ./compose/db/init-test-user-db.sh:/docker-entrypoint-initdb.d/init-test-user-db.sh
     ports:
       - "25432:5432"
     healthcheck:
@@ -56,6 +61,3 @@ services:
     ports:
       - "11025:1025"
       - "18025:8025"
-
-volumes:
-  postgres_data:
