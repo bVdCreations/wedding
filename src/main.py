@@ -1,28 +1,14 @@
-from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.config.database import Base, engine
 from src.config.settings import settings
 from src.routers import guests, healthz, rsvp
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup: Create database tables
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    yield
-    # Shutdown: Close database connections
-    await engine.dispose()
-
 
 app = FastAPI(
     title="Wedding RSVP API",
     description="API for managing wedding RSVPs and guest lists",
     version="0.1.0",
-    lifespan=lifespan,
 )
 
 # CORS middleware

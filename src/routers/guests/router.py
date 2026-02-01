@@ -1,9 +1,5 @@
-
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
-from sqlalchemy import select
 
-from src.config.database import async_session_manager
-from src.models.event import Event
 from src.routers.guests.schemas import (
     GuestCreate,
     GuestListResponse,
@@ -45,12 +41,6 @@ async def create_guest(
     """
     Create a new guest.
     """
-    # Verify event exists
-    async with async_session_manager() as session:
-        event_result = await session.execute(select(Event).where(Event.id == guest_data.event_id))
-        event = event_result.scalar_one_or_none()
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
 
     guest = await GuestWriteService.create_guest(
         name=guest_data.name,

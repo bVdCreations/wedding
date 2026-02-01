@@ -7,15 +7,12 @@ from pydantic.networks import PostgresDsn
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from src.config.settings import settings
-from src.otel import otel_sqlachemy_wrapper
 
 
 def create_engine(url: str | PostgresDsn):
     url = str(url)
-    use_echo = settings.LOG_DB
+    use_echo = settings.debug
     connect_args = {}
-    if "sqlite" in url:
-        connect_args = {"timeout": 15}
     return create_async_engine(
         url,
         echo=use_echo,
@@ -29,10 +26,10 @@ def generate_test_db_dsn(dsn: str | PostgresDsn) -> str:
     return f"{part_dsn}/test_{db_name}"
 
 
-engine = create_engine(settings.DB_DSN)
+engine = create_engine(settings.database_url)
 if "pytest" in sys.modules:
     # a bug forces us recreate the engine and pint it to the testing database
-    engine = create_engine(generate_test_db_dsn(settings.DB_DSN))
+    engine = create_engine(generate_test_db_dsn(settings.database_url))
 
 
 def run_upgrade(connection, cfg):
@@ -45,7 +42,7 @@ async def init_test_db():
         await conn.run_sync(run_upgrade, config.Config("alembic.ini"))
 
 
-async_session_maker = async_sessionmaker(otel_sqlachemy_wrapper(engine), expire_on_commit=False)
+async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
 
 async def get_async_session() -> AsyncIterator[AsyncSession]:

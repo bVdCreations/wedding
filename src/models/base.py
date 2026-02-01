@@ -1,22 +1,34 @@
-import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime
-from src.config.database import Base
+from uuid import UUID, uuid4
+
+import sqlalchemy as sa
+from sqlalchemy.orm import Mapped, declarative_base, mapped_column
+from sqlalchemy_utils import UUIDType
+
+BaseModel = declarative_base()
 
 
-class TimestampMixin:
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(
-        DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+class Base(BaseModel):
+    __abstract__ = True
+
+    type_annotation_map = {
+        UUID: UUIDType,
+    }
+
+    uuid: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+
+
+class TimeStamp(BaseModel):
+    __abstract__ = True
+
+    created_at: Mapped[datetime] = mapped_column(
+        sa.DateTime,
+        server_default=sa.func.current_timestamp(),
         nullable=False,
     )
-
-
-class UUIDMixin:
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-
-
-class BaseModel(UUIDMixin, TimestampMixin, Base):
-    __abstract__ = True
+    updated_at: Mapped[datetime] = mapped_column(
+        sa.DateTime,
+        server_default=sa.func.current_timestamp(),
+        onupdate=sa.func.current_timestamp(),
+        nullable=False,
+    )
