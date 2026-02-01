@@ -1,12 +1,16 @@
 import asyncio
 from logging.config import fileConfig
+
+from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-from alembic import context
+
 from src.config.settings import settings
-from src.config.database import Base
-from src.models import user, event, guest, dietary
+from src.models.base import Base as Base
+from src.models.dietary import DietaryOption as DietaryOption
+from src.models.guest import Guest as Guest
+from src.models.user import User as User
 
 # this is the Alembic Config object
 config = context.config
@@ -14,6 +18,7 @@ config = context.config
 # Interpret the config file for Python logging.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+config.set_main_option("sqlalchemy.url", settings.database_url)
 
 # add your model's MetaData object here
 target_metadata = Base.metadata
