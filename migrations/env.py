@@ -7,9 +7,10 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from src.config.settings import settings
+from src.guests.repository.orm_models import DietaryOption as DietaryOption
+from src.guests.repository.orm_models import Guest as Guest
+from src.guests.repository.orm_models import RSVPInfo as RSVPInfo
 from src.models.base import Base as Base
-from src.models.dietary import DietaryOption as DietaryOption
-from src.models.guest import Guest as Guest
 from src.models.user import User as User
 
 # this is the Alembic Config object

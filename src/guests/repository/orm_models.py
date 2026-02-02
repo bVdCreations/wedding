@@ -38,13 +38,6 @@ class Guest(Base, TimeStamp):
     last_name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     phone: Mapped[str] = mapped_column(String(50), nullable=True)
 
-    # RSVP status
-    status: Mapped[str] = mapped_column(
-        Enum(GuestStatus, name="guest_status_enum"),
-        default=GuestStatus.PENDING,
-        nullable=False,
-    )
-
     # Plus one
     is_plus_one: Mapped[bool] = mapped_column(Boolean, default=False)
     plus_one_of_id: Mapped[UUID] = mapped_column(
@@ -53,11 +46,31 @@ class Guest(Base, TimeStamp):
     )
     plus_one_name: Mapped[str] = mapped_column(String(255), nullable=True)
 
-    # RSVP token for unique invitation links
-    rsvp_token: Mapped[str] = mapped_column(String(36), nullable=False, unique=True, index=True)
-
     # Notes
     notes: Mapped[str] = mapped_column(Text, nullable=True)
 
     def __repr__(self) -> str:
         return f"<Guest {self.name} - {self.status.value}>"
+
+
+class RSVPInfo(Base, TimeStamp):
+    __tablename__ = TableNames.RSVP_INFO.value
+
+    guest_id: Mapped[UUID] = mapped_column(
+        ForeignKey(f"{TableNames.GUESTS.value}.uuid", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    status: Mapped[str] = mapped_column(
+        Enum(GuestStatus, name="guest_status_enum_v2"),
+        default=GuestStatus.PENDING,
+        nullable=False,
+    )
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    rsvp_token: Mapped[str] = mapped_column(String(36), nullable=False, unique=True, index=True)
+    rsvp_link: Mapped[str] = mapped_column(String(255), nullable=False)
+    notes: Mapped[str] = mapped_column(Text, nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<RSVPInfo {self.rsvp_token}>"
