@@ -7,8 +7,8 @@ from sqlalchemy import select
 from src.config.database import async_session_manager
 from src.email.service import EmailService
 from src.guests.dtos import GuestStatus, RSVPResponseDTO
-from src.guests.repository.orm_models import DietaryOption, DietaryType
-from src.guests.repository.read_models import RSVPReadModel
+from src.guests.repository.orm_models import DietaryOption, DietaryType, Guest, RSVPInfo
+from src.models.user import User
 
 
 class RSVPWriteModel(ABC):
@@ -33,16 +33,31 @@ class SqlRSVPWriteModel:
 
     def __init__(
         self,
-        read_model: RSVPReadModel,
         email_service: EmailService | None = None,
     ):
         self._email_service = email_service
-        self, _read_model = read_model
 
     @property
     def email_service(self) -> EmailService | None:
         """Get the email service instance."""
         return self._email_service
+
+    async def _get_guest_by_token(self, session, token: str) -> Guest | None:
+        """Get a guest by RSVP token."""
+        stmt = (
+            select(Guest)
+            .join(RSVPInfo, Guest.uuid == RSVPInfo.guest_id)
+            .where(RSVPInfo.rsvp_token == token)
+        )
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def _get_user_email(self, session, user_id) -> str:
+        """Get user email by user_id."""
+        stmt = select(User).where(User.uuid == user_id)
+        result = await session.execute(stmt)
+        user = result.scalar_one_or_none()
+        return user.email if user else ""
 
     async def submit_rsvp(
         self,
@@ -57,19 +72,23 @@ class SqlRSVPWriteModel:
         Returns DTO instead of ORM model.
         """
         async with async_session_manager() as session:
-            # Use session from write operation for read (shares transaction)
-            guest = await self._read_model.get_guest_by_token(session, token)
+            guest = await self._get_guest_by_token(session, token)
             if not guest:
                 raise ValueError("Invalid RSVP token")
 
-            # Update guest status
-            guest.status = GuestStatus.CONFIRMED if attending else GuestStatus.DECLINED
+            # Get RSVP info to update status
+            rsvp_stmt = select(RSVPInfo).where(RSVPInfo.guest_id == guest.uuid)
+            rsvp_result = await session.execute(rsvp_stmt)
+            rsvp_info = rsvp_result.scalar_one_or_none()
+
+            # Update RSVP status
+            rsvp_info.status = GuestStatus.CONFIRMED if attending else GuestStatus.DECLINED
             guest.is_plus_one = plus_one
             guest.plus_one_name = plus_one_name if attending else None
 
             # Clear existing dietary requirements
             existing_dietary = await session.execute(
-                select(DietaryOption).where(DietaryOption.guest_id == guest.id)
+                select(DietaryOption).where(DietaryOption.guest_id == guest.uuid)
             )
             for dietary in existing_dietary.scalars().all():
                 await session.delete(dietary)
@@ -78,7 +97,7 @@ class SqlRSVPWriteModel:
             if attending and dietary_requirements:
                 for req in dietary_requirements:
                     dietary = DietaryOption(
-                        guest_id=guest.id,
+                        guest_id=guest.uuid,
                         requirement_type=DietaryType(req["requirement_type"]),
                         notes=req.get("notes"),
                     )
@@ -96,14 +115,17 @@ class SqlRSVPWriteModel:
             # Send confirmation email if email_service is available
             if self._email_service:
                 dietary_str = (
-                    ", ".join([f"{req['requirement_type'].value}" for req in dietary_requirements])
+                    ", ".join([req["requirement_type"] for req in dietary_requirements])
                     if dietary_requirements
                     else "None"
                 )
 
+                user_email = await self._get_user_email(session, guest.user_id)
+                guest_name = f"{guest.first_name} {guest.last_name}"
+
                 await self._email_service.send_confirmation(
-                    to_address=guest.email,
-                    guest_name=guest.name,
+                    to_address=user_email,
+                    guest_name=guest_name,
                     attending="Yes" if attending else "No",
                     plus_one="Yes" if plus_one else "No",
                     dietary=dietary_str,
@@ -114,5 +136,5 @@ class SqlRSVPWriteModel:
             return RSVPResponseDTO(
                 message=message,
                 attending=attending,
-                status=guest.status,
+                status=rsvp_info.status,
             )
