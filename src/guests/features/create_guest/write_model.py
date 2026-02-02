@@ -6,14 +6,14 @@ Returns DTOs instead of ORM models.
 
 from abc import ABC, abstractmethod
 from functools import partial
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import async_session_manager
 from src.config.settings import settings
-from src.guests.dtos import RSVPDTO, GuestDTO, GuestStatus
+from src.guests.dtos import RSVPDTO, GuestAlreadyExistsError, GuestDTO, GuestStatus
 from src.guests.repository.orm_models import Guest, RSVPInfo
 from src.models.user import User
 
@@ -60,7 +60,12 @@ class SqlGuestCreateWriteModel(GuestCreateWriteModel):
             # 1. Get or create User by email
             user = await self._get_or_create_user(session, email)
 
-            # 2. Create Guest linked to User
+            # 2. Check if user already has a guest
+            existing_guest = await self._get_guest_by_user_id(session, user.uuid)
+            if existing_guest is not None:
+                raise GuestAlreadyExistsError(email)
+
+            # 3. Create Guest linked to User
             guest = Guest(
                 user_id=user.uuid,
                 first_name=first_name or "",
@@ -73,7 +78,7 @@ class SqlGuestCreateWriteModel(GuestCreateWriteModel):
             session.add(guest)
             await session.flush()  # Get guest.id without full refresh
 
-            # 3. Create RSVPInfo linked to Guest
+            # 4. Create RSVPInfo linked to Guest
             rsvp_token = str(uuid4())
             rsvp_info = RSVPInfo(
                 guest_id=guest.uuid,
@@ -85,7 +90,7 @@ class SqlGuestCreateWriteModel(GuestCreateWriteModel):
             )
             session.add(rsvp_info)
 
-            await session.commit()
+            await session.flush()
 
         # 4. Build and return GuestDTO
         return GuestDTO(
@@ -121,3 +126,8 @@ class SqlGuestCreateWriteModel(GuestCreateWriteModel):
             # No need to commit here - it will be committed in the main transaction
 
         return user
+
+    async def _get_guest_by_user_id(self, session, user_id: UUID) -> Guest | None:
+        """Check if a guest already exists for the given user ID."""
+        result = await session.execute(select(Guest).where(Guest.user_id == user_id))
+        return result.scalar_one_or_none()

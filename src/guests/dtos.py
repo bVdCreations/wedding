@@ -3,6 +3,14 @@ from enum import Enum
 from uuid import UUID
 
 
+class GuestAlreadyExistsError(Exception):
+    """Raised when trying to create a guest for a user who already has one."""
+
+    def __init__(self, email: str) -> None:
+        self.email = email
+        super().__init__(f"User with email '{email}' already has a guest account")
+
+
 class DietaryType(str, Enum):
     VEGETARIAN = "vegetarian"
     VEGAN = "vegan"
