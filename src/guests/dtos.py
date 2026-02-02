@@ -35,21 +35,33 @@ class RSVPInfoDTO:
 
 
 @dataclass(frozen=True)
-class GuestDTO:
-    """DTO for guest data."""
-
-    id: UUID
-    name: str
-    status: GuestStatus
-    is_plus_one: bool
-    plus_one_name: str | None
-    email: str
-
-
-@dataclass(frozen=True)
 class RSVPResponseDTO:
     """DTO for RSVP response."""
 
     message: str
     attending: bool
     status: GuestStatus
+
+
+@dataclass(frozen=True)
+class RSVPDTO:
+    """DTO for RSVP response."""
+
+    status: GuestStatus
+    token: str
+    link: str
+
+
+@dataclass(frozen=True)
+class GuestDTO:
+    """DTO for guest data."""
+
+    id: UUID
+    email: str
+    rsvp: RSVPDTO
+    first_name: str | None = None
+    last_name: str | None = None
+    phone: str | None = None
+    is_plus_one: bool = False
+    plus_one_name: str | None = None
+    notes: str | None = None
