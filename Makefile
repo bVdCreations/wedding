@@ -36,3 +36,16 @@ lint:
 # Format code
 format:
 	ruff format src/
+
+fake-guest:
+	python cli.py create_guest
+
+migrate-db:
+	alembic upgrade head
+
+clean-db:
+	docker compose down
+	docker container prune -f
+	docker volume rm wedding_postgres_volume
+	docker compose up -d
+	alembic upgrade head
