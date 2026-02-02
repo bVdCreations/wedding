@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from src.email.service import EmailService, email_service
 from src.guests.dtos import GuestStatus
 from src.guests.repository.read_models import RSVPReadModel, SqlRSVPReadModel
+from src.guests.urls import GET_GUEST_INFO_URL
 
 router = APIRouter()
 
@@ -19,18 +19,13 @@ class RSVPTokenResponse(BaseModel):
     plus_one_name: str | None
 
 
-def get_email_service() -> EmailService:
-    """Dependency to get email service instance."""
-    return email_service
-
-
 def get_rsvp_read_model() -> RSVPReadModel:
     """Dependency to get RSVP read model instance."""
     return SqlRSVPReadModel()
 
 
-@router.get("/{token}", response_model=RSVPTokenResponse)
-async def get_rsvp_page(
+@router.get(GET_GUEST_INFO_URL, response_model=RSVPTokenResponse)
+async def get_guest_info(
     token: str,
     read_model: RSVPReadModel = Depends(get_rsvp_read_model),
 ) -> RSVPTokenResponse:
