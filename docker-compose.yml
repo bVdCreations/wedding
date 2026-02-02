@@ -53,6 +53,10 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: wedding_frontend
+    environment:
+      PUBLIC_BACKEND_API_URL: http://localhost:8000
+    volumes:
+      - ./frontend/src:/app/src
     ports:
       - "4321:4321"
     depends_on:

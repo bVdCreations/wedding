@@ -2,11 +2,11 @@
 
 # Start all services with Docker Compose
 start:
-	docker compose up --build
+	docker compose up
 
 # Start all services in detached mode
 start-detached:
-	docker compose up --build -d
+	docker compose up -d
 
 # Stop all services
 stop:
@@ -49,3 +49,9 @@ clean-db:
 	docker volume rm wedding_postgres_volume
 	docker compose up -d
 	alembic upgrade head
+
+down:
+	docker compose down
+
+build:
+	docker compose build

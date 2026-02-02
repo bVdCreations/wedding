@@ -169,7 +169,8 @@ const token = Astro.url.searchParams.get('token');
     submitBtn.textContent = 'Submitting...';
 
     try {
-      const response = await fetch(`/api/rsvp/${token}/respond`, {
+      const apiHost = import.meta.env.PUBLIC_BACKEND_API_URL || '';
+      const response = await fetch(`${apiHost}/api/v1/guests/${token}/rsvp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
