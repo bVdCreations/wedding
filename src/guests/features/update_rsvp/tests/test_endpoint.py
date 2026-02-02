@@ -30,10 +30,16 @@ class InMemoryRSVPWriteModel(RSVPWriteModel):
             "dietary_requirements": dietary_requirements,
         }
 
+        status = GuestStatus.CONFIRMED if attending else GuestStatus.DECLINED
+        message = (
+            "Thank you for confirming your attendance!"
+            if attending
+            else "We're sorry you can't make it. Your response has been recorded."
+        )
         return RSVPResponseDTO(
-            message="Thank you for confirming your attendance!",
+            message=message,
             attending=attending,
-            status=GuestStatus.CONFIRMED,
+            status=status,
         )
 
 

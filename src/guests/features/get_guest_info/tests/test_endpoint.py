@@ -2,7 +2,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.guests.dtos import GuestDTO, GuestStatus, RSVPInfoDTO
+from src.guests.dtos import GuestDTO, GuestStatus, RSVPInfoDTO, RSVPDTO
 from src.guests.features.get_guest_info.router import get_rsvp_read_model
 from src.guests.repository.read_models import RSVPReadModel
 from src.guests.urls import GET_GUEST_INFO_URL
@@ -15,7 +15,7 @@ class InMemoryRSVPReadModel(RSVPReadModel):
         self._guests: dict[str, GuestDTO] = {}
         if guests:
             for guest in guests:
-                self._guests[guest.token] = guest
+                self._guests[guest.rsvp.token] = guest
 
     async def get_rsvp_info(self, token: str) -> RSVPInfoDTO | None:
         """Get RSVP info from in-memory storage."""
@@ -23,13 +23,14 @@ class InMemoryRSVPReadModel(RSVPReadModel):
         if not guest:
             return None
 
+        name = " ".join(filter(None, [guest.first_name, guest.last_name])).strip()
         return RSVPInfoDTO(
-            token=guest.token,
-            name=guest.name,
-            event_name="Wedding Celebration",  # Match the real model
+            token=guest.rsvp.token,
+            name=name,
+            event_name="Wedding Celebration",
             event_date="October 15, 2026 at 3:00 PM",
             event_location="Grand Ballroom",
-            status=guest.status,
+            status=guest.rsvp.status,
             is_plus_one=guest.is_plus_one,
             plus_one_name=guest.plus_one_name,
         )
@@ -38,13 +39,19 @@ class InMemoryRSVPReadModel(RSVPReadModel):
 @pytest.mark.asyncio
 async def test_get_rsvp_success(client_factory):
     """Test that a valid token returns RSVP page information."""
+    token = str(uuid4())
     guest = GuestDTO(
         id=uuid4(),
-        name="John Doe",
-        status=GuestStatus.PENDING,
+        email="john@example.com",
+        rsvp=RSVPDTO(
+            status=GuestStatus.PENDING,
+            token=token,
+            link=f"http://localhost:4321/rsvp/?token={token}",
+        ),
+        first_name="John",
+        last_name="Doe",
         is_plus_one=False,
         plus_one_name=None,
-        email="john@example.com",
     )
 
     read_model = InMemoryRSVPReadModel([guest])
@@ -54,12 +61,12 @@ async def test_get_rsvp_success(client_factory):
     }
 
     async with client_factory(overrides) as client:
-        response = await client.get(GET_GUEST_INFO_URL.format(token=guest.token))
+        response = await client.get(GET_GUEST_INFO_URL.format(token=token))
 
     assert response.status_code == 200
     data = response.json()
-    assert data["token"] == guest.token
-    assert data["guest_name"] == guest.name
+    assert data["token"] == token
+    assert data["guest_name"] == "John Doe"
     assert data["status"] == GuestStatus.PENDING.value
     assert data["is_plus_one"] is False
 
@@ -69,13 +76,19 @@ async def test_get_rsvp_invalid_token(
     client_factory,
 ):
     """Test that an invalid token returns 404."""
+    token = str(uuid4())
     guest = GuestDTO(
         id=uuid4(),
-        name="John Doe",
-        status=GuestStatus.PENDING,
+        email="john@example.com",
+        rsvp=RSVPDTO(
+            status=GuestStatus.PENDING,
+            token=token,
+            link=f"http://localhost:4321/rsvp/?token={token}",
+        ),
+        first_name="John",
+        last_name="Doe",
         is_plus_one=False,
         plus_one_name=None,
-        email="john@example.com",
     )
 
     read_model = InMemoryRSVPReadModel([guest])
