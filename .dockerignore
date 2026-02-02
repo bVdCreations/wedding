@@ -1,0 +1,33 @@
+.git/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+e2e
+node_modules
+**/node_modules
+packages/ui/node_modules
+packages/e2e/node_modules
+
+# testing
+.coverage
+!e2e/dummy_files
+.venv
+.python-version
+
+.nuxt/
+**/.nuxt/
+
+coverage/
+**/coverage/
+
+# static builds
+dist
+.output
+
+.crush
+.pytest_cache
+.ropeproject
+.ruff_cache
+
+
