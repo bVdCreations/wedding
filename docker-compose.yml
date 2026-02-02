@@ -41,7 +41,11 @@ services:
       mailhog:
         condition: service_started
     volumes:
-      - .:/app
+      - ./src:/app/src
+      - ./migrations:/app/migrations
+      - ./alembic.ini:/app/alembic.ini
+      - ./pyproject.toml:/app/pyproject.toml
+      - ./cli.py:/app/cli.py
 
   # Frontend
   frontend:
