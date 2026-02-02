@@ -6,7 +6,13 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
+from src.config.database import init_test_db
 from src.main import app
+
+
+@pytest_asyncio.fixture(loop_scope="session", scope="session", autouse=True)
+async def migrate_test_db():
+    await init_test_db()
 
 
 @asynccontextmanager
