@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     app_port: int = 8000
     debug: bool = True
     frontend_url: str = "http://localhost:4321"
+    cors_origins: list[str] = ["*"]
 
     # Database
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/wedding_rsvp"
