@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from uuid import UUID
 
@@ -34,12 +34,12 @@ class RSVPInfoDTO:
 
     token: str
     name: str
-    event_name: str
-    event_date: str
-    event_location: str
     status: GuestStatus
     is_plus_one: bool
     plus_one_name: str | None = None
+    # Prefill fields
+    attending: bool | None = None
+    dietary_requirements: list[dict] = field(default_factory=list)
 
 
 @dataclass(frozen=True)

@@ -132,6 +132,76 @@ import Layout from '../../layouts/Layout.astro';
     (document.getElementById('error-text') as HTMLElement).textContent = 'Invalid RSVP link. Please use the link from your invitation.';
   }
 
+  // Prefill form with existing data
+  async function prefetchGuestInfo() {
+    if (!token) return;
+
+    try {
+      const apiHost = import.meta.env.PUBLIC_BACKEND_API_URL || '';
+      const response = await fetch(`${apiHost}/api/v1/guests/${token}/info`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        prefillForm(data);
+      }
+      // If 404 or other error, form stays empty (first-time submission)
+    } catch (error) {
+      // Network error - form stays empty
+      console.warn('Could not fetch guest info for prefill:', error);
+    }
+  }
+
+  function prefillForm(data: {
+    attending: boolean | null;
+    is_plus_one: boolean;
+    plus_one_name: string | null;
+    dietary_requirements: Array<{requirement_type: string; notes: string | null}>;
+  }) {
+    // Prefill attending radio buttons
+    if (data.attending !== null && data.attending !== undefined) {
+      const attendingInput = document.querySelector(
+        `input[name="attending"][value="${data.attending ? 'yes' : 'no'}"]`
+      ) as HTMLInputElement;
+      if (attendingInput) {
+        attendingInput.checked = true;
+        // Trigger change event to show/hide sections
+        attendingInput.dispatchEvent(new Event('change'));
+      }
+    }
+
+    // Prefill plus one
+    if (data.is_plus_one) {
+      plusOneCheckbox.checked = true;
+      plusOneNameSection.style.display = 'block';
+      const plusOneNameInput = document.getElementById('plus_one_name') as HTMLInputElement;
+      if (plusOneNameInput && data.plus_one_name) {
+        plusOneNameInput.value = data.plus_one_name;
+      }
+    }
+
+    // Prefill dietary requirements
+    if (data.dietary_requirements) {
+      data.dietary_requirements.forEach(req => {
+        const checkbox = document.querySelector(
+          `input[name="dietary"][value="${req.requirement_type}"]`
+        ) as HTMLInputElement;
+        if (checkbox) {
+          checkbox.checked = true;
+        }
+        // Handle "other" with notes
+        if (req.requirement_type === 'other' && req.notes) {
+          const notesInput = document.getElementById('dietary_notes') as HTMLTextAreaElement;
+          if (notesInput) {
+            notesInput.value = req.notes;
+          }
+        }
+      });
+    }
+  }
+
+  // Prefetch guest info on page load
+  prefetchGuestInfo();
+
   // Show/hide sections based on attendance
   attendingInputs.forEach(input => {
     input.addEventListener('change', (e) => {

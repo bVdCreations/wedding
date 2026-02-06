@@ -2,7 +2,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.guests.dtos import GuestDTO, GuestStatus, RSVPInfoDTO, RSVPDTO
+from src.guests.dtos import DietaryType, GuestDTO, GuestStatus, RSVPInfoDTO, RSVPDTO
 from src.guests.features.get_guest_info.router import get_rsvp_read_model
 from src.guests.repository.read_models import RSVPReadModel
 from src.guests.urls import GET_GUEST_INFO_URL
@@ -24,21 +24,68 @@ class InMemoryRSVPReadModel(RSVPReadModel):
             return None
 
         name = " ".join(filter(None, [guest.first_name, guest.last_name])).strip()
+        
+        # Calculate attending from status
+        if guest.rsvp.status == GuestStatus.CONFIRMED:
+            attending = True
+        elif guest.rsvp.status == GuestStatus.DECLINED:
+            attending = False
+        else:
+            attending = None
+        
         return RSVPInfoDTO(
             token=guest.rsvp.token,
             name=name,
-            event_name="Wedding Celebration",
-            event_date="October 15, 2026 at 3:00 PM",
-            event_location="Grand Ballroom",
             status=guest.rsvp.status,
             is_plus_one=guest.is_plus_one,
             plus_one_name=guest.plus_one_name,
+            attending=attending,
+            dietary_requirements=[],
+        )
+
+
+class InMemoryRSVPReadModelWithDietary(RSVPReadModel):
+    """In-memory read model with dietary requirements for testing."""
+
+    def __init__(self, guests: list[GuestDTO] = None):
+        self._guests: dict[str, GuestDTO] = {}
+        if guests:
+            for guest in guests:
+                self._guests[guest.rsvp.token] = guest
+
+    async def get_rsvp_info(self, token: str) -> RSVPInfoDTO | None:
+        """Get RSVP info from in-memory storage with dietary requirements."""
+        guest = self._guests.get(token)
+        if not guest:
+            return None
+
+        name = " ".join(filter(None, [guest.first_name, guest.last_name])).strip()
+        
+        # Calculate attending from status
+        if guest.rsvp.status == GuestStatus.CONFIRMED:
+            attending = True
+        elif guest.rsvp.status == GuestStatus.DECLINED:
+            attending = False
+        else:
+            attending = None
+        
+        return RSVPInfoDTO(
+            token=guest.rsvp.token,
+            name=name,
+            status=guest.rsvp.status,
+            is_plus_one=guest.is_plus_one,
+            plus_one_name=guest.plus_one_name,
+            attending=attending,
+            dietary_requirements=[
+                {"requirement_type": "vegetarian", "notes": None},
+                {"requirement_type": "gluten_free", "notes": "Minor allergy"},
+            ],
         )
 
 
 @pytest.mark.asyncio
 async def test_get_rsvp_success(client_factory):
-    """Test that a valid token returns RSVP page information."""
+    """Test that a valid token returns RSVP page information with prefill data."""
     token = str(uuid4())
     guest = GuestDTO(
         id=uuid4(),
@@ -65,10 +112,82 @@ async def test_get_rsvp_success(client_factory):
 
     assert response.status_code == 200
     data = response.json()
-    assert data["token"] == token
+    # Token is no longer returned in response (already in URL)
     assert data["guest_name"] == "John Doe"
     assert data["status"] == GuestStatus.PENDING.value
     assert data["is_plus_one"] is False
+    assert data["attending"] is None  # PENDING -> None
+    assert data["dietary_requirements"] == []
+
+
+@pytest.mark.asyncio
+async def test_get_rsvp_confirmed_with_dietary(client_factory):
+    """Test that confirmed RSVP returns attending=true with dietary requirements."""
+    token = str(uuid4())
+    guest = GuestDTO(
+        id=uuid4(),
+        email="john@example.com",
+        rsvp=RSVPDTO(
+            status=GuestStatus.CONFIRMED,
+            token=token,
+            link=f"http://localhost:4321/rsvp/?token={token}",
+        ),
+        first_name="John",
+        last_name="Doe",
+        is_plus_one=True,
+        plus_one_name="Jane Smith",
+    )
+
+    read_model = InMemoryRSVPReadModelWithDietary([guest])
+
+    overrides = {
+        get_rsvp_read_model: lambda: read_model,
+    }
+
+    async with client_factory(overrides) as client:
+        response = await client.get(GET_GUEST_INFO_URL.format(token=token))
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["attending"] is True  # CONFIRMED -> True
+    assert data["is_plus_one"] is True
+    assert data["plus_one_name"] == "Jane Smith"
+    assert len(data["dietary_requirements"]) == 2
+    dietary_types = [req["requirement_type"] for req in data["dietary_requirements"]]
+    assert "vegetarian" in dietary_types
+    assert "gluten_free" in dietary_types
+
+
+@pytest.mark.asyncio
+async def test_get_rsvp_declined(client_factory):
+    """Test that declined RSVP returns attending=false."""
+    token = str(uuid4())
+    guest = GuestDTO(
+        id=uuid4(),
+        email="john@example.com",
+        rsvp=RSVPDTO(
+            status=GuestStatus.DECLINED,
+            token=token,
+            link=f"http://localhost:4321/rsvp/?token={token}",
+        ),
+        first_name="Jane",
+        last_name="Doe",
+        is_plus_one=False,
+        plus_one_name=None,
+    )
+
+    read_model = InMemoryRSVPReadModel([guest])
+
+    overrides = {
+        get_rsvp_read_model: lambda: read_model,
+    }
+
+    async with client_factory(overrides) as client:
+        response = await client.get(GET_GUEST_INFO_URL.format(token=token))
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["attending"] is False  # DECLINED -> False
 
 
 @pytest.mark.asyncio
