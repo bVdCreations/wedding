@@ -1,7 +1,5 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-
-const token = Astro.url.searchParams.get('token');
 ---
 
 <Layout title="RSVP - Our Wedding">
@@ -11,7 +9,7 @@ const token = Astro.url.searchParams.get('token');
         <h1>You're Invited!</h1>
         <p class="intro">Please let us know if you can make it to our special day.</p>
         
-        <form id="rsvp-form" data-token={token}>
+        <form id="rsvp-form">
           <div class="form-section">
             <h2>Will you be attending?</h2>
             <div class="radio-group">
@@ -124,6 +122,16 @@ const token = Astro.url.searchParams.get('token');
   const errorMessage = document.getElementById('error-message') as HTMLElement;
   const submitBtn = document.querySelector('.submit-btn') as HTMLButtonElement;
 
+  // Get token from query parameters
+  const token = new URLSearchParams(window.location.search).get('token');
+
+  // Handle missing token
+  if (!token) {
+    form.style.display = 'none';
+    errorMessage.style.display = 'block';
+    (document.getElementById('error-text') as HTMLElement).textContent = 'Invalid RSVP link. Please use the link from your invitation.';
+  }
+
   // Show/hide sections based on attendance
   attendingInputs.forEach(input => {
     input.addEventListener('change', (e) => {
@@ -149,8 +157,7 @@ const token = Astro.url.searchParams.get('token');
   // Handle form submission
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    const token = form.dataset.token;
+
     const attending = document.querySelector('input[name="attending"]:checked') as HTMLInputElement;
     const attendingValue = attending?.value === 'yes';
     const plusOne = plusOneCheckbox.checked;
