@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from uuid import UUID
 
+from pydantic import EmailStr
+
 
 class GuestAlreadyExistsError(Exception):
     """Raised when trying to create a guest for a user who already has one."""
@@ -26,6 +28,15 @@ class GuestStatus(str, Enum):
     PENDING = "pending"
     CONFIRMED = "confirmed"
     DECLINED = "declined"
+
+
+@dataclass(frozen=True)
+class PlusOneDTO:
+    """DTO for plus one guest data used in RSVP submission."""
+
+    email: EmailStr
+    first_name: str
+    last_name: str
 
 
 @dataclass(frozen=True)

@@ -1,4 +1,4 @@
-.PHONY: start stop start-backend start-db start-frontend install test lint format
+.PHONY: start stop start-backend start-db start-frontend install test lint format fake-guest fake-plus-one
 
 # Start all services with Docker Compose
 start:
@@ -38,7 +38,10 @@ format:
 	ruff format src/
 
 fake-guest:
-	python cli.py create_guest
+	python cli.py create-guest
+
+fake-plus-one:
+	python cli.py create-plus-one
 
 migrate-db:
 	alembic upgrade head

@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from src.config.database import async_session_manager
 from src.email.service import EmailService
-from src.guests.dtos import DietaryType, GuestStatus, RSVPResponseDTO
+from src.guests.dtos import DietaryType, GuestStatus, PlusOneDTO, RSVPResponseDTO
 from src.guests.repository.orm_models import DietaryOption, Guest, RSVPInfo
 from src.guests.repository.write_models import SqlRSVPWriteModel
 from src.models.user import User
@@ -20,9 +20,7 @@ class MockEmailService(EmailService):
         to_address: str,
         guest_name: str,
         attending: str,
-        plus_one: str,
         dietary: str,
-        couple_names: str,
     ) -> None:
         """Mock send confirmation - does nothing."""
         pass
@@ -35,12 +33,8 @@ async def create_test_user(async_session):
         select(User).where(User.email == "test@example.com")
     )
     if existing_user.scalar_one_or_none():
-        await async_session.execute(
-            select(User).where(User.email == "test@example.com")
-        )
-        await async_session.execute(
-            User.__table__.delete().where(User.email == "test@example.com")
-        )
+        await async_session.execute(select(User).where(User.email == "test@example.com"))
+        await async_session.execute(User.__table__.delete().where(User.email == "test@example.com"))
         await async_session.commit()
 
     user = User(
@@ -62,7 +56,9 @@ async def create_test_guest(async_session, test_user):
     existing_rsvp_data = existing_rsvp.scalar_one_or_none()
     if existing_rsvp_data:
         await async_session.execute(
-            DietaryOption.__table__.delete().where(DietaryOption.guest_id == existing_rsvp_data.guest_id)
+            DietaryOption.__table__.delete().where(
+                DietaryOption.guest_id == existing_rsvp_data.guest_id
+            )
         )
         await async_session.execute(
             RSVPInfo.__table__.delete().where(RSVPInfo.rsvp_token == "test-token-12345")
@@ -107,12 +103,8 @@ async def setup_test_data():
         await session.execute(
             RSVPInfo.__table__.delete().where(RSVPInfo.rsvp_token == "test-token-12345")
         )
-        await session.execute(
-            Guest.__table__.delete().where(Guest.uuid == guest.uuid)
-        )
-        await session.execute(
-            User.__table__.delete().where(User.email == "test@example.com")
-        )
+        await session.execute(Guest.__table__.delete().where(Guest.uuid == guest.uuid))
+        await session.execute(User.__table__.delete().where(User.email == "test@example.com"))
         await session.commit()
 
 
@@ -126,8 +118,7 @@ async def test_submit_rsvp_attending(setup_test_data):
     result = await write_model.submit_rsvp(
         token="test-token-12345",
         attending=True,
-        plus_one=False,
-        plus_one_name=None,
+        plus_one_details=None,
         dietary_requirements=[],
     )
 
@@ -138,9 +129,7 @@ async def test_submit_rsvp_attending(setup_test_data):
 
     # Verify database state
     async with async_session_manager() as session:
-        rsvp_result = await session.execute(
-            select(RSVPInfo).where(RSVPInfo.guest_id == guest_uuid)
-        )
+        rsvp_result = await session.execute(select(RSVPInfo).where(RSVPInfo.guest_id == guest_uuid))
         rsvp_info = rsvp_result.scalar_one()
         assert rsvp_info.status == GuestStatus.CONFIRMED
 
@@ -155,8 +144,7 @@ async def test_submit_rsvp_not_attending(setup_test_data):
     result = await write_model.submit_rsvp(
         token="test-token-12345",
         attending=False,
-        plus_one=False,
-        plus_one_name=None,
+        plus_one_details=None,
         dietary_requirements=[],
     )
 
@@ -167,9 +155,7 @@ async def test_submit_rsvp_not_attending(setup_test_data):
 
     # Verify database state
     async with async_session_manager() as session:
-        rsvp_result = await session.execute(
-            select(RSVPInfo).where(RSVPInfo.guest_id == guest_uuid)
-        )
+        rsvp_result = await session.execute(select(RSVPInfo).where(RSVPInfo.guest_id == guest_uuid))
         rsvp_info = rsvp_result.scalar_one()
         assert rsvp_info.status == GuestStatus.DECLINED
 
@@ -189,8 +175,7 @@ async def test_submit_rsvp_with_dietary_requirements(setup_test_data):
     result = await write_model.submit_rsvp(
         token="test-token-12345",
         attending=True,
-        plus_one=False,
-        plus_one_name=None,
+        plus_one_details=None,
         dietary_requirements=dietary_requirements,
     )
 
@@ -200,7 +185,9 @@ async def test_submit_rsvp_with_dietary_requirements(setup_test_data):
 
     # Verify database state
     async with async_session_manager() as session:
-        result = await session.execute(select(DietaryOption).where(DietaryOption.guest_id == guest_uuid))
+        result = await session.execute(
+            select(DietaryOption).where(DietaryOption.guest_id == guest_uuid)
+        )
         dietary_opts = result.scalars().all()
         assert len(dietary_opts) == 2
 
@@ -212,21 +199,25 @@ async def test_submit_rsvp_with_plus_one(setup_test_data):
 
     write_model = SqlRSVPWriteModel(email_service=MockEmailService())
 
+    plus_one_details = PlusOneDTO(
+        email="jane@example.com",
+        first_name="Jane",
+        last_name="Doe",
+    )
+
     result = await write_model.submit_rsvp(
         token="test-token-12345",
         attending=True,
-        plus_one=True,
-        plus_one_name="Jane Doe",
+        plus_one_details=plus_one_details,
         dietary_requirements=[],
     )
 
     assert isinstance(result, RSVPResponseDTO)
     assert result.attending is True
 
-    # Verify database state
+    # Verify database state - plus_one_name should be set for display
     async with async_session_manager() as session:
         guest = await session.get(Guest, guest_uuid)
-        assert guest.is_plus_one is True
         assert guest.plus_one_name == "Jane Doe"
 
 
@@ -239,8 +230,7 @@ async def test_submit_rsvp_with_invalid_token():
         await write_model.submit_rsvp(
             token="invalid-token",
             attending=True,
-            plus_one=False,
-            plus_one_name=None,
+            plus_one_details=None,
             dietary_requirements=[],
         )
 
@@ -265,8 +255,7 @@ async def test_submit_rsvp_clears_previous_dietary(setup_test_data):
     await write_model.submit_rsvp(
         token="test-token-12345",
         attending=True,
-        plus_one=False,
-        plus_one_name=None,
+        plus_one_details=None,
         dietary_requirements=[{"requirement_type": "vegan", "notes": "New preference"}],
     )
 
@@ -288,8 +277,7 @@ async def test_submit_rsvp_without_email_service(setup_test_data):
     result = await write_model.submit_rsvp(
         token="test-token-12345",
         attending=True,
-        plus_one=False,
-        plus_one_name=None,
+        plus_one_details=None,
         dietary_requirements=[],
     )
 
@@ -299,13 +287,12 @@ async def test_submit_rsvp_without_email_service(setup_test_data):
 
 @pytest.mark.asyncio
 async def test_submit_rsvp_declined_clears_plus_one(setup_test_data):
-    """Test that declining clears plus one fields."""
+    """Test that declining clears plus one name."""
     guest_uuid = setup_test_data["guest"].uuid
 
-    # Set initial plus one
+    # Set initial plus one name
     async with async_session_manager() as session:
         guest = await session.get(Guest, guest_uuid)
-        guest.is_plus_one = True
         guest.plus_one_name = "Jane Doe"
         await session.commit()
 
@@ -314,13 +301,11 @@ async def test_submit_rsvp_declined_clears_plus_one(setup_test_data):
     await write_model.submit_rsvp(
         token="test-token-12345",
         attending=False,
-        plus_one=False,
-        plus_one_name=None,
+        plus_one_details=None,
         dietary_requirements=[],
     )
 
-    # Verify plus one fields are cleared
+    # Verify plus one name is cleared when declining
     async with async_session_manager() as session:
         guest = await session.get(Guest, guest_uuid)
-        assert guest.is_plus_one is False
         assert guest.plus_one_name is None

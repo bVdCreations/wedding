@@ -1,6 +1,8 @@
+from dataclasses import asdict
+
 import pytest
 
-from src.guests.dtos import GuestStatus, RSVPResponseDTO
+from src.guests.dtos import GuestStatus, PlusOneDTO, RSVPResponseDTO
 from src.guests.features.update_rsvp.router import get_rsvp_write_model
 from src.guests.repository.write_models import RSVPWriteModel
 from src.guests.urls import UPDATE_RSVP_URL
@@ -19,14 +21,12 @@ class InMemoryRSVPWriteModel(RSVPWriteModel):
         self,
         token: str,
         attending: bool,
-        plus_one: bool,
-        plus_one_name: str | None,
+        plus_one_details: PlusOneDTO | None,
         dietary_requirements: list[dict],
     ) -> RSVPResponseDTO:
         self._memory[token] = {
             "attending": attending,
-            "plus_one": plus_one,
-            "plus_one_name": plus_one_name,
+            "plus_one_details": plus_one_details,
             "dietary_requirements": dietary_requirements,
         }
 
@@ -49,7 +49,7 @@ async def test_submit_rsvp_attending(client_factory):
     token = "test-token-12345"
     write_model = InMemoryRSVPWriteModel(memory)
     """Test submitting an RSVP with attending=true."""
-    rsvp_data = {"attending": True, "plus_one": False, "dietary_requirements": []}
+    rsvp_data = {"attending": True, "dietary_requirements": []}
     overrides = {
         get_rsvp_write_model: lambda: write_model,
     }
@@ -69,7 +69,7 @@ async def test_submit_rsvp_not_attending(client_factory):
     memory = {}
     token = "test-token-12345"
     write_model = InMemoryRSVPWriteModel(memory)
-    rsvp_data = {"attending": False, "plus_one": False, "dietary_requirements": []}
+    rsvp_data = {"attending": False, "dietary_requirements": []}
     overrides = {
         get_rsvp_write_model: lambda: write_model,
     }
@@ -93,7 +93,6 @@ async def test_submit_rsvp_with_dietary_requirements(client_factory):
     write_model = InMemoryRSVPWriteModel(memory)
     rsvp_data = {
         "attending": True,
-        "plus_one": False,
         "dietary_requirements": [
             {"requirement_type": "vegetarian", "notes": "No mushrooms please"},
             {"requirement_type": "gluten_free", "notes": None},
@@ -121,8 +120,11 @@ async def test_submit_rsvp_with_plus_one(client_factory):
     write_model = InMemoryRSVPWriteModel(memory)
     rsvp_data = {
         "attending": True,
-        "plus_one": True,
-        "plus_one_name": "John Doe",
+        "plus_one_details": {
+            "email": "plusone@example.com",
+            "first_name": "John",
+            "last_name": "Doe",
+        },
         "dietary_requirements": [],
     }
     overrides = {
@@ -136,3 +138,9 @@ async def test_submit_rsvp_with_plus_one(client_factory):
     data = response.json()
     assert data["attending"] is True
     assert data["status"] == GuestStatus.CONFIRMED.value
+
+    assert asdict(memory[token]["plus_one_details"]) == {
+        "email": "plusone@example.com",
+        "first_name": "John",
+        "last_name": "Doe",
+    }

@@ -92,7 +92,6 @@ class EmailTemplates:
         <div style="background-color: #fefae0; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h2 style="color: #bc6c25; margin-top: 0;">Your Response</h2>
             <p><strong>Attending:</strong> {attending}</p>
-            <p><strong>Plus One:</strong> {plus_one}</p>
             <p><strong>Dietary Requirements:</strong> {dietary}</p>
         </div>
         
@@ -110,7 +109,6 @@ class EmailTemplates:
 
     Your Response:
     - Attending: {attending}
-    - Plus One: {plus_one}
     - Dietary Requirements: {dietary}
 
     We can't wait to celebrate with you!

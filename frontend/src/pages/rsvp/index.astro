@@ -28,15 +28,33 @@ import Layout from '../../layouts/Layout.astro';
 
           <div class="form-section" id="plus-one-section" style="display: none;">
             <h2>Plus One</h2>
-            <label class="checkbox-label">
-              <input type="checkbox" name="plus_one" id="plus-one-checkbox" />
-              <span class="checkbox-custom"></span>
-              I'm bringing a plus one
-            </label>
-            
-            <div id="plus-one-name-section" style="display: none; margin-top: 1rem;">
-              <label for="plus_one_name">Plus One's Name</label>
-              <input type="text" id="plus_one_name" name="plus_one_name" placeholder="Enter their name" />
+            <!-- Show if guest is NOT a plus one -->
+            <div id="plus-one-allowed" style="display: none;">
+              <label class="checkbox-label">
+                <input type="checkbox" name="plus_one" id="plus-one-checkbox" />
+                <span class="checkbox-custom"></span>
+                I'm bringing a plus one
+              </label>
+
+              <div id="plus-one-details-section" style="display: none; margin-top: 1rem;">
+                <h3>Plus One Details</h3>
+                <div class="form-group">
+                  <label for="plus_one_email">Email</label>
+                  <input type="email" id="plus_one_email" name="plus_one_email" placeholder="email@example.com" />
+                </div>
+                <div class="form-group">
+                  <label for="plus_one_first_name">First Name</label>
+                  <input type="text" id="plus_one_first_name" name="plus_one_first_name" placeholder="First name" />
+                </div>
+                <div class="form-group">
+                  <label for="plus_one_last_name">Last Name</label>
+                  <input type="text" id="plus_one_last_name" name="plus_one_last_name" placeholder="Last name" />
+                </div>
+              </div>
+            </div>
+            <!-- Show if guest IS a plus one -->
+            <div id="plus-one-not-allowed" style="display: none;">
+              <p class="help-text">As a plus one, you cannot bring additional guests.</p>
             </div>
           </div>
 
@@ -115,12 +133,17 @@ import Layout from '../../layouts/Layout.astro';
   const form = document.getElementById('rsvp-form') as HTMLFormElement;
   const attendingInputs = document.getElementsByName('attending') as NodeListOf<HTMLInputElement>;
   const plusOneSection = document.getElementById('plus-one-section') as HTMLElement;
+  const plusOneAllowed = document.getElementById('plus-one-allowed') as HTMLElement;
+  const plusOneNotAllowed = document.getElementById('plus-one-not-allowed') as HTMLElement;
   const plusOneCheckbox = document.getElementById('plus-one-checkbox') as HTMLInputElement;
-  const plusOneNameSection = document.getElementById('plus-one-name-section') as HTMLElement;
+  const plusOneDetailsSection = document.getElementById('plus-one-details-section') as HTMLElement;
   const dietarySection = document.getElementById('dietary-section') as HTMLElement;
   const successMessage = document.getElementById('success-message') as HTMLElement;
   const errorMessage = document.getElementById('error-message') as HTMLElement;
   const submitBtn = document.querySelector('.submit-btn') as HTMLButtonElement;
+
+  // Track if current guest is a plus-one (can't add their own plus-one)
+  let guestIsPlusOne = false;
 
   // Get token from query parameters
   const token = new URLSearchParams(window.location.search).get('token');
@@ -157,6 +180,9 @@ import Layout from '../../layouts/Layout.astro';
     plus_one_name: string | null;
     dietary_requirements: Array<{requirement_type: string; notes: string | null}>;
   }) {
+    // Store if guest is a plus-one (they can't add their own plus-one)
+    guestIsPlusOne = data.is_plus_one;
+
     // Prefill attending radio buttons
     if (data.attending !== null && data.attending !== undefined) {
       const attendingInput = document.querySelector(
@@ -169,13 +195,20 @@ import Layout from '../../layouts/Layout.astro';
       }
     }
 
-    // Prefill plus one
-    if (data.is_plus_one) {
+    // Prefill plus one checkbox if plus_one_name is set (means they previously indicated a plus-one)
+    if (data.plus_one_name && !guestIsPlusOne) {
       plusOneCheckbox.checked = true;
-      plusOneNameSection.style.display = 'block';
-      const plusOneNameInput = document.getElementById('plus_one_name') as HTMLInputElement;
-      if (plusOneNameInput && data.plus_one_name) {
-        plusOneNameInput.value = data.plus_one_name;
+      plusOneDetailsSection.style.display = 'block';
+      // Note: We don't have the email stored, so we can't prefill it
+      // Parse first/last name from plus_one_name if possible
+      const nameParts = data.plus_one_name.trim().split(' ');
+      const firstNameInput = document.getElementById('plus_one_first_name') as HTMLInputElement;
+      const lastNameInput = document.getElementById('plus_one_last_name') as HTMLInputElement;
+      if (firstNameInput && nameParts.length > 0) {
+        firstNameInput.value = nameParts[0];
+      }
+      if (lastNameInput && nameParts.length > 1) {
+        lastNameInput.value = nameParts.slice(1).join(' ');
       }
     }
 
@@ -209,19 +242,28 @@ import Layout from '../../layouts/Layout.astro';
       if (attending === 'yes') {
         plusOneSection.style.display = 'block';
         dietarySection.style.display = 'block';
+
+        // Show appropriate plus-one section based on whether guest is a plus-one
+        if (guestIsPlusOne) {
+          plusOneAllowed.style.display = 'none';
+          plusOneNotAllowed.style.display = 'block';
+        } else {
+          plusOneAllowed.style.display = 'block';
+          plusOneNotAllowed.style.display = 'none';
+        }
       } else {
         plusOneSection.style.display = 'none';
         dietarySection.style.display = 'none';
         plusOneCheckbox.checked = false;
-        plusOneNameSection.style.display = 'none';
+        plusOneDetailsSection.style.display = 'none';
       }
     });
   });
 
-  // Show/hide plus one name input
+  // Show/hide plus one details input
   plusOneCheckbox.addEventListener('change', (e) => {
     const checked = (e.target as HTMLInputElement).checked;
-    plusOneNameSection.style.display = checked ? 'block' : 'none';
+    plusOneDetailsSection.style.display = checked ? 'block' : 'none';
   });
 
   // Handle form submission
@@ -230,15 +272,30 @@ import Layout from '../../layouts/Layout.astro';
 
     const attending = document.querySelector('input[name="attending"]:checked') as HTMLInputElement;
     const attendingValue = attending?.value === 'yes';
-    const plusOne = plusOneCheckbox.checked;
-    const plusOneName = (document.getElementById('plus-one-name') as HTMLInputElement)?.value || null;
-    
+    const plusOne = plusOneCheckbox.checked && !guestIsPlusOne;
+
+    // Collect plus one details if bringing a plus one
+    let plusOneDetails = null;
+    if (plusOne) {
+      const email = (document.getElementById('plus_one_email') as HTMLInputElement)?.value;
+      const firstName = (document.getElementById('plus_one_first_name') as HTMLInputElement)?.value;
+      const lastName = (document.getElementById('plus_one_last_name') as HTMLInputElement)?.value;
+
+      if (email && firstName && lastName) {
+        plusOneDetails = {
+          email: email,
+          first_name: firstName,
+          last_name: lastName,
+        };
+      }
+    }
+
     // Collect dietary requirements
     const dietaryCheckboxes = document.querySelectorAll('input[name="dietary"]:checked');
     const dietaryRequirements = Array.from(dietaryCheckboxes).map(cb => ({
       requirement_type: (cb as HTMLInputElement).value,
-      notes: (cb as HTMLInputElement).value === 'other' 
-        ? (document.getElementById('dietary_notes') as HTMLTextAreaElement)?.value || null 
+      notes: (cb as HTMLInputElement).value === 'other'
+        ? (document.getElementById('dietary_notes') as HTMLTextAreaElement)?.value || null
         : null
     }));
 
@@ -255,7 +312,7 @@ import Layout from '../../layouts/Layout.astro';
         body: JSON.stringify({
           attending: attendingValue,
           plus_one: plusOne,
-          plus_one_name: plusOneName,
+          plus_one_details: plusOneDetails,
           dietary_requirements: dietaryRequirements
         })
       });
@@ -357,7 +414,7 @@ import Layout from '../../layouts/Layout.astro';
     accent-color: var(--color-primary);
   }
 
-  input[type="text"], textarea {
+  input[type="text"], input[type="email"], textarea {
     width: 100%;
     padding: 12px;
     border: 1px solid #ddd;
@@ -366,9 +423,25 @@ import Layout from '../../layouts/Layout.astro';
     margin-top: 0.5rem;
   }
 
-  input[type="text"]:focus, textarea:focus {
+  input[type="text"]:focus, input[type="email"]:focus, textarea:focus {
     outline: none;
     border-color: var(--color-primary);
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+  }
+
+  h3 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    color: var(--color-text);
   }
 
   .form-actions {

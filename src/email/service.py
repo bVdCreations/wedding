@@ -53,7 +53,6 @@ class EmailService:
         event_location: str,
         rsvp_url: str,
         response_deadline: str,
-        couple_names: str,
     ) -> None:
         html_body = EmailTemplates.INVITATION_HTML.format(
             guest_name=guest_name,
@@ -61,7 +60,7 @@ class EmailService:
             event_location=event_location,
             rsvp_url=rsvp_url,
             response_deadline=response_deadline,
-            couple_names=couple_names,
+            couple_names="TODO change this",
         )
         text_body = EmailTemplates.INVITATION_TEXT.format(
             guest_name=guest_name,
@@ -69,7 +68,7 @@ class EmailService:
             event_location=event_location,
             rsvp_url=rsvp_url,
             response_deadline=response_deadline,
-            couple_names=couple_names,
+            couple_names="TODO change this",
         )
 
         msg = self._create_message(
@@ -86,23 +85,21 @@ class EmailService:
         to_address: str,
         guest_name: str,
         attending: str,
-        plus_one: str,
         dietary: str,
-        couple_names: str,
     ) -> None:
         html_body = EmailTemplates.CONFIRMATION_HTML.format(
             guest_name=guest_name,
             attending=attending,
             plus_one=plus_one,
             dietary=dietary,
-            couple_names=couple_names,
+            couple_names="TODO change this",
         )
         text_body = EmailTemplates.CONFIRMATION_TEXT.format(
             guest_name=guest_name,
             attending=attending,
             plus_one=plus_one,
             dietary=dietary,
-            couple_names=couple_names,
+            couple_names="TODO change this",
         )
 
         msg = self._create_message(
@@ -113,6 +110,16 @@ class EmailService:
         )
 
         self._send(msg)
+
+    async def send_invite_one_plus_one(
+        self,
+        to_address: str,
+        guest_name: str,
+        plus_one_details: dict,
+    ) -> None:
+        # TODO: Add plus_one_details to template
+
+        pass
 
 
 # Singleton instance

@@ -1,14 +1,19 @@
 """RSVP models - Read and write models that return DTOs, never ORM models."""
 
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import async_session_manager
 from src.email.service import EmailService
-from src.guests.dtos import GuestStatus, RSVPResponseDTO
+from src.guests.dtos import GuestStatus, PlusOneDTO, RSVPResponseDTO
 from src.guests.repository.orm_models import DietaryOption, DietaryType, Guest, RSVPInfo
 from src.models.user import User
+
+if TYPE_CHECKING:
+    from src.guests.features.create_plus_one_guest.write_model import PlusOneGuestWriteModel
 
 
 class RSVPWriteModel(ABC):
@@ -17,8 +22,7 @@ class RSVPWriteModel(ABC):
         self,
         token: str,
         attending: bool,
-        plus_one: bool,
-        plus_one_name: str | None,
+        plus_one_details: PlusOneDTO | None,
         dietary_requirements: list[dict],
     ) -> RSVPResponseDTO:
         """
@@ -33,9 +37,13 @@ class SqlRSVPWriteModel:
 
     def __init__(
         self,
+        session_overwrite: AsyncSession | None = None,
         email_service: EmailService | None = None,
+        plus_one_guest_write_model: "PlusOneGuestWriteModel | None" = None,
     ):
+        self._session_overwrite = session_overwrite
         self._email_service = email_service
+        self._plus_one_guest_write_model = plus_one_guest_write_model
 
     @property
     def email_service(self) -> EmailService | None:
@@ -63,15 +71,17 @@ class SqlRSVPWriteModel:
         self,
         token: str,
         attending: bool,
-        plus_one: bool,
-        plus_one_name: str | None,
+        plus_one_details: PlusOneDTO | None,
         dietary_requirements: list[dict],
     ) -> RSVPResponseDTO:
         """
         Submit RSVP response for a guest.
         Returns DTO instead of ORM model.
         """
-        async with async_session_manager() as session:
+        async with async_session_manager(session_overwrite=self._session_overwrite) as session:
+            if self._plus_one_guest_write_model:
+                self._plus_one_guest_write_model.session_overwrite(session)
+                self._plus_one_guest_write_model.set_email_service(self._email_service)
             guest = await self._get_guest_by_token(session, token)
             if not guest:
                 raise ValueError("Invalid RSVP token")
@@ -83,7 +93,13 @@ class SqlRSVPWriteModel:
 
             # Update RSVP status
             rsvp_info.status = GuestStatus.CONFIRMED if attending else GuestStatus.DECLINED
-            guest.is_plus_one = plus_one
+
+            # Build plus_one_name from details if provided
+            plus_one_name = None
+            if plus_one_details and attending:
+                plus_one_name = f"{plus_one_details.first_name} {plus_one_details.last_name}"
+
+            # Store plus_one_name for display (don't modify is_plus_one - that indicates if THIS guest is a plus-one)
             guest.plus_one_name = plus_one_name if attending else None
 
             # Clear existing dietary requirements
@@ -104,6 +120,13 @@ class SqlRSVPWriteModel:
                     session.add(dietary)
 
             await session.refresh(guest)
+
+            # Create plus-one guest if details provided
+            if attending and plus_one_details and self._plus_one_guest_write_model:
+                await self._plus_one_guest_write_model.create_plus_one_guest(
+                    original_guest_user_id=guest.user_id,
+                    plus_one_data=plus_one_details,
+                )
 
             # Build response message
             message = (
@@ -127,9 +150,7 @@ class SqlRSVPWriteModel:
                     to_address=user_email,
                     guest_name=guest_name,
                     attending="Yes" if attending else "No",
-                    plus_one="Yes" if plus_one else "No",
                     dietary=dietary_str,
-                    couple_names="[Couple Names]",  # TODO: Make configurable
                 )
 
             # Return DTO instead of ORM model
