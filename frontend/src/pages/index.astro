@@ -1,119 +1,254 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+const weddingDate = new Date('2026-11-07T00:00:00');
+const today = new Date();
+const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 ---
 
-<Layout title="Our Wedding - Save the Date">
-  <main>
-    <section class="hero">
-      <div class="container">
-        <h1>Save the Date</h1>
-        <p class="couple-names">[Couple Names]</p>
-        <p class="date">June 15, 2024</p>
-        <p class="location">[Wedding Location]</p>
-      </div>
-    </section>
+<Layout title="Bastiaan & Gemma - November 7, 2026">
+  <!-- Hero Section -->
+  <section class="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden">
+    <!-- Background Image -->
+    <div class="absolute inset-0 z-0">
+      <img 
+        src="https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" 
+        alt="Wedding background"
+        class="w-full h-full object-cover"
+      />
+      <div class="absolute inset-0 bg-black/30"></div>
+    </div>
+    
+    <!-- Content -->
+    <div class="relative z-10 text-center text-white px-4">
+      <p class="text-lg md:text-xl tracking-widest uppercase mb-4 opacity-90 font-light">Save the Date</p>
+      <h1 class="text-5xl md:text-7xl lg:text-8xl font-serif font-light mb-6 leading-tight">
+        Bastiaan & Gemma
+      </h1>
+      <p class="text-2xl md:text-3xl font-serif mb-4">November 7, 2026</p>
+      <p class="text-lg md:text-xl opacity-90 font-light">Barcelona, Spain</p>
+    </div>
+    
+    <!-- Scroll indicator -->
+    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 animate-bounce">
+      <svg class="w-6 h-6 text-white opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+      </svg>
+    </div>
+  </section>
 
-    <section class="intro">
-      <div class="container">
-        <p>
-          We are thrilled to invite you to celebrate our special day with us!
-          Join us as we begin our journey together.
-        </p>
+  <!-- Countdown Section -->
+  <section class="py-16 md:py-24 bg-stone-50">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+      <h2 class="text-3xl md:text-4xl font-serif mb-8 text-gray-800">The Big Day</h2>
+      <div class="flex flex-wrap justify-center gap-6 md:gap-12" id="countdown">
+        <div class="text-center">
+          <span class="block text-4xl md:text-6xl font-serif text-gray-800" id="days">0</span>
+          <span class="text-sm uppercase tracking-wider text-gray-500">Days</span>
+        </div>
+        <div class="text-center">
+          <span class="block text-4xl md:text-6xl font-serif text-gray-800" id="hours">0</span>
+          <span class="text-sm uppercase tracking-wider text-gray-500">Hours</span>
+        </div>
+        <div class="text-center">
+          <span class="block text-4xl md:text-6xl font-serif text-gray-800" id="minutes">0</span>
+          <span class="text-sm uppercase tracking-wider text-gray-500">Minutes</span>
+        </div>
+        <div class="text-center">
+          <span class="block text-4xl md:text-6xl font-serif text-gray-800" id="seconds">0</span>
+          <span class="text-sm uppercase tracking-wider text-gray-500">Seconds</span>
+        </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="rsvp-info">
-      <div class="container">
-        <h2>RSVP</h2>
-        <p>Please respond by May 1, 2024</p>
-        <p>You should have received an email with a unique link to respond.</p>
-        <p>If you haven't received your invitation, please contact us.</p>
-      </div>
-    </section>
+  <!-- Our Story / Intro -->
+  <section class="py-16 md:py-24 bg-white">
+    <div class="max-w-3xl mx-auto px-4 text-center">
+      <h2 class="text-3xl md:text-4xl font-serif mb-6 text-gray-800">We're Getting Married!</h2>
+      <p class="text-lg text-gray-600 leading-relaxed font-light">
+        We are thrilled to celebrate our special day with the people we love most. 
+        After years of adventures together, we can't wait to say "I do" in the beautiful city of Barcelona.
+        Join us for a day filled with love, laughter, and unforgettable memories.
+      </p>
+    </div>
+  </section>
 
-    <section class="contact">
-      <div class="container">
-        <h2>Contact Us</h2>
-        <p>For any questions, please reach out to us.</p>
-        <a href="mailto:contact@example.com">contact@example.com</a>
+  <!-- Ceremony Section -->
+  <section class="py-16 md:py-24 bg-stone-100">
+    <div class="max-w-4xl mx-auto px-4">
+      <div class="grid md:grid-cols-2 gap-12 items-center">
+        <div class="text-center md:text-left">
+          <p class="text-sm uppercase tracking-widest text-gray-500 mb-2">The Ceremony</p>
+          <h2 class="text-3xl md:text-4xl font-serif mb-4 text-gray-800">Say "I Do"</h2>
+          <div class="space-y-3 text-gray-600">
+            <p class="text-xl font-serif">November 7, 2026</p>
+            <p class="text-lg">4:00 PM</p>
+            <p class="font-medium text-gray-700">Sant Pau Recinte Modernista</p>
+            <p class="text-gray-500">Carrer de Sant Antoni María Claret, 167<br/>08025 Barcelona, Spain</p>
+          </div>
+        </div>
+        <div class="relative">
+          <img 
+            src="https://images.unsplash.com/photo-1606216794074-735e91aa2c92?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
+            alt="Ceremony venue"
+            class="w-full h-64 md:h-80 object-cover rounded-lg shadow-lg"
+          />
+        </div>
       </div>
-    </section>
-  </main>
+    </div>
+  </section>
+
+  <!-- Reception Section -->
+  <section class="py-16 md:py-24 bg-white">
+    <div class="max-w-4xl mx-auto px-4">
+      <div class="grid md:grid-cols-2 gap-12 items-center md:flex-row-reverse">
+        <div class="relative md:order-2">
+          <img 
+            src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
+            alt="Reception venue"
+            class="w-full h-64 md:h-80 object-cover rounded-lg shadow-lg"
+          />
+        </div>
+        <div class="text-center md:text-left md:order-1">
+          <p class="text-sm uppercase tracking-widest text-gray-500 mb-2">The Reception</p>
+          <h2 class="text-3xl md:text-4xl font-serif mb-4 text-gray-800">Celebrate With Us</h2>
+          <div class="space-y-3 text-gray-600">
+            <p class="text-xl font-serif">Following the Ceremony</p>
+            <p class="font-medium text-gray-700">Cava & Appetizers</p>
+            <p class="font-medium text-gray-700">Wedding Dinner</p>
+            <p class="font-medium text-gray-700">Dancing & Celebration</p>
+            <p class="text-gray-500 pt-2">Dress Code: Formal / Cocktail</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Photo Gallery -->
+  <section class="py-16 md:py-24 bg-stone-50">
+    <div class="max-w-6xl mx-auto px-4">
+      <h2 class="text-3xl md:text-4xl font-serif text-center mb-12 text-gray-800">Our Memories</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <img 
+          src="https://images.unsplash.com/photo-1522673607200-1645062cd958?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+          alt="Couple photo 1"
+          class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+        />
+        <img 
+          src="https://images.unsplash.com/photo-1529634806980-85c3dd6d34ac?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+          alt="Couple photo 2"
+          class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+        />
+        <img 
+          src="https://images.unsplash.com/photo-1511285560982-1351cdeb9821?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+          alt="Couple photo 3"
+          class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer hidden md:block"
+        />
+        <img 
+          src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+          alt="Couple photo 4"
+          class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer hidden md:block"
+        />
+        <img 
+          src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+          alt="Couple photo 5"
+          class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer hidden md:block"
+        />
+        <img 
+          src="https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+          alt="Couple photo 6"
+          class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer hidden md:block"
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- RSVP Section -->
+  <section class="py-16 md:py-24 bg-gray-800 text-white">
+    <div class="max-w-3xl mx-auto px-4 text-center">
+      <h2 class="text-3xl md:text-4xl font-serif mb-6">RSVP</h2>
+      <p class="text-lg opacity-90 mb-8 font-light">
+        We would be honored to have you celebrate this special day with us.<br/>
+        Please respond by September 7, 2026
+      </p>
+      <a 
+        href="/rsvp"
+        class="inline-block px-8 py-4 bg-[#c9a66b] text-white text-lg font-medium rounded-lg hover:bg-[#b8945a] transition-colors duration-300"
+      >
+        Respond to Invitation
+      </a>
+    </div>
+  </section>
+
+  <!-- Registry Section -->
+  <section class="py-16 md:py-24 bg-white">
+    <div class="max-w-3xl mx-auto px-4 text-center">
+      <h2 class="text-3xl md:text-4xl font-serif mb-6 text-gray-800">Gift Registry</h2>
+      <p class="text-lg text-gray-600 mb-8 font-light">
+        Your presence at our wedding is the greatest gift of all. 
+        However, if you wish to honor us with a gift, we have registered at:
+      </p>
+      <div class="flex flex-wrap justify-center gap-6">
+        <a 
+          href="#" 
+          class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700"
+        >
+          Amazon
+        </a>
+        <a 
+          href="#" 
+          class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700"
+        >
+          Zola
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section class="py-16 md:py-24 bg-stone-100">
+    <div class="max-w-2xl mx-auto px-4 text-center">
+      <h2 class="text-3xl md:text-4xl font-serif mb-6 text-gray-800">Questions?</h2>
+      <p class="text-lg text-gray-600 mb-8 font-light">
+        If you have any questions about the wedding, please don't hesitate to reach out.
+      </p>
+      <a 
+        href="mailto:bastiaan.gemma.wedding@email.com"
+        class="text-xl text-[#c9a66b] hover:text-[#b8945a] transition-colors font-serif"
+      >
+        bastiaan.gemma.wedding@email.com
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-8 bg-gray-800 text-white text-center">
+    <p class="text-sm opacity-70 font-light">Bastiaan & Gemma — November 7, 2026</p>
+  </footer>
 </Layout>
 
-<style>
-  main {
-    min-height: 100vh;
+<script>
+  // Countdown timer
+  const weddingDate = new Date('2026-11-07T00:00:00').getTime();
+
+  function updateCountdown() {
+    const now = new Date().getTime();
+    const distance = weddingDate - now;
+
+    if (distance > 0) {
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      document.getElementById('days')!.textContent = days.toString();
+      document.getElementById('hours')!.textContent = hours.toString();
+      document.getElementById('minutes')!.textContent = minutes.toString();
+      document.getElementById('seconds')!.textContent = seconds.toString();
+    }
   }
 
-  section {
-    padding: 60px 20px;
-  }
-
-  .hero {
-    background-color: var(--color-primary);
-    color: var(--color-white);
-    text-align: center;
-    padding: 100px 20px;
-  }
-
-  .hero h1 {
-    font-size: 3rem;
-    color: var(--color-white);
-    margin-bottom: 1rem;
-  }
-
-  .couple-names {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-  }
-
-  .date {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .location {
-    font-size: 1.2rem;
-    opacity: 0.9;
-  }
-
-  .intro {
-    text-align: center;
-    background-color: var(--color-white);
-  }
-
-  .intro p {
-    font-size: 1.2rem;
-    max-width: 600px;
-    margin: 0 auto;
-  }
-
-  .rsvp-info {
-    text-align: center;
-    background-color: var(--color-background);
-  }
-
-  .rsvp-info p {
-    margin-bottom: 1rem;
-  }
-
-  .contact {
-    text-align: center;
-    background-color: var(--color-white);
-  }
-
-  .contact a {
-    display: inline-block;
-    margin-top: 1rem;
-    padding: 10px 20px;
-    background-color: var(--color-primary);
-    color: var(--color-white);
-    border-radius: 5px;
-  }
-
-  .contact a:hover {
-    background-color: var(--color-secondary);
-    text-decoration: none;
-  }
-</style>
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+</script>
