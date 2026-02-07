@@ -1,8 +1,12 @@
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from pydantic import EmailStr
+
+if TYPE_CHECKING:
+    from src.guests.repository.orm_models import Guest
 
 
 class GuestAlreadyExistsError(Exception):
@@ -40,14 +44,50 @@ class PlusOneDTO:
 
 
 @dataclass(frozen=True)
+class FamilyMemberDTO:
+    """DTO for family member info in RSVP response."""
+
+    uuid: UUID
+    first_name: str
+    last_name: str
+    attending: bool | None = None
+    dietary_requirements: list[dict] = field(default_factory=list)
+    phone: str | None = None
+
+    @classmethod
+    def from_guest(cls, guest: "Guest", rsvp_status: GuestStatus | None = None, dietary_requirements: list[dict] = None) -> "FamilyMemberDTO":
+        """Create FamilyMemberDTO from Guest ORM model."""
+        attending = None
+        if rsvp_status == GuestStatus.CONFIRMED:
+            attending = True
+        elif rsvp_status == GuestStatus.DECLINED:
+            attending = False
+
+        return cls(
+            uuid=guest.uuid,
+            first_name=guest.first_name,
+            last_name=guest.last_name,
+            attending=attending,
+            dietary_requirements=dietary_requirements or [],
+            phone=guest.phone,
+        )
+
+
+@dataclass(frozen=True)
 class RSVPInfoDTO:
     """DTO for RSVP page info returned by read model."""
 
+    guest_uuid: UUID
     token: str
-    name: str
+    first_name: str
+    last_name: str
     status: GuestStatus
+    phone: str | None = None
     # plus_one_of_id presence indicates this guest is a plus-one
     plus_one_of_id: UUID | None = None
+    # Family info
+    family_id: UUID | None = None
+    family_members: list[FamilyMemberDTO] = field(default_factory=list)
     # Plus-one guest details (from bring_a_plus_one_id join)
     plus_one_email: str | None = None
     plus_one_first_name: str | None = None
@@ -88,4 +128,23 @@ class GuestDTO:
     # plus_one_of_id presence indicates this guest is a plus-one
     plus_one_of_id: UUID | None = None
     bring_a_plus_one_id: UUID | None = None
+    family_id: UUID | None = None
     notes: str | None = None
+
+
+@dataclass(frozen=True)
+class GuestInfoUpdateDTO:
+    """DTO for updating guest info (first_name, last_name, phone)."""
+
+    first_name: str
+    last_name: str
+    phone: str | None = None
+
+
+@dataclass(frozen=True)
+class FamilyMemberUpdateDTO:
+    """DTO for updating family member RSVP and info."""
+
+    attending: bool
+    dietary_requirements: list[dict] = field(default_factory=list)
+    guest_info: GuestInfoUpdateDTO | None = None

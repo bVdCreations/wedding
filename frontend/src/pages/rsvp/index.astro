@@ -10,6 +10,25 @@ import Layout from '../../layouts/Layout.astro';
         <p class="intro">Please let us know if you can make it to our special day.</p>
         
         <form id="rsvp-form">
+          <!-- Main Guest Section -->
+          <div class="form-section">
+            <h2>Your Information</h2>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="first_name">First Name</label>
+                <input type="text" id="first_name" name="first_name" required />
+              </div>
+              <div class="form-group">
+                <label for="last_name">Last Name</label>
+                <input type="text" id="last_name" name="last_name" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone (optional)</label>
+              <input type="tel" id="phone" name="phone" placeholder="+1234567890" />
+            </div>
+          </div>
+
           <div class="form-section">
             <h2>Will you be attending?</h2>
             <div class="radio-group">
@@ -26,9 +45,9 @@ import Layout from '../../layouts/Layout.astro';
             </div>
           </div>
 
+          <!-- Plus One Section -->
           <div class="form-section" id="plus-one-section" style="display: none;">
             <h2>Plus One</h2>
-            <!-- Show if guest is NOT a plus one -->
             <div id="plus-one-allowed" style="display: none;">
               <label class="checkbox-label">
                 <input type="checkbox" name="plus_one" id="plus-one-checkbox" />
@@ -52,16 +71,21 @@ import Layout from '../../layouts/Layout.astro';
                 </div>
               </div>
             </div>
-            <!-- Show if guest IS a plus one -->
             <div id="plus-one-not-allowed" style="display: none;">
               <p class="help-text">As a plus one, you cannot bring additional guests.</p>
             </div>
           </div>
 
+          <!-- Family Members Section -->
+          <div id="family-section" style="display: none;">
+            <div class="form-section family-member-section" id="family-members-container">
+            </div>
+          </div>
+
+          <!-- Dietary Requirements Section -->
           <div class="form-section" id="dietary-section" style="display: none;">
             <h2>Dietary Requirements</h2>
-            <p class="help-text">Select all that apply to you (and your plus one if applicable)</p>
-            
+            <p class="help-text">Select all that apply to you</p>
             <div class="checkbox-group">
               <label class="checkbox-label">
                 <input type="checkbox" name="dietary" value="vegetarian" />
@@ -104,15 +128,12 @@ import Layout from '../../layouts/Layout.astro';
                 Other (please specify below)
               </label>
             </div>
-
             <div style="margin-top: 1rem;">
-              <label for="dietary_notes">Additional dietary notes</label>
-              <textarea id="dietary_notes" name="dietary_notes" rows="3" placeholder="Please specify any other requirements..."></textarea>
             </div>
           </div>
 
           <div class="form-actions">
-            <button type="submit" class="submit-btn">Submit RSVP</button>
+            <button type="submit" class="submit-btn">Save All Responses</button>
           </div>
         </form>
 
@@ -138,113 +159,132 @@ import Layout from '../../layouts/Layout.astro';
   const plusOneCheckbox = document.getElementById('plus-one-checkbox') as HTMLInputElement;
   const plusOneDetailsSection = document.getElementById('plus-one-details-section') as HTMLElement;
   const dietarySection = document.getElementById('dietary-section') as HTMLElement;
+  const familySection = document.getElementById('family-section') as HTMLElement;
+  const familyMembersContainer = document.getElementById('family-members-container') as HTMLElement;
   const successMessage = document.getElementById('success-message') as HTMLElement;
   const errorMessage = document.getElementById('error-message') as HTMLElement;
   const submitBtn = document.querySelector('.submit-btn') as HTMLButtonElement;
 
-  // Track if current guest is a plus-one (can't add their own plus-one)
   let guestIsPlusOne = false;
+  let guestUuid = '';
+  let familyMembers: Array<{uuid: string; first_name: string; last_name: string; attending: boolean | null; phone: string | null; dietary_requirements: Array<{requirement_type: string}>;}> = [];
 
-  // Get token from query parameters
   const token = new URLSearchParams(window.location.search).get('token');
 
-  // Handle missing token
   if (!token) {
     form.style.display = 'none';
     errorMessage.style.display = 'block';
-    (document.getElementById('error-text') as HTMLElement).textContent = 'Invalid RSVP link. Please use the link from your invitation.';
+    (document.getElementById('error-text') as HTMLElement).textContent = 'Invalid RSVP link.';
   }
 
-  // Prefill form with existing data
   async function prefetchGuestInfo() {
     if (!token) return;
-
     try {
       const apiHost = import.meta.env.PUBLIC_BACKEND_API_URL || '';
       const response = await fetch(`${apiHost}/api/v1/guests/${token}/info`);
-      
       if (response.ok) {
         const data = await response.json();
         prefillForm(data);
       }
-      // If 404 or other error, form stays empty (first-time submission)
     } catch (error) {
-      // Network error - form stays empty
-      console.warn('Could not fetch guest info for prefill:', error);
+      console.warn('Could not fetch guest info:', error);
     }
   }
 
-  function prefillForm(data: {
-    attending: boolean | null;
-    is_plus_one: boolean;
-    plus_one: { email: string; first_name: string; last_name: string } | null;
-    dietary_requirements: Array<{requirement_type: string; notes: string | null}>;
-  }) {
-    // Store if guest is a plus-one (they can't add their own plus-one)
+  function prefillForm(data: {guest_uuid: string; first_name: string; last_name: string; phone: string | null; attending: boolean | null; is_plus_one: boolean; family_id: string | null; family_members: Array<{uuid: string; first_name: string; last_name: string; attending: boolean | null; phone: string | null; dietary_requirements: Array<{requirement_type: string; notes: string | null}>;}>; plus_one: {email: string; first_name: string; last_name: string} | null; dietary_requirements: Array<{requirement_type: string; notes: string | null}>;}) {
+    guestUuid = data.guest_uuid;
     guestIsPlusOne = data.is_plus_one;
+    familyMembers = data.family_members || [];
 
-    // Prefill attending radio buttons
+    const firstNameInput = document.getElementById('first_name') as HTMLInputElement;
+    const lastNameInput = document.getElementById('last_name') as HTMLInputElement;
+    const phoneInput = document.getElementById('phone') as HTMLInputElement;
+    if (firstNameInput) firstNameInput.value = data.first_name || '';
+    if (lastNameInput) lastNameInput.value = data.last_name || '';
+    if (phoneInput && data.phone) phoneInput.value = data.phone;
+
     if (data.attending !== null && data.attending !== undefined) {
-      const attendingInput = document.querySelector(
-        `input[name="attending"][value="${data.attending ? 'yes' : 'no'}"]`
-      ) as HTMLInputElement;
+      const attendingInput = document.querySelector(`input[name="attending"][value="${data.attending ? 'yes' : 'no'}"]`) as HTMLInputElement;
       if (attendingInput) {
         attendingInput.checked = true;
-        // Trigger change event to show/hide sections
         attendingInput.dispatchEvent(new Event('change'));
       }
     }
 
-    // Prefill plus one details if they previously indicated a plus-one
     if (data.plus_one && !guestIsPlusOne) {
       plusOneCheckbox.checked = true;
       plusOneDetailsSection.style.display = 'block';
       const emailInput = document.getElementById('plus_one_email') as HTMLInputElement;
-      const firstNameInput = document.getElementById('plus_one_first_name') as HTMLInputElement;
-      const lastNameInput = document.getElementById('plus_one_last_name') as HTMLInputElement;
-      if (emailInput) {
-        emailInput.value = data.plus_one.email;
-      }
-      if (firstNameInput) {
-        firstNameInput.value = data.plus_one.first_name;
-      }
-      if (lastNameInput) {
-        lastNameInput.value = data.plus_one.last_name;
-      }
+      if (emailInput) emailInput.value = data.plus_one.email;
     }
 
-    // Prefill dietary requirements
+    if (data.family_id && data.family_members && data.family_members.length > 0) {
+      renderFamilyMembers(data.family_members);
+    }
+
     if (data.dietary_requirements) {
       data.dietary_requirements.forEach(req => {
-        const checkbox = document.querySelector(
-          `input[name="dietary"][value="${req.requirement_type}"]`
-        ) as HTMLInputElement;
-        if (checkbox) {
-          checkbox.checked = true;
-        }
-        // Handle "other" with notes
+        const checkbox = document.querySelector(`input[name="dietary"][value="${req.requirement_type}"]`) as HTMLInputElement;
+        if (checkbox) checkbox.checked = true;
         if (req.requirement_type === 'other' && req.notes) {
           const notesInput = document.getElementById('dietary_notes') as HTMLTextAreaElement;
-          if (notesInput) {
-            notesInput.value = req.notes;
-          }
+          if (notesInput) notesInput.value = req.notes;
         }
       });
     }
   }
 
-  // Prefetch guest info on page load
+  function renderFamilyMembers(members: Array<{uuid: string; first_name: string; last_name: string; attending: boolean | null; phone: string | null; dietary_requirements: Array<{requirement_type: string; notes: string | null}>;}>) {
+    familySection.style.display = 'block';
+    familyMembersContainer.innerHTML = '';
+    members.forEach((member, index) => {
+      const section = document.createElement('div');
+      section.className = 'family-member-card';
+      section.innerHTML = `
+        <h3>${member.first_name} ${member.last_name}</h3>
+        <input type="hidden" name="family_member_uuid_${index}" value="${member.uuid}" />
+        <div class="form-section">
+          <h4>Will ${member.first_name} be attending?</h4>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="family_attending_${index}" value="yes" ${member.attending === true ? 'checked' : ''} />
+              <span class="radio-custom"></span>
+              Yes
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="family_attending_${index}" value="no" ${member.attending === false ? 'checked' : ''} />
+              <span class="radio-custom"></span>
+              No
+            </label>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="family_first_name_${index}">First Name</label>
+            <input type="text" id="family_first_name_${index}" name="family_first_name_${index}" value="${member.first_name}" required />
+          </div>
+          <div class="form-group">
+            <label for="family_last_name_${index}">Last Name</label>
+            <input type="text" id="family_last_name_${index}" name="family_last_name_${index}" value="${member.last_name}" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="family_phone_${index}">Phone</label>
+          <input type="tel" id="family_phone_${index}" name="family_phone_${index}" value="${member.phone || ''}" />
+        </div>
+      `;
+      familyMembersContainer.appendChild(section);
+    });
+  }
+
   prefetchGuestInfo();
 
-  // Show/hide sections based on attendance
   attendingInputs.forEach(input => {
     input.addEventListener('change', (e) => {
       const attending = (e.target as HTMLInputElement).value;
       if (attending === 'yes') {
         plusOneSection.style.display = 'block';
         dietarySection.style.display = 'block';
-
-        // Show appropriate plus-one section based on whether guest is a plus-one
         if (guestIsPlusOne) {
           plusOneAllowed.style.display = 'none';
           plusOneNotAllowed.style.display = 'block';
@@ -261,44 +301,54 @@ import Layout from '../../layouts/Layout.astro';
     });
   });
 
-  // Show/hide plus one details input
   plusOneCheckbox.addEventListener('change', (e) => {
     const checked = (e.target as HTMLInputElement).checked;
     plusOneDetailsSection.style.display = checked ? 'block' : 'none';
   });
 
-  // Handle form submission
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-
     const attending = document.querySelector('input[name="attending"]:checked') as HTMLInputElement;
     const attendingValue = attending?.value === 'yes';
     const plusOne = plusOneCheckbox.checked && !guestIsPlusOne;
+    const firstName = (document.getElementById('first_name') as HTMLInputElement)?.value;
+    const lastName = (document.getElementById('last_name') as HTMLInputElement)?.value;
+    const phone = (document.getElementById('phone') as HTMLInputElement)?.value;
 
-    // Collect plus one details if bringing a plus one
     let plusOneDetails = null;
     if (plusOne) {
       const email = (document.getElementById('plus_one_email') as HTMLInputElement)?.value;
-      const firstName = (document.getElementById('plus_one_first_name') as HTMLInputElement)?.value;
-      const lastName = (document.getElementById('plus_one_last_name') as HTMLInputElement)?.value;
-
-      if (email && firstName && lastName) {
-        plusOneDetails = {
-          email: email,
-          first_name: firstName,
-          last_name: lastName,
-        };
+      const poFirstName = (document.getElementById('plus_one_first_name') as HTMLInputElement)?.value;
+      const poLastName = (document.getElementById('plus_one_last_name') as HTMLInputElement)?.value;
+      if (email && poFirstName && poLastName) {
+        plusOneDetails = {email: email, first_name: poFirstName, last_name: poLastName};
       }
     }
 
-    // Collect dietary requirements
     const dietaryCheckboxes = document.querySelectorAll('input[name="dietary"]:checked');
     const dietaryRequirements = Array.from(dietaryCheckboxes).map(cb => ({
       requirement_type: (cb as HTMLInputElement).value,
-      notes: (cb as HTMLInputElement).value === 'other'
-        ? (document.getElementById('dietary_notes') as HTMLTextAreaElement)?.value || null
-        : null
     }));
+
+    const familyMemberUpdates: Record<string, object> = {};
+    familyMembers.forEach((member, index) => {
+      const memberAttending = document.querySelector(`input[name="family_attending_${index}"]:checked`) as HTMLInputElement;
+      const memberAttendingValue = memberAttending?.value === 'yes';
+      const memberFirstName = (document.getElementById(`family_first_name_${index}`) as HTMLInputElement)?.value;
+      const memberLastName = (document.getElementById(`family_last_name_${index}`) as HTMLInputElement)?.value;
+      const memberPhone = (document.getElementById(`family_phone_${index}`) as HTMLInputElement)?.value;
+      
+      const memberDietaryCheckboxes = document.querySelectorAll(`input[name="family_dietary_${index}"]:checked`);
+      const memberDietaryRequirements = Array.from(memberDietaryCheckboxes).map(cb => ({
+        requirement_type: (cb as HTMLInputElement).value,
+      }));
+      
+      familyMemberUpdates[member.uuid] = {
+        attending: memberAttendingValue,
+        dietary_requirements: memberDietaryRequirements,
+        guest_info: {first_name: memberFirstName, last_name: memberLastName, phone: memberPhone || null},
+      };
+    });
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting...';
@@ -307,186 +357,63 @@ import Layout from '../../layouts/Layout.astro';
       const apiHost = import.meta.env.PUBLIC_BACKEND_API_URL || '';
       const response = await fetch(`${apiHost}/api/v1/guests/${token}/rsvp`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
           attending: attendingValue,
-          plus_one: plusOne,
           plus_one_details: plusOneDetails,
-          dietary_requirements: dietaryRequirements
+          dietary_requirements: dietaryRequirements,
+          guest_info: {first_name: firstName, last_name: lastName, phone: phone || null},
+          family_member_updates: familyMemberUpdates,
         })
       });
 
       const data = await response.json();
-
       if (response.ok) {
         form.style.display = 'none';
         successMessage.style.display = 'block';
         (document.getElementById('success-text') as HTMLElement).textContent = data.message;
       } else {
         errorMessage.style.display = 'block';
-        (document.getElementById('error-text') as HTMLElement).textContent = data.detail || 'Something went wrong. Please try again.';
+        (document.getElementById('error-text') as HTMLElement).textContent = data.detail || 'Error';
       }
     } catch (error) {
       errorMessage.style.display = 'block';
-      (document.getElementById('error-text') as HTMLElement).textContent = 'Network error. Please try again.';
+      (document.getElementById('error-text') as HTMLElement).textContent = 'Network error';
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit RSVP';
+      submitBtn.textContent = 'Save All Responses';
     }
   });
 </script>
 
 <style>
-  main {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
-  }
-
-  .rsvp-card {
-    background-color: var(--color-white);
-    border-radius: 10px;
-    padding: 40px;
-    max-width: 600px;
-    width: 100%;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  }
-
-  h1 {
-    text-align: center;
-    color: var(--color-secondary);
-    margin-bottom: 0.5rem;
-  }
-
-  .intro {
-    text-align: center;
-    color: var(--color-text-light);
-    margin-bottom: 2rem;
-  }
-
-  .form-section {
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #eee;
-  }
-
-  .form-section:last-of-type {
-    border-bottom: none;
-  }
-
-  .form-section h2 {
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
-  }
-
-  .help-text {
-    font-size: 0.9rem;
-    color: var(--color-text-light);
-    margin-bottom: 1rem;
-  }
-
-  .radio-group, .checkbox-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .radio-label, .checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    cursor: pointer;
-    padding: 0.75rem;
-    border-radius: 5px;
-    transition: background-color 0.2s;
-  }
-
-  .radio-label:hover, .checkbox-label:hover {
-    background-color: var(--color-background);
-  }
-
-  input[type="radio"], input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    accent-color: var(--color-primary);
-  }
-
-  input[type="text"], input[type="email"], textarea {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1rem;
-    margin-top: 0.5rem;
-  }
-
-  input[type="text"]:focus, input[type="email"]:focus, textarea:focus {
-    outline: none;
-    border-color: var(--color-primary);
-  }
-
-  .form-group {
-    margin-bottom: 1rem;
-  }
-
-  .form-group label {
-    display: block;
-    font-weight: 500;
-    margin-bottom: 0.25rem;
-  }
-
-  h3 {
-    font-size: 1rem;
-    margin-bottom: 1rem;
-    color: var(--color-text);
-  }
-
-  .form-actions {
-    text-align: center;
-    margin-top: 2rem;
-  }
-
-  .submit-btn {
-    background-color: var(--color-primary);
-    color: var(--color-white);
-    border: none;
-    padding: 15px 40px;
-    font-size: 1.1rem;
-    border-radius: 5px;
-    transition: background-color 0.2s;
-  }
-
-  .submit-btn:hover {
-    background-color: var(--color-secondary);
-  }
-
-  .submit-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .success-message {
-    text-align: center;
-    padding: 2rem;
-    background-color: var(--color-success);
-    color: var(--color-white);
-    border-radius: 5px;
-  }
-
-  .success-message h2 {
-    color: var(--color-white);
-  }
-
-  .error-message {
-    text-align: center;
-    padding: 1rem;
-    background-color: var(--color-error);
-    color: var(--color-white);
-    border-radius: 5px;
-    margin-top: 1rem;
-  }
+  main {min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 20px;}
+  .rsvp-card {background-color: var(--color-white); border-radius: 10px; padding: 40px; max-width: 700px; width: 100%; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);}
+  h1 {text-align: center; color: var(--color-secondary); margin-bottom: 0.5rem;}
+  .intro {text-align: center; color: var(--color-text-light); margin-bottom: 2rem;}
+  .form-section {margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #eee;}
+  .form-section:last-of-type {border-bottom: none;}
+  .form-section h2 {font-size: 1.2rem; margin-bottom: 1rem;}
+  .form-section h3 {font-size: 1.1rem; margin-bottom: 1rem;}
+  .form-section h4 {font-size: 1rem; margin-bottom: 0.75rem;}
+  .help-text {font-size: 0.9rem; color: var(--color-text-light); margin-bottom: 1rem;}
+  .radio-group, .checkbox-group {display: flex; flex-direction: column; gap: 0.75rem;}
+  .radio-label, .checkbox-label {display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.75rem; border-radius: 5px;}
+  .radio-label:hover, .checkbox-label:hover {background-color: var(--color-background);}
+  input[type="radio"], input[type="checkbox"] {width: 20px; height: 20px; accent-color: var(--color-primary);}
+  input[type="text"], input[type="email"], input[type="tel"], textarea {width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; margin-top: 0.5rem;}
+  input[type="text"]:focus, input[type="email"]:focus, textarea:focus {outline: none; border-color: var(--color-primary);}
+  .form-group {margin-bottom: 1rem;}
+  .form-group label {display: block; font-weight: 500; margin-bottom: 0.25rem;}
+  .form-row {display: flex; gap: 1rem;}
+  .form-row .form-group {flex: 1;}
+  .family-member-card {background-color: var(--color-background); padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;}
+  .family-member-card h3 {margin-bottom: 1rem; color: var(--color-secondary);}
+  .form-actions {text-align: center; margin-top: 2rem;}
+  .submit-btn {background-color: var(--color-primary); color: var(--color-white); border: none; padding: 15px 40px; font-size: 1.1rem; border-radius: 5px;}
+  .submit-btn:hover {background-color: var(--color-secondary);}
+  .submit-btn:disabled {opacity: 0.6; cursor: not-allowed;}
+  .success-message {text-align: center; padding: 2rem; background-color: var(--color-success); color: var(--color-white); border-radius: 5px;}
+  .success-message h2 {color: var(--color-white);}
+  .error-message {text-align: center; padding: 1rem; background-color: var(--color-error); color: var(--color-white); border-radius: 5px; margin-top: 1rem;}
 </style>

@@ -1,8 +1,17 @@
+from typing import Dict
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 
 from src.email.service import EmailService, email_service
-from src.guests.dtos import DietaryType, GuestStatus, PlusOneDTO
+from src.guests.dtos import (
+    DietaryType,
+    FamilyMemberUpdateDTO,
+    GuestStatus,
+    GuestInfoUpdateDTO,
+    PlusOneDTO,
+)
 from src.guests.features.create_plus_one_guest.write_model import (
     PlusOneGuestWriteModel,
     SqlPlusOneGuestWriteModel,
@@ -15,7 +24,6 @@ router = APIRouter()
 
 class DietaryRequirementCreate(BaseModel):
     requirement_type: DietaryType
-    notes: str | None = None
 
 
 class PlusOneSubmit(BaseModel):
@@ -26,10 +34,28 @@ class PlusOneSubmit(BaseModel):
     last_name: str
 
 
+class GuestInfoSubmit(BaseModel):
+    """Submit guest info updates."""
+
+    first_name: str
+    last_name: str
+    phone: str | None = None
+
+
+class FamilyMemberSubmit(BaseModel):
+    """Submit family member updates."""
+
+    attending: bool
+    dietary_requirements: list[DietaryRequirementCreate] = []
+    guest_info: GuestInfoSubmit | None = None
+
+
 class RSVPResponseSubmit(BaseModel):
     attending: bool
     plus_one_details: PlusOneSubmit | None = None
     dietary_requirements: list[DietaryRequirementCreate] = []
+    guest_info: GuestInfoSubmit | None = None
+    family_member_updates: dict[str, FamilyMemberSubmit] = {}
 
 
 class RSVPResponse(BaseModel):
@@ -67,6 +93,8 @@ async def submit_rsvp(
 ) -> RSVPResponse:
     """
     Submit RSVP response for a guest.
+    Supports updating guest info and family member RSVP/dietary.
+    Family members cannot add plus-ones.
     """
     # Convert plus_one_details to DTO if provided
     plus_one_dto = None
@@ -77,17 +105,46 @@ async def submit_rsvp(
             last_name=rsvp_data.plus_one_details.last_name,
         )
 
+    # Convert guest_info to DTO if provided
+    guest_info_dto = None
+    if rsvp_data.guest_info:
+        guest_info_dto = GuestInfoUpdateDTO(
+            first_name=rsvp_data.guest_info.first_name,
+            last_name=rsvp_data.guest_info.last_name,
+            phone=rsvp_data.guest_info.phone,
+        )
+
+    # Convert family_member_updates to dict of UUID -> FamilyMemberUpdateDTO
+    family_updates: Dict[UUID, FamilyMemberUpdateDTO] = {}
+    for member_id, update_data in rsvp_data.family_member_updates.items():
+        guest_info_update = None
+        if update_data.guest_info:
+            guest_info_update = GuestInfoUpdateDTO(
+                first_name=update_data.guest_info.first_name,
+                last_name=update_data.guest_info.last_name,
+                phone=update_data.guest_info.phone,
+            )
+
+        family_updates[UUID(member_id)] = FamilyMemberUpdateDTO(
+            attending=update_data.attending,
+            dietary_requirements=[
+                {"requirement_type": req.requirement_type}
+                for req in update_data.dietary_requirements
+            ],
+            guest_info=guest_info_update,
+        )
+
     try:
         response_dto = await write_model.submit_rsvp(
             token=token,
             attending=rsvp_data.attending,
             plus_one_details=plus_one_dto,
             dietary_requirements=[
-                {
-                    "requirement_type": req.requirement_type,
-                }
+                {"requirement_type": req.requirement_type}
                 for req in rsvp_data.dietary_requirements
             ],
+            guest_info=guest_info_dto,
+            family_member_updates=family_updates,
         )
 
         return RSVPResponse(

@@ -1,14 +1,21 @@
 """RSVP models - Read and write models that return DTOs, never ORM models."""
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
+from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import async_session_manager
 from src.email.service import EmailService
-from src.guests.dtos import GuestStatus, PlusOneDTO, RSVPResponseDTO
+from src.guests.dtos import (
+    FamilyMemberUpdateDTO,
+    GuestStatus,
+    GuestInfoUpdateDTO,
+    PlusOneDTO,
+    RSVPResponseDTO,
+)
 from src.guests.repository.orm_models import DietaryOption, DietaryType, Guest, RSVPInfo
 from src.models.user import User
 
@@ -24,6 +31,8 @@ class RSVPWriteModel(ABC):
         attending: bool,
         plus_one_details: PlusOneDTO | None,
         dietary_requirements: list[dict],
+        guest_info: GuestInfoUpdateDTO | None = None,
+        family_member_updates: Dict[UUID, FamilyMemberUpdateDTO] | None = None,
     ) -> RSVPResponseDTO:
         """
         Submit RSVP response for a guest.
@@ -67,16 +76,78 @@ class SqlRSVPWriteModel:
         user = result.scalar_one_or_none()
         return user.email if user else ""
 
+    async def _update_guest_info(
+        self, session, guest: Guest, guest_info: GuestInfoUpdateDTO
+    ) -> None:
+        """Update guest info (first_name, last_name, phone)."""
+        guest.first_name = guest_info.first_name
+        guest.last_name = guest_info.last_name
+        if guest_info.phone is not None:
+            guest.phone = guest_info.phone
+
+    async def _update_family_member(
+        self,
+        session,
+        family_member_uuid: UUID,
+        update_data: FamilyMemberUpdateDTO,
+    ) -> None:
+        """Update a family member's RSVP, dietary requirements, and guest info."""
+        # Get family member guest
+        stmt = select(Guest).where(Guest.uuid == family_member_uuid)
+        result = await session.execute(stmt)
+        family_member = result.scalar_one_or_none()
+
+        if not family_member:
+            raise ValueError(f"Family member with UUID {family_member_uuid} not found")
+
+        # Get family member RSVP info
+        rsvp_stmt = select(RSVPInfo).where(RSVPInfo.guest_id == family_member_uuid)
+        rsvp_result = await session.execute(rsvp_stmt)
+        rsvp_info = rsvp_result.scalar_one_or_none()
+
+        if rsvp_info:
+            # Update RSVP status
+            rsvp_info.status = (
+                GuestStatus.CONFIRMED if update_data.attending else GuestStatus.DECLINED
+            )
+
+        # Update guest info if provided
+        if update_data.guest_info:
+            await self._update_guest_info(session, family_member, update_data.guest_info)
+
+        # Update dietary requirements
+        if update_data.dietary_requirements:
+            # Clear existing dietary requirements
+            existing_dietary = await session.execute(
+                select(DietaryOption).where(DietaryOption.guest_id == family_member_uuid)
+            )
+            for dietary in existing_dietary.scalars().all():
+                await session.delete(dietary)
+
+            # Add new dietary requirements
+            for req in update_data.dietary_requirements:
+                dietary = DietaryOption(
+                    guest_id=family_member_uuid,
+                    requirement_type=DietaryType(req["requirement_type"]),
+                    notes=req.get("notes"),
+                )
+                session.add(dietary)
+
+        await session.refresh(family_member)
+
     async def submit_rsvp(
         self,
         token: str,
         attending: bool,
         plus_one_details: PlusOneDTO | None,
         dietary_requirements: list[dict],
+        guest_info: GuestInfoUpdateDTO | None = None,
+        family_member_updates: Dict[UUID, FamilyMemberUpdateDTO] | None = None,
     ) -> RSVPResponseDTO:
         """
         Submit RSVP response for a guest.
         Returns DTO instead of ORM model.
+        Supports updating guest info and family member RSVP/dietary.
         """
         async with async_session_manager(session_overwrite=self._session_overwrite) as session:
             if self._plus_one_guest_write_model:
@@ -115,6 +186,10 @@ class SqlRSVPWriteModel:
                     )
                     session.add(dietary)
 
+            # Update guest info if provided
+            if guest_info:
+                await self._update_guest_info(session, guest, guest_info)
+
             await session.refresh(guest)
 
             # Create plus-one guest if details provided
@@ -125,6 +200,11 @@ class SqlRSVPWriteModel:
                 )
                 # Set bring_a_plus_one_id to the plus-one guest's UUID
                 guest.bring_a_plus_one_id = plus_one_guest_uuid
+
+            # Update family members if provided
+            if family_member_updates:
+                for member_uuid, update_data in family_member_updates.items():
+                    await self._update_family_member(session, member_uuid, update_data)
 
             # Build response message
             message = (

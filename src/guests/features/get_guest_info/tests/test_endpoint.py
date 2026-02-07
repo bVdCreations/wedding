@@ -23,8 +23,6 @@ class InMemoryRSVPReadModel(RSVPReadModel):
         if not guest:
             return None
 
-        name = " ".join(filter(None, [guest.first_name, guest.last_name])).strip()
-
         # Calculate attending from status
         if guest.rsvp.status == GuestStatus.CONFIRMED:
             attending = True
@@ -34,10 +32,16 @@ class InMemoryRSVPReadModel(RSVPReadModel):
             attending = None
 
         return RSVPInfoDTO(
+            guest_uuid=guest.id,
             token=guest.rsvp.token,
-            name=name,
+            first_name=guest.first_name or "",
+            last_name=guest.last_name or "",
+            phone=guest.phone,
             status=guest.rsvp.status,
             plus_one_of_id=guest.plus_one_of_id,
+            family_id=guest.family_id,
+            family_members=[],
+            plus_one_email=None,
             plus_one_first_name=None,
             plus_one_last_name=None,
             attending=attending,
@@ -63,8 +67,6 @@ class InMemoryRSVPReadModelWithDietary(RSVPReadModel):
         if not guest:
             return None
 
-        name = " ".join(filter(None, [guest.first_name, guest.last_name])).strip()
-
         # Calculate attending from status
         if guest.rsvp.status == GuestStatus.CONFIRMED:
             attending = True
@@ -74,10 +76,15 @@ class InMemoryRSVPReadModelWithDietary(RSVPReadModel):
             attending = None
 
         return RSVPInfoDTO(
+            guest_uuid=guest.id,
             token=guest.rsvp.token,
-            name=name,
+            first_name=guest.first_name or "",
+            last_name=guest.last_name or "",
+            phone=guest.phone,
             status=guest.rsvp.status,
             plus_one_of_id=guest.plus_one_of_id,
+            family_id=guest.family_id,
+            family_members=[],
             plus_one_email=self._plus_one_email,
             plus_one_first_name=self._plus_one_first_name,
             plus_one_last_name=self._plus_one_last_name,
@@ -93,8 +100,9 @@ class InMemoryRSVPReadModelWithDietary(RSVPReadModel):
 async def test_get_rsvp_success(client_factory):
     """Test that a valid token returns RSVP page information with prefill data."""
     token = str(uuid4())
+    guest_id = uuid4()
     guest = GuestDTO(
-        id=uuid4(),
+        id=guest_id,
         email="john@example.com",
         rsvp=RSVPDTO(
             status=GuestStatus.PENDING,
@@ -103,7 +111,7 @@ async def test_get_rsvp_success(client_factory):
         ),
         first_name="John",
         last_name="Doe",
-        plus_one_of_id=None,  # Not a plus-one
+        plus_one_of_id=None,
     )
 
     read_model = InMemoryRSVPReadModel([guest])
@@ -117,11 +125,15 @@ async def test_get_rsvp_success(client_factory):
 
     assert response.status_code == 200
     data = response.json()
-    # Token is no longer returned in response (already in URL)
-    assert data["guest_name"] == "John Doe"
+    # New response format with first_name and last_name
+    assert data["guest_uuid"] == str(guest_id)
+    assert data["first_name"] == "John"
+    assert data["last_name"] == "Doe"
     assert data["status"] == GuestStatus.PENDING.value
-    assert data["is_plus_one"] is False  # Derived from plus_one_of_id being None
-    assert data["attending"] is None  # PENDING -> None
+    assert data["is_plus_one"] is False
+    assert data["is_family_member"] is False
+    assert data["family_id"] is None
+    assert data["attending"] is None
     assert data["dietary_requirements"] == []
 
 
@@ -129,9 +141,10 @@ async def test_get_rsvp_success(client_factory):
 async def test_get_rsvp_confirmed_with_dietary(client_factory):
     """Test that confirmed RSVP returns attending=true with dietary requirements."""
     token = str(uuid4())
+    guest_id = uuid4()
     original_guest_id = uuid4()
     guest = GuestDTO(
-        id=uuid4(),
+        id=guest_id,
         email="john@example.com",
         rsvp=RSVPDTO(
             status=GuestStatus.CONFIRMED,
@@ -140,7 +153,7 @@ async def test_get_rsvp_confirmed_with_dietary(client_factory):
         ),
         first_name="John",
         last_name="Doe",
-        plus_one_of_id=original_guest_id,  # This guest IS a plus-one
+        plus_one_of_id=original_guest_id,
     )
 
     read_model = InMemoryRSVPReadModelWithDietary(
@@ -159,8 +172,8 @@ async def test_get_rsvp_confirmed_with_dietary(client_factory):
 
     assert response.status_code == 200
     data = response.json()
-    assert data["attending"] is True  # CONFIRMED -> True
-    assert data["is_plus_one"] is True  # Derived from plus_one_of_id being set
+    assert data["attending"] is True
+    assert data["is_plus_one"] is True
     # Plus one is nested
     assert data["plus_one"]["email"] == "jane@example.com"
     assert data["plus_one"]["first_name"] == "Jane"
@@ -175,8 +188,9 @@ async def test_get_rsvp_confirmed_with_dietary(client_factory):
 async def test_get_rsvp_declined(client_factory):
     """Test that declined RSVP returns attending=false."""
     token = str(uuid4())
+    guest_id = uuid4()
     guest = GuestDTO(
-        id=uuid4(),
+        id=guest_id,
         email="john@example.com",
         rsvp=RSVPDTO(
             status=GuestStatus.DECLINED,
@@ -185,7 +199,7 @@ async def test_get_rsvp_declined(client_factory):
         ),
         first_name="Jane",
         last_name="Doe",
-        plus_one_of_id=None,  # Not a plus-one
+        plus_one_of_id=None,
     )
 
     read_model = InMemoryRSVPReadModel([guest])
@@ -199,7 +213,7 @@ async def test_get_rsvp_declined(client_factory):
 
     assert response.status_code == 200
     data = response.json()
-    assert data["attending"] is False  # DECLINED -> False
+    assert data["attending"] is False
 
 
 @pytest.mark.asyncio
@@ -208,8 +222,9 @@ async def test_get_rsvp_invalid_token(
 ):
     """Test that an invalid token returns 404."""
     token = str(uuid4())
+    guest_id = uuid4()
     guest = GuestDTO(
-        id=uuid4(),
+        id=guest_id,
         email="john@example.com",
         rsvp=RSVPDTO(
             status=GuestStatus.PENDING,
@@ -218,7 +233,7 @@ async def test_get_rsvp_invalid_token(
         ),
         first_name="John",
         last_name="Doe",
-        plus_one_of_id=None,  # Not a plus-one
+        plus_one_of_id=None,
     )
 
     read_model = InMemoryRSVPReadModel([guest])

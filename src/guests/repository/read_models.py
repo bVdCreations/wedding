@@ -3,8 +3,8 @@ import abc
 from sqlalchemy import select
 
 from src.config.database import async_session_manager
-from src.guests.dtos import DietaryType, GuestStatus, RSVPInfoDTO
-from src.guests.repository.orm_models import DietaryOption, Guest, RSVPInfo
+from src.guests.dtos import DietaryType, FamilyMemberDTO, GuestStatus, RSVPInfoDTO
+from src.guests.repository.orm_models import DietaryOption, Family, Guest, RSVPInfo
 from src.models.user import User
 
 
@@ -24,7 +24,7 @@ class SqlRSVPReadModel(RSVPReadModel):
     async def get_rsvp_info(self, token: str) -> RSVPInfoDTO | None:
         """
         Get RSVP info by token.
-        Includes dietary requirements and attending status for form prefill.
+        Includes dietary requirements, attending status, and family members for form prefill.
         """
         async with async_session_manager() as session:
             # Get RSVP info
@@ -47,7 +47,7 @@ class SqlRSVPReadModel(RSVPReadModel):
             else:
                 attending = None  # PENDING
 
-            # Get dietary requirements
+            # Get dietary requirements for current guest
             dietary_stmt = select(DietaryOption).where(
                 DietaryOption.guest_id == rsvp_info.guest_id
             )
@@ -62,19 +62,71 @@ class SqlRSVPReadModel(RSVPReadModel):
                 for option in dietary_options
             ]
 
-            # Build name from guest
+            # Get guest info
             guest_stmt = select(Guest).where(Guest.uuid == rsvp_info.guest_id)
             guest_result = await session.execute(guest_stmt)
             guest = guest_result.scalar_one_or_none()
 
-            name = f"{guest.first_name} {guest.last_name}" if guest else "Guest"
+            if not guest:
+                return None
+
+            # Get family members if guest is in a family
+            family_members: list[FamilyMemberDTO] = []
+            family_id = None
+            if guest.family_id:
+                family_id = guest.family_id
+                # Get all family members except current guest
+                family_stmt = (
+                    select(Guest)
+                    .where(Guest.family_id == guest.family_id)
+                    .where(Guest.uuid != guest.uuid)
+                )
+                family_result = await session.execute(family_stmt)
+                family_guests = family_result.scalars().all()
+
+                for family_guest in family_guests:
+                    # Get RSVP status for family member
+                    family_rsvp_stmt = select(RSVPInfo).where(
+                        RSVPInfo.guest_id == family_guest.uuid
+                    )
+                    family_rsvp_result = await session.execute(family_rsvp_stmt)
+                    family_rsvp_info = family_rsvp_result.scalar_one_or_none()
+
+                    family_rsvp_status = (
+                        family_rsvp_info.status if family_rsvp_info else None
+                    )
+
+                    # Get dietary requirements for family member
+                    family_dietary_stmt = select(DietaryOption).where(
+                        DietaryOption.guest_id == family_guest.uuid
+                    )
+                    family_dietary_result = await session.execute(family_dietary_stmt)
+                    family_dietary_options = family_dietary_result.scalars().all()
+
+                    family_dietary_requirements = [
+                        {
+                            "requirement_type": option.requirement_type.value,
+                            "notes": option.notes,
+                        }
+                        for option in family_dietary_options
+                    ]
+
+                    family_members.append(
+                        FamilyMemberDTO.from_guest(
+                            guest=family_guest,
+                            rsvp_status=family_rsvp_status,
+                            dietary_requirements=family_dietary_requirements,
+                        )
+                    )
 
             # Get plus-one guest details if this guest is bringing one
             plus_one_email = None
             plus_one_first_name = None
             plus_one_last_name = None
-            if guest and guest.bring_a_plus_one_id:
-                plus_one_stmt = select(Guest).where(Guest.uuid == guest.bring_a_plus_one_id)
+            if guest.bring_a_plus_one_id:
+                plus_one_stmt = select(Guest).where(
+                    Guest.uuid == guest.bring_a_plus_one_id
+                )
                 plus_one_result = await session.execute(plus_one_stmt)
                 plus_one_guest = plus_one_result.scalar_one_or_none()
                 if plus_one_guest:
@@ -88,10 +140,15 @@ class SqlRSVPReadModel(RSVPReadModel):
                         plus_one_email = plus_one_user.email
 
             return RSVPInfoDTO(
+                guest_uuid=guest.uuid,
                 token=rsvp_info.rsvp_token,
-                name=name,
+                first_name=guest.first_name,
+                last_name=guest.last_name,
+                phone=guest.phone,
                 status=rsvp_info.status,
-                plus_one_of_id=guest.plus_one_of_id if guest else None,
+                plus_one_of_id=guest.plus_one_of_id,
+                family_id=family_id,
+                family_members=family_members,
                 plus_one_email=plus_one_email,
                 plus_one_first_name=plus_one_first_name,
                 plus_one_last_name=plus_one_last_name,

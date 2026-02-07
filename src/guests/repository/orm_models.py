@@ -1,11 +1,23 @@
 from uuid import UUID
 
 from sqlalchemy import Boolean, Enum, ForeignKey, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.config.table_names import TableNames
 from src.guests.dtos import DietaryType, GuestStatus
 from src.models.base import Base, TimeStamp
+
+
+class Family(Base, TimeStamp):
+    __tablename__ = TableNames.FAMILIES.value
+
+    name: Mapped[str] = mapped_column(String(255), nullable=True)
+
+    # Relationship to guests
+    members: Mapped[list["Guest"]] = relationship("Guest", back_populates="family")
+
+    def __repr__(self) -> str:
+        return f"<Family {self.name or self.uuid}>"
 
 
 class DietaryOption(Base, TimeStamp):
@@ -37,6 +49,14 @@ class Guest(Base, TimeStamp):
     first_name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     last_name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     phone: Mapped[str] = mapped_column(String(50), nullable=True)
+
+    # Family relationship
+    family_id: Mapped[UUID] = mapped_column(
+        ForeignKey(f"{TableNames.FAMILIES.value}.uuid", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    family: Mapped["Family | None"] = relationship("Family", back_populates="members")
 
     # Plus one relationships
     # plus_one_of_id: Points to the guest who brought this guest as their plus-one
