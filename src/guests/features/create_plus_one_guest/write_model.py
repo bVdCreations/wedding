@@ -18,6 +18,16 @@ from src.guests.repository.orm_models import Guest, RSVPInfo
 from src.models.user import User
 
 
+class CannotAddPlusOneError(Exception):
+    """Raised when a plus-one guest tries to add their own plus-one."""
+    pass
+
+
+class CannotChangePlusOneEmailError(Exception):
+    """Raised when attempting to change a plus-one's email."""
+    pass
+
+
 class PlusOneGuestWriteModel(ABC):
     """Abstract base class for plus-one guest creation write operations."""
 
@@ -61,12 +71,21 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
         """
         Create a new plus-one guest with user, guest, and RSVPInfo.
         Returns tuple of (GuestDTO with RSVP token and link, plus-one guest UUID).
+        Raises CannotAddPlusOneError if the original guest is itself a plus-one.
+        Raises CannotChangePlusOneEmailError if trying to change an existing plus-one's email.
         """
         async with self.async_session_manager(session_overwrite=self.session_overwrite) as session:
-            # 1. Get or create User by email
+            # 1. Validate that original guest can add a plus-one
+            await self._check_guest_can_add_plus_one(session, original_guest_id)
+
+            # 2. Check if trying to change an existing plus-one's email
+            # This must be done BEFORE getting/creating the user
+            await self._check_plus_one_email_not_changed(session, original_guest_id, plus_one_data.email)
+
+            # 3. Get or create User by email
             user = await self._get_or_create_user(session, str(plus_one_data.email))
 
-            # 2. Check if user already has a guest - if so, just return their info
+            # 4. Check if user already has a guest - if so, return their info
             existing_guest = await self._get_guest_by_user_id(session, user.uuid)
             if existing_guest is not None:
                 # Return existing guest's info
@@ -88,7 +107,7 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
                     existing_guest.uuid,
                 )
 
-            # 3. Create Guest linked to User with plus_one_of_id set
+            # 5. Create Guest linked to User with plus_one_of_id set
             guest = Guest(
                 user_id=user.uuid,
                 first_name=plus_one_data.first_name,
@@ -100,7 +119,7 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
             session.add(guest)
             await session.flush()
 
-            # 4. Create RSVPInfo linked to Guest
+            # 6. Create RSVPInfo linked to Guest
             rsvp_token = str(uuid4())
             rsvp_info = RSVPInfo(
                 guest_id=guest.uuid,
@@ -112,6 +131,14 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
             )
             session.add(rsvp_info)
 
+            await session.flush()
+
+            # 7. Update the original guest's bring_a_plus_one_id
+            original_guest_result = await session.execute(
+                select(Guest).where(Guest.uuid == original_guest_id)
+            )
+            original_guest_db = original_guest_result.scalar_one()
+            original_guest_db.bring_a_plus_one_id = guest.uuid
             await session.flush()
 
         # 5. Build and return GuestDTO with plus-one guest UUID
@@ -161,3 +188,60 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
         """Get RSVPInfo for a guest."""
         result = await session.execute(select(RSVPInfo).where(RSVPInfo.guest_id == guest_id))
         return result.scalar_one_or_none()
+
+    async def _check_guest_can_add_plus_one(
+        self, session: AsyncSession, original_guest_id: UUID
+    ) -> None:
+        """Check if the original guest can add a plus-one.
+        
+        A guest who is already a plus-one (has plus_one_of_id set) cannot add their own plus-one.
+        """
+        result = await session.execute(select(Guest).where(Guest.uuid == original_guest_id))
+        guest = result.scalar_one_or_none()
+        if guest is None:
+            raise ValueError(f"Guest with ID {original_guest_id} not found")
+        
+        # A guest who is already a plus-one cannot add their own plus-one
+        if guest.plus_one_of_id is not None:
+            raise CannotAddPlusOneError(
+                "A guest who is a plus-one cannot add their own plus-one"
+            )
+
+    async def _check_plus_one_email_not_changed(
+        self, session: AsyncSession, original_guest_id: UUID, new_email: str
+    ) -> None:
+        """Check if trying to change an existing plus-one's email.
+        
+        If the original guest already has a plus-one with the same name but
+        a different email is being provided, raise an error.
+        """
+        # Get the original guest's plus-one (if any)
+        original_guest_result = await session.execute(
+            select(Guest).where(Guest.uuid == original_guest_id)
+        )
+        original_guest = original_guest_result.scalar_one_or_none()
+        if original_guest is None:
+            return
+        
+        # Check if original guest has a plus-one
+        if original_guest.bring_a_plus_one_id is None:
+            return
+        
+        # Get the plus-one guest
+        plus_one_result = await session.execute(
+            select(Guest).where(Guest.uuid == original_guest.bring_a_plus_one_id)
+        )
+        plus_one_guest = plus_one_result.scalar_one_or_none()
+        if plus_one_guest is None:
+            return
+        
+        # Get the plus-one's user
+        user_result = await session.execute(
+            select(User).where(User.uuid == plus_one_guest.user_id)
+        )
+        plus_one_user = user_result.scalar_one_or_none()
+        
+        if plus_one_user is not None and plus_one_user.email != new_email:
+            raise CannotChangePlusOneEmailError(
+                "Cannot change the email of a guest's plus-one"
+            )
