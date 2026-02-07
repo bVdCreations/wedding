@@ -10,6 +10,7 @@ from src.config.database import async_session_manager
 from src.email.service import email_service
 from src.guests.dtos import PlusOneDTO
 from src.guests.features.create_guest.write_model import SqlGuestCreateWriteModel
+from src.guests.features.create_child_guest.write_model import SqlChildGuestCreateWriteModel
 from src.guests.features.create_plus_one_guest.write_model import SqlPlusOneGuestWriteModel
 from src.guests.repository.orm_models import Family, Guest
 from src.models.user import User
@@ -366,6 +367,7 @@ def show_family(
         typer.secho("Guest Info", fg=typer.colors.GREEN)
         typer.secho(f"  Name: {guest.first_name} {guest.last_name}", fg=typer.colors.BLUE)
         typer.secho(f"  ID: {guest.uuid}", fg=typer.colors.CYAN)
+        typer.secho(f"  Guest Type: {getattr(guest, 'guest_type', 'adult')}", fg=typer.colors.MAGENTA)
         typer.secho(f"  Email: {guest.phone or 'N/A'}", fg=typer.colors.BLUE)
 
         if family:
@@ -376,10 +378,61 @@ def show_family(
             typer.secho("Family Members:", fg=typer.colors.GREEN)
             for member in family_members:
                 is_current = " (current)" if member.uuid == guest.uuid else ""
-                typer.secho(f"  - {member.first_name} {member.last_name}{is_current}", fg=typer.colors.BLUE)
+                guest_type = getattr(member, 'guest_type', 'adult')
+                type_label = f" ({guest_type})" if guest_type == 'child' else ""
+                typer.secho(f"  - {member.first_name} {member.last_name}{type_label}{is_current}", fg=typer.colors.BLUE)
         else:
             typer.echo()
             typer.secho("Not part of any family", fg=typer.colors.YELLOW)
+    except ValueError as e:
+        typer.secho(str(e), fg=typer.colors.RED)
+        raise typer.Exit(1)
+
+
+@app.command()
+def create_child(
+    family_id: str = typer.Argument(
+        ...,
+        help="Family UUID to add the child to",
+    ),
+    first_name: str = typer.Argument(
+        ...,
+        help="First name of the child",
+    ),
+    last_name: str = typer.Argument(
+        ...,
+        help="Last name of the child",
+    ),
+    phone: str = typer.Option(
+        None,
+        "--phone",
+        "-p",
+        help="Phone number for the child",
+    ),
+):
+    """Create a child guest linked to a family (no User account, no RSVP invite)."""
+    async def _create_child():
+        write_model = SqlChildGuestCreateWriteModel()
+        guest = await write_model.create_child_guest(
+            family_id=UUID(family_id),
+            first_name=first_name,
+            last_name=last_name,
+            phone=phone,
+        )
+        return guest
+
+    try:
+        guest = asyncio.run(_create_child())
+
+        typer.secho("Child guest created!", fg=typer.colors.GREEN)
+        typer.secho(f"  Name: {guest.first_name} {guest.last_name}", fg=typer.colors.BLUE)
+        typer.secho(f"  Guest ID: {guest.id}", fg=typer.colors.CYAN)
+        typer.secho(f"  Family ID: {guest.family_id}", fg=typer.colors.CYAN)
+        if guest.phone:
+            typer.secho(f"  Phone: {guest.phone}", fg=typer.colors.BLUE)
+        typer.echo()
+        typer.secho("Note: Child guests do not receive separate RSVP invites.", fg=typer.colors.YELLOW)
+        typer.secho("Their RSVP will be managed by the adult family member.", fg=typer.colors.YELLOW)
     except ValueError as e:
         typer.secho(str(e), fg=typer.colors.RED)
         raise typer.Exit(1)
