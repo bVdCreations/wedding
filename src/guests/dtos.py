@@ -34,6 +34,11 @@ class GuestStatus(str, Enum):
     DECLINED = "declined"
 
 
+class GuestType(str, Enum):
+    ADULT = "adult"
+    CHILD = "child"
+
+
 @dataclass(frozen=True)
 class PlusOneDTO:
     """DTO for plus one guest data used in RSVP submission."""
@@ -50,6 +55,7 @@ class FamilyMemberDTO:
     uuid: UUID
     first_name: str
     last_name: str
+    guest_type: str = "adult"  # "adult" or "child"
     attending: bool | None = None
     dietary_requirements: list[dict] = field(default_factory=list)
     phone: str | None = None
@@ -67,6 +73,7 @@ class FamilyMemberDTO:
             uuid=guest.uuid,
             first_name=guest.first_name,
             last_name=guest.last_name,
+            guest_type=getattr(guest, 'guest_type', 'adult'),
             attending=attending,
             dietary_requirements=dietary_requirements or [],
             phone=guest.phone,

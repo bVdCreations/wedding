@@ -4,7 +4,7 @@ from sqlalchemy import Boolean, Enum, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.config.table_names import TableNames
-from src.guests.dtos import DietaryType, GuestStatus
+from src.guests.dtos import DietaryType, GuestStatus, GuestType
 from src.models.base import Base, TimeStamp
 
 
@@ -43,12 +43,19 @@ class Guest(Base, TimeStamp):
 
     user_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{TableNames.USERS.value}.uuid", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,  # Nullable for children who don't have a User
         index=True,
     )
     first_name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     last_name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     phone: Mapped[str] = mapped_column(String(50), nullable=True)
+
+    # Guest type (adult or child)
+    guest_type: Mapped[str] = mapped_column(
+        Enum(GuestType, name="guest_type_enum", values_callable=lambda x: [e.value for e in x]),
+        default=GuestType.ADULT,
+        nullable=False,
+    )
 
     # Family relationship
     family_id: Mapped[UUID] = mapped_column(

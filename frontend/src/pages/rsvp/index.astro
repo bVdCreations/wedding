@@ -234,14 +234,16 @@ import Layout from '../../layouts/Layout.astro';
     }
   }
 
-  function renderFamilyMembers(members: Array<{uuid: string; first_name: string; last_name: string; attending: boolean | null; phone: string | null; dietary_requirements: Array<{requirement_type: string; notes: string | null}>;}>) {
+  function renderFamilyMembers(members: Array<{uuid: string; first_name: string; last_name: string; guest_type?: string; attending: boolean | null; phone: string | null; dietary_requirements: Array<{requirement_type: string; notes: string | null}>;}>) {
     familySection.style.display = 'block';
     familyMembersContainer.innerHTML = '';
     members.forEach((member, index) => {
+      const isChild = member.guest_type === 'child';
+      const childBadge = isChild ? '<span class="badge child-badge">Child</span>' : '';
       const section = document.createElement('div');
       section.className = 'family-member-card';
       section.innerHTML = `
-        <h3>${member.first_name} ${member.last_name}</h3>
+        <h3>${member.first_name} ${member.last_name} ${childBadge}</h3>
         <input type="hidden" name="family_member_uuid_${index}" value="${member.uuid}" />
         <div class="form-section">
           <h4>Will ${member.first_name} be attending?</h4>
