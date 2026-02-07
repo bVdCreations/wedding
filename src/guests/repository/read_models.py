@@ -5,6 +5,7 @@ from sqlalchemy import select
 from src.config.database import async_session_manager
 from src.guests.dtos import DietaryType, GuestStatus, RSVPInfoDTO
 from src.guests.repository.orm_models import DietaryOption, Guest, RSVPInfo
+from src.models.user import User
 
 
 class RSVPReadModel(abc.ABC):
@@ -68,12 +69,32 @@ class SqlRSVPReadModel(RSVPReadModel):
 
             name = f"{guest.first_name} {guest.last_name}" if guest else "Guest"
 
+            # Get plus-one guest details if this guest is bringing one
+            plus_one_email = None
+            plus_one_first_name = None
+            plus_one_last_name = None
+            if guest and guest.bring_a_plus_one_id:
+                plus_one_stmt = select(Guest).where(Guest.uuid == guest.bring_a_plus_one_id)
+                plus_one_result = await session.execute(plus_one_stmt)
+                plus_one_guest = plus_one_result.scalar_one_or_none()
+                if plus_one_guest:
+                    plus_one_first_name = plus_one_guest.first_name
+                    plus_one_last_name = plus_one_guest.last_name
+                    # Get plus-one's email from User table
+                    user_stmt = select(User).where(User.uuid == plus_one_guest.user_id)
+                    user_result = await session.execute(user_stmt)
+                    plus_one_user = user_result.scalar_one_or_none()
+                    if plus_one_user:
+                        plus_one_email = plus_one_user.email
+
             return RSVPInfoDTO(
                 token=rsvp_info.rsvp_token,
                 name=name,
                 status=rsvp_info.status,
-                is_plus_one=guest.is_plus_one if guest else False,
-                plus_one_name=guest.plus_one_name if guest else None,
+                plus_one_of_id=guest.plus_one_of_id if guest else None,
+                plus_one_email=plus_one_email,
+                plus_one_first_name=plus_one_first_name,
+                plus_one_last_name=plus_one_last_name,
                 attending=attending,
                 dietary_requirements=dietary_requirements,
             )

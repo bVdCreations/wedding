@@ -38,17 +38,18 @@ class Guest(Base, TimeStamp):
     last_name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     phone: Mapped[str] = mapped_column(String(50), nullable=True)
 
-    # Plus one
-    is_plus_one: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Plus one relationships
+    # plus_one_of_id: Points to the guest who brought this guest as their plus-one
+    # (if set, this guest IS a plus-one)
     plus_one_of_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{TableNames.GUESTS.value}.uuid", ondelete="SET NULL"),
         nullable=True,
     )
+    # bring_a_plus_one_id: Points to the plus-one guest that this guest is bringing
     bring_a_plus_one_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{TableNames.GUESTS.value}.uuid", ondelete="SET NULL"),
         nullable=True,
     )
-    plus_one_name: Mapped[str] = mapped_column(String(255), nullable=True)
 
     # Notes
     notes: Mapped[str] = mapped_column(Text, nullable=True)

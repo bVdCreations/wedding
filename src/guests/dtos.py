@@ -46,8 +46,12 @@ class RSVPInfoDTO:
     token: str
     name: str
     status: GuestStatus
-    is_plus_one: bool
-    plus_one_name: str | None = None
+    # plus_one_of_id presence indicates this guest is a plus-one
+    plus_one_of_id: UUID | None = None
+    # Plus-one guest details (from bring_a_plus_one_id join)
+    plus_one_email: str | None = None
+    plus_one_first_name: str | None = None
+    plus_one_last_name: str | None = None
     # Prefill fields
     attending: bool | None = None
     dietary_requirements: list[dict] = field(default_factory=list)
@@ -81,6 +85,7 @@ class GuestDTO:
     first_name: str | None = None
     last_name: str | None = None
     phone: str | None = None
-    is_plus_one: bool = False
-    plus_one_name: str | None = None
+    # plus_one_of_id presence indicates this guest is a plus-one
+    plus_one_of_id: UUID | None = None
+    bring_a_plus_one_id: UUID | None = None
     notes: str | None = None

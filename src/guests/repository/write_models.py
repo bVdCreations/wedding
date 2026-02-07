@@ -94,13 +94,9 @@ class SqlRSVPWriteModel:
             # Update RSVP status
             rsvp_info.status = GuestStatus.CONFIRMED if attending else GuestStatus.DECLINED
 
-            # Build plus_one_name from details if provided
-            plus_one_name = None
-            if plus_one_details and attending:
-                plus_one_name = f"{plus_one_details.first_name} {plus_one_details.last_name}"
-
-            # Store plus_one_name for display (don't modify is_plus_one - that indicates if THIS guest is a plus-one)
-            guest.plus_one_name = plus_one_name if attending else None
+            # Clear bring_a_plus_one_id if not attending
+            if not attending:
+                guest.bring_a_plus_one_id = None
 
             # Clear existing dietary requirements
             existing_dietary = await session.execute(
@@ -123,10 +119,12 @@ class SqlRSVPWriteModel:
 
             # Create plus-one guest if details provided
             if attending and plus_one_details and self._plus_one_guest_write_model:
-                await self._plus_one_guest_write_model.create_plus_one_guest(
-                    original_guest_user_id=guest.user_id,
+                _, plus_one_guest_uuid = await self._plus_one_guest_write_model.create_plus_one_guest(
+                    original_guest_id=guest.uuid,
                     plus_one_data=plus_one_details,
                 )
+                # Set bring_a_plus_one_id to the plus-one guest's UUID
+                guest.bring_a_plus_one_id = plus_one_guest_uuid
 
             # Build response message
             message = (

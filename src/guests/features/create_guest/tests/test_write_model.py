@@ -32,8 +32,8 @@ async def test_create_guest_new_user():
         assert isinstance(result.rsvp.token, str)
         assert result.rsvp.link is not None
         assert result.rsvp.link.startswith("http://localhost:4321/rsvp/?token=")
-        assert result.is_plus_one is False
-        assert result.plus_one_name is None
+        # New guests are not plus-ones by default (plus_one_of_id is None)
+        assert result.plus_one_of_id is None
 
 
 async def test_create_guest_existing_user():
@@ -108,20 +108,19 @@ async def test_create_guest_with_only_last_name():
         await db_session.rollback()
 
 
-async def test_create_guest_with_plus_one():
-    """Test creating a guest with plus one."""
+async def test_create_guest_basic():
+    """Test creating a basic guest without special attributes."""
     async with async_session_maker() as db_session:
         write_model = SqlGuestCreateWriteModel(session_overwrite=db_session)
         result = await write_model.create_guest(
-            email="plusone@example.com",
-            first_name="Main",
+            email="basic@example.com",
+            first_name="Basic",
             last_name="Guest",
-            is_plus_one=True,
-            plus_one_name="Plus One Name",
         )
 
-        assert result.is_plus_one is True
-        assert result.plus_one_name == "Plus One Name"
+        # Basic guest creation - no plus_one_of_id (not a plus-one)
+        assert result.plus_one_of_id is None
+        assert result.bring_a_plus_one_id is None
         await db_session.rollback()
 
 

@@ -28,8 +28,6 @@ class GuestCreateWriteModel(ABC):
         first_name: str | None = None,
         last_name: str | None = None,
         phone: str | None = None,
-        is_plus_one: bool = False,
-        plus_one_name: str | None = None,
         notes: str | None = None,
     ) -> GuestDTO:
         """Create a new guest with user and RSVP info. Returns DTO."""
@@ -51,8 +49,6 @@ class SqlGuestCreateWriteModel(GuestCreateWriteModel):
         first_name: str | None = None,
         last_name: str | None = None,
         phone: str | None = None,
-        is_plus_one: bool = False,
-        plus_one_name: str | None = None,
         notes: str | None = None,
     ) -> GuestDTO:
         """Create a new guest with user and RSVP info. Returns DTO."""
@@ -71,8 +67,6 @@ class SqlGuestCreateWriteModel(GuestCreateWriteModel):
                 first_name=first_name or "",
                 last_name=last_name or "",
                 phone=phone,
-                is_plus_one=is_plus_one,
-                plus_one_name=plus_one_name if is_plus_one else None,
                 notes=notes,
             )
             session.add(guest)
@@ -98,8 +92,6 @@ class SqlGuestCreateWriteModel(GuestCreateWriteModel):
             first_name=first_name,
             last_name=last_name,
             phone=phone,
-            is_plus_one=is_plus_one,
-            plus_one_name=plus_one_name if is_plus_one else None,
             email=email,
             rsvp=RSVPDTO(
                 status=rsvp_info.status,

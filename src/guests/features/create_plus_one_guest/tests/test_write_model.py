@@ -30,8 +30,8 @@ async def test_create_plus_one_guest_new_user():
             first_name="Plus",
             last_name="One",
         )
-        result = await plus_one_write_model.create_plus_one_guest(
-            original_guest_user_id=original_guest.id,
+        result, plus_one_uuid = await plus_one_write_model.create_plus_one_guest(
+            original_guest_id=original_guest.id,
             plus_one_data=plus_one_data,
         )
 
@@ -39,11 +39,13 @@ async def test_create_plus_one_guest_new_user():
         assert result.email == "plusone@example.com"
         assert result.first_name == "Plus"
         assert result.last_name == "One"
-        assert result.is_plus_one is True
+        assert result.plus_one_of_id == original_guest.id  # Indicates this is a plus-one
         assert result.rsvp.status == GuestStatus.PENDING
         assert isinstance(result.rsvp.token, str)
         assert result.rsvp.link is not None
         assert result.rsvp.link.startswith("http://localhost:4321/rsvp/?token=")
+        # Verify UUID is returned
+        assert plus_one_uuid == result.id
 
         await db_session.rollback()
 
@@ -66,8 +68,8 @@ async def test_create_plus_one_guest_links_to_original():
             first_name="Plus",
             last_name="Two",
         )
-        result = await plus_one_write_model.create_plus_one_guest(
-            original_guest_user_id=original_guest.id,
+        result, _ = await plus_one_write_model.create_plus_one_guest(
+            original_guest_id=original_guest.id,
             plus_one_data=plus_one_data,
         )
 
@@ -78,7 +80,7 @@ async def test_create_plus_one_guest_links_to_original():
         plus_one_guest_db = guest_result.scalar_one_or_none()
 
         assert plus_one_guest_db is not None
-        assert plus_one_guest_db.is_plus_one is True
+        # plus_one_of_id being set indicates this is a plus-one (no separate is_plus_one field)
         assert plus_one_guest_db.plus_one_of_id == original_guest.id
 
         await db_session.rollback()
@@ -102,8 +104,8 @@ async def test_create_plus_one_guest_creates_rsvp_info():
             first_name="Plus",
             last_name="Three",
         )
-        result = await plus_one_write_model.create_plus_one_guest(
-            original_guest_user_id=original_guest.id,
+        result, _ = await plus_one_write_model.create_plus_one_guest(
+            original_guest_id=original_guest.id,
             plus_one_data=plus_one_data,
         )
 
@@ -147,13 +149,14 @@ async def test_create_plus_one_guest_existing_user_returns_existing_guest():
             first_name="Different",
             last_name="Name",
         )
-        result = await plus_one_write_model.create_plus_one_guest(
-            original_guest_user_id=original_guest.id,
+        result, returned_uuid = await plus_one_write_model.create_plus_one_guest(
+            original_guest_id=original_guest.id,
             plus_one_data=plus_one_data,
         )
 
         # Should return the existing guest's info
         assert result.id == existing_guest.id
+        assert returned_uuid == existing_guest.id
         assert result.first_name == "Existing"
         assert result.last_name == "PlusOne"
         assert result.rsvp.token == existing_guest.rsvp.token
@@ -179,8 +182,8 @@ async def test_create_plus_one_guest_has_independent_rsvp():
             first_name="Plus",
             last_name="Five",
         )
-        result = await plus_one_write_model.create_plus_one_guest(
-            original_guest_user_id=original_guest.id,
+        result, _ = await plus_one_write_model.create_plus_one_guest(
+            original_guest_id=original_guest.id,
             plus_one_data=plus_one_data,
         )
 

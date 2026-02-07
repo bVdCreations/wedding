@@ -177,7 +177,7 @@ import Layout from '../../layouts/Layout.astro';
   function prefillForm(data: {
     attending: boolean | null;
     is_plus_one: boolean;
-    plus_one_name: string | null;
+    plus_one: { email: string; first_name: string; last_name: string } | null;
     dietary_requirements: Array<{requirement_type: string; notes: string | null}>;
   }) {
     // Store if guest is a plus-one (they can't add their own plus-one)
@@ -195,20 +195,21 @@ import Layout from '../../layouts/Layout.astro';
       }
     }
 
-    // Prefill plus one checkbox if plus_one_name is set (means they previously indicated a plus-one)
-    if (data.plus_one_name && !guestIsPlusOne) {
+    // Prefill plus one details if they previously indicated a plus-one
+    if (data.plus_one && !guestIsPlusOne) {
       plusOneCheckbox.checked = true;
       plusOneDetailsSection.style.display = 'block';
-      // Note: We don't have the email stored, so we can't prefill it
-      // Parse first/last name from plus_one_name if possible
-      const nameParts = data.plus_one_name.trim().split(' ');
+      const emailInput = document.getElementById('plus_one_email') as HTMLInputElement;
       const firstNameInput = document.getElementById('plus_one_first_name') as HTMLInputElement;
       const lastNameInput = document.getElementById('plus_one_last_name') as HTMLInputElement;
-      if (firstNameInput && nameParts.length > 0) {
-        firstNameInput.value = nameParts[0];
+      if (emailInput) {
+        emailInput.value = data.plus_one.email;
       }
-      if (lastNameInput && nameParts.length > 1) {
-        lastNameInput.value = nameParts.slice(1).join(' ');
+      if (firstNameInput) {
+        firstNameInput.value = data.plus_one.first_name;
+      }
+      if (lastNameInput) {
+        lastNameInput.value = data.plus_one.last_name;
       }
     }
 

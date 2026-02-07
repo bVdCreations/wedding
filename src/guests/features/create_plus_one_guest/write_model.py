@@ -24,12 +24,12 @@ class PlusOneGuestWriteModel(ABC):
     @abstractmethod
     async def create_plus_one_guest(
         self,
-        original_guest_user_id: UUID,
+        original_guest_id: UUID,
         plus_one_data: PlusOneDTO,
-    ) -> GuestDTO:
+    ) -> tuple[GuestDTO, UUID]:
         """
         Create a new plus-one guest with user, guest, and RSVPInfo.
-        Returns GuestDTO with RSVP token and link.
+        Returns tuple of (GuestDTO with RSVP token and link, plus-one guest UUID).
         """
         raise NotImplementedError
 
@@ -55,12 +55,12 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
 
     async def create_plus_one_guest(
         self,
-        original_guest_user_id: UUID,
+        original_guest_id: UUID,
         plus_one_data: PlusOneDTO,
-    ) -> GuestDTO:
+    ) -> tuple[GuestDTO, UUID]:
         """
         Create a new plus-one guest with user, guest, and RSVPInfo.
-        Returns GuestDTO with RSVP token and link.
+        Returns tuple of (GuestDTO with RSVP token and link, plus-one guest UUID).
         """
         async with self.async_session_manager(session_overwrite=self.session_overwrite) as session:
             # 1. Get or create User by email
@@ -71,19 +71,21 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
             if existing_guest is not None:
                 # Return existing guest's info
                 rsvp_info = await self._get_rsvp_info_by_guest_id(session, existing_guest.uuid)
-                return GuestDTO(
-                    id=existing_guest.uuid,
-                    first_name=existing_guest.first_name,
-                    last_name=existing_guest.last_name,
-                    phone=existing_guest.phone,
-                    is_plus_one=existing_guest.is_plus_one,
-                    plus_one_name=existing_guest.plus_one_name,
-                    email=str(plus_one_data.email),
-                    rsvp=RSVPDTO(
-                        status=rsvp_info.status if rsvp_info else GuestStatus.PENDING,
-                        token=rsvp_info.rsvp_token if rsvp_info else "",
-                        link=rsvp_info.rsvp_link if rsvp_info else "",
+                return (
+                    GuestDTO(
+                        id=existing_guest.uuid,
+                        first_name=existing_guest.first_name,
+                        last_name=existing_guest.last_name,
+                        phone=existing_guest.phone,
+                        plus_one_of_id=existing_guest.plus_one_of_id,
+                        email=str(plus_one_data.email),
+                        rsvp=RSVPDTO(
+                            status=rsvp_info.status if rsvp_info else GuestStatus.PENDING,
+                            token=rsvp_info.rsvp_token if rsvp_info else "",
+                            link=rsvp_info.rsvp_link if rsvp_info else "",
+                        ),
                     ),
+                    existing_guest.uuid,
                 )
 
             # 3. Create Guest linked to User with plus_one_of_id set
@@ -92,9 +94,7 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
                 first_name=plus_one_data.first_name,
                 last_name=plus_one_data.last_name,
                 phone=None,
-                is_plus_one=True,
-                plus_one_of_id=original_guest_user_id,
-                plus_one_name=None,
+                plus_one_of_id=original_guest_id,
                 notes=None,
             )
             session.add(guest)
@@ -114,20 +114,22 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
 
             await session.flush()
 
-        # 5. Build and return GuestDTO
-        return GuestDTO(
-            id=guest.uuid,
-            first_name=plus_one_data.first_name,
-            last_name=plus_one_data.last_name,
-            phone=None,
-            is_plus_one=True,
-            plus_one_name=None,
-            email=str(plus_one_data.email),
-            rsvp=RSVPDTO(
-                status=rsvp_info.status,
-                token=rsvp_token,
-                link=rsvp_info.rsvp_link,
+        # 5. Build and return GuestDTO with plus-one guest UUID
+        return (
+            GuestDTO(
+                id=guest.uuid,
+                first_name=plus_one_data.first_name,
+                last_name=plus_one_data.last_name,
+                phone=None,
+                plus_one_of_id=original_guest_id,
+                email=str(plus_one_data.email),
+                rsvp=RSVPDTO(
+                    status=rsvp_info.status,
+                    token=rsvp_token,
+                    link=rsvp_info.rsvp_link,
+                ),
             ),
+            guest.uuid,
         )
 
     async def _get_or_create_user(self, session: AsyncSession, email: str) -> User:
