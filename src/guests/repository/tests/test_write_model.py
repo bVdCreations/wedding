@@ -26,32 +26,31 @@ class MockEmailService(EmailService):
         pass
 
 
-async def create_test_user(async_session):
+async def create_test_user(async_session, email="test@example.com"):
     """Create a test user, cleaning up any existing test data first."""
     # Clean up existing test user if it exists
     existing_user = await async_session.execute(
-        select(User).where(User.email == "test@example.com")
+        select(User).where(User.email == email)
     )
     if existing_user.scalar_one_or_none():
-        await async_session.execute(select(User).where(User.email == "test@example.com"))
-        await async_session.execute(User.__table__.delete().where(User.email == "test@example.com"))
-        await async_session.commit()
+        await async_session.execute(User.__table__.delete().where(User.email == email))
+        await async_session.flush()
 
     user = User(
-        email="test@example.com",
+        email=email,
         hashed_password="hashed_password",
     )
     async_session.add(user)
-    await async_session.commit()
+    await async_session.flush()
     await async_session.refresh(user)
     return user
 
 
-async def create_test_guest(async_session, test_user):
+async def create_test_guest(async_session, test_user, rsvp_token="test-token-12345"):
     """Create a test guest with RSVP info, cleaning up existing guest first."""
     # Clean up existing guest with same token if it exists
     existing_rsvp = await async_session.execute(
-        select(RSVPInfo).where(RSVPInfo.rsvp_token == "test-token-12345")
+        select(RSVPInfo).where(RSVPInfo.rsvp_token == rsvp_token)
     )
     existing_rsvp_data = existing_rsvp.scalar_one_or_none()
     if existing_rsvp_data:
@@ -61,12 +60,12 @@ async def create_test_guest(async_session, test_user):
             )
         )
         await async_session.execute(
-            RSVPInfo.__table__.delete().where(RSVPInfo.rsvp_token == "test-token-12345")
+            RSVPInfo.__table__.delete().where(RSVPInfo.rsvp_token == rsvp_token)
         )
         await async_session.execute(
             Guest.__table__.delete().where(Guest.uuid == existing_rsvp_data.guest_id)
         )
-        await async_session.commit()
+        await async_session.flush()
 
     guest = Guest(
         user_id=test_user.uuid,
@@ -75,149 +74,164 @@ async def create_test_guest(async_session, test_user):
         phone="+1234567890",
     )
     async_session.add(guest)
-    await async_session.commit()
+    await async_session.flush()
     await async_session.refresh(guest)
 
     rsvp_info = RSVPInfo(
         guest_id=guest.uuid,
         status=GuestStatus.PENDING,
-        rsvp_token="test-token-12345",
-        rsvp_link="http://example.com/rsvp/test-token-12345",
+        rsvp_token=rsvp_token,
+        rsvp_link=f"http://example.com/rsvp/{rsvp_token}",
     )
     async_session.add(rsvp_info)
-    await async_session.commit()
+    await async_session.flush()
     await async_session.refresh(guest)
 
     return guest
 
 
-@pytest_asyncio.fixture
-async def setup_test_data():
-    """Set up test data for each test."""
-    async with async_session_manager() as session:
-        user = await create_test_user(session)
-        guest = await create_test_guest(session, user)
-        yield {"user": user, "guest": guest}
-
-        # Cleanup after tests
-        await session.execute(
-            RSVPInfo.__table__.delete().where(RSVPInfo.rsvp_token == "test-token-12345")
-        )
-        await session.execute(Guest.__table__.delete().where(Guest.uuid == guest.uuid))
-        await session.execute(User.__table__.delete().where(User.email == "test@example.com"))
-        await session.commit()
-
-
 @pytest.mark.asyncio
-async def test_submit_rsvp_attending(setup_test_data):
+async def test_submit_rsvp_attending():
     """Test submitting an RSVP with attending=true."""
-    guest_uuid = setup_test_data["guest"].uuid
-
-    write_model = SqlRSVPWriteModel(email_service=MockEmailService())
-
-    result = await write_model.submit_rsvp(
-        token="test-token-12345",
-        attending=True,
-        plus_one_details=None,
-        dietary_requirements=[],
-    )
-
-    assert isinstance(result, RSVPResponseDTO)
-    assert result.attending is True
-    assert result.status == GuestStatus.CONFIRMED
-    assert "Thank you for confirming" in result.message
-
-    # Verify database state
     async with async_session_manager() as session:
-        rsvp_result = await session.execute(select(RSVPInfo).where(RSVPInfo.guest_id == guest_uuid))
-        rsvp_info = rsvp_result.scalar_one()
-        assert rsvp_info.status == GuestStatus.CONFIRMED
+        try:
+            user = await create_test_user(session)
+            guest = await create_test_guest(session, user)
+            guest_uuid = guest.uuid
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session,
+                email_service=MockEmailService()
+            )
+
+            result = await write_model.submit_rsvp(
+                token="test-token-12345",
+                attending=True,
+                plus_one_details=None,
+                dietary_requirements=[],
+            )
+
+            assert isinstance(result, RSVPResponseDTO)
+            assert result.attending is True
+            assert result.status == GuestStatus.CONFIRMED
+            assert "Thank you for confirming" in result.message
+
+            # Verify database state
+            rsvp_result = await session.execute(select(RSVPInfo).where(RSVPInfo.guest_id == guest_uuid))
+            rsvp_info = rsvp_result.scalar_one()
+            assert rsvp_info.status == GuestStatus.CONFIRMED
+        finally:
+            await session.rollback()
 
 
 @pytest.mark.asyncio
-async def test_submit_rsvp_not_attending(setup_test_data):
+async def test_submit_rsvp_not_attending():
     """Test submitting an RSVP with attending=false."""
-    guest_uuid = setup_test_data["guest"].uuid
-
-    write_model = SqlRSVPWriteModel(email_service=MockEmailService())
-
-    result = await write_model.submit_rsvp(
-        token="test-token-12345",
-        attending=False,
-        plus_one_details=None,
-        dietary_requirements=[],
-    )
-
-    assert isinstance(result, RSVPResponseDTO)
-    assert result.attending is False
-    assert result.status == GuestStatus.DECLINED
-    assert "We're sorry you can't make it" in result.message
-
-    # Verify database state
     async with async_session_manager() as session:
-        rsvp_result = await session.execute(select(RSVPInfo).where(RSVPInfo.guest_id == guest_uuid))
-        rsvp_info = rsvp_result.scalar_one()
-        assert rsvp_info.status == GuestStatus.DECLINED
+        try:
+            user = await create_test_user(session)
+            guest = await create_test_guest(session, user)
+            guest_uuid = guest.uuid
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session,
+                email_service=MockEmailService()
+            )
+
+            result = await write_model.submit_rsvp(
+                token="test-token-12345",
+                attending=False,
+                plus_one_details=None,
+                dietary_requirements=[],
+            )
+
+            assert isinstance(result, RSVPResponseDTO)
+            assert result.attending is False
+            assert result.status == GuestStatus.DECLINED
+            assert "We're sorry you can't make it" in result.message
+
+            # Verify database state
+            rsvp_result = await session.execute(select(RSVPInfo).where(RSVPInfo.guest_id == guest_uuid))
+            rsvp_info = rsvp_result.scalar_one()
+            assert rsvp_info.status == GuestStatus.DECLINED
+        finally:
+            await session.rollback()
 
 
 @pytest.mark.asyncio
-async def test_submit_rsvp_with_dietary_requirements(setup_test_data):
+async def test_submit_rsvp_with_dietary_requirements():
     """Test submitting an RSVP with dietary requirements."""
-    guest_uuid = setup_test_data["guest"].uuid
-
-    write_model = SqlRSVPWriteModel(email_service=MockEmailService())
-
-    dietary_requirements = [
-        {"requirement_type": "vegetarian", "notes": "No mushrooms please"},
-        {"requirement_type": "gluten_free", "notes": None},
-    ]
-
-    result = await write_model.submit_rsvp(
-        token="test-token-12345",
-        attending=True,
-        plus_one_details=None,
-        dietary_requirements=dietary_requirements,
-    )
-
-    assert isinstance(result, RSVPResponseDTO)
-    assert result.attending is True
-    assert result.status == GuestStatus.CONFIRMED
-
-    # Verify database state
     async with async_session_manager() as session:
-        result = await session.execute(
-            select(DietaryOption).where(DietaryOption.guest_id == guest_uuid)
-        )
-        dietary_opts = result.scalars().all()
-        assert len(dietary_opts) == 2
+        try:
+            user = await create_test_user(session)
+            guest = await create_test_guest(session, user)
+            guest_uuid = guest.uuid
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session,
+                email_service=MockEmailService()
+            )
+
+            dietary_requirements = [
+                {"requirement_type": "vegetarian", "notes": "No mushrooms please"},
+                {"requirement_type": "gluten_free", "notes": None},
+            ]
+
+            result = await write_model.submit_rsvp(
+                token="test-token-12345",
+                attending=True,
+                plus_one_details=None,
+                dietary_requirements=dietary_requirements,
+            )
+
+            assert isinstance(result, RSVPResponseDTO)
+            assert result.attending is True
+            assert result.status == GuestStatus.CONFIRMED
+
+            # Verify database state
+            result = await session.execute(
+                select(DietaryOption).where(DietaryOption.guest_id == guest_uuid)
+            )
+            dietary_opts = result.scalars().all()
+            assert len(dietary_opts) == 2
+        finally:
+            await session.rollback()
 
 
 @pytest.mark.asyncio
-async def test_submit_rsvp_with_plus_one(setup_test_data):
+async def test_submit_rsvp_with_plus_one():
     """Test submitting an RSVP with plus one."""
-    guest_uuid = setup_test_data["guest"].uuid
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session)
+            guest = await create_test_guest(session, user)
 
-    write_model = SqlRSVPWriteModel(email_service=MockEmailService())
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session,
+                email_service=MockEmailService()
+            )
 
-    plus_one_details = PlusOneDTO(
-        email="jane@example.com",
-        first_name="Jane",
-        last_name="Doe",
-    )
+            plus_one_details = PlusOneDTO(
+                email="jane@example.com",
+                first_name="Jane",
+                last_name="Doe",
+            )
 
-    result = await write_model.submit_rsvp(
-        token="test-token-12345",
-        attending=True,
-        plus_one_details=plus_one_details,
-        dietary_requirements=[],
-    )
+            result = await write_model.submit_rsvp(
+                token="test-token-12345",
+                attending=True,
+                plus_one_details=plus_one_details,
+                dietary_requirements=[],
+            )
 
-    assert isinstance(result, RSVPResponseDTO)
-    assert result.attending is True
+            assert isinstance(result, RSVPResponseDTO)
+            assert result.attending is True
 
-    # Verify database state - bring_a_plus_one_id should be set
-    # Note: This test doesn't inject the plus_one_guest_write_model, so bring_a_plus_one_id won't be set
-    # The full integration would require setting up the dependency injection
+            # Verify database state - bring_a_plus_one_id should be set
+            # Note: This test doesn't inject the plus_one_guest_write_model, so bring_a_plus_one_id won't be set
+            # The full integration would require setting up the dependency injection
+        finally:
+            await session.rollback()
 
 
 @pytest.mark.asyncio
@@ -235,85 +249,105 @@ async def test_submit_rsvp_with_invalid_token():
 
 
 @pytest.mark.asyncio
-async def test_submit_rsvp_clears_previous_dietary(setup_test_data):
+async def test_submit_rsvp_clears_previous_dietary():
     """Test that submitting an RSVP clears previous dietary requirements."""
-    guest_uuid = setup_test_data["guest"].uuid
-
-    # Add initial dietary requirement
     async with async_session_manager() as session:
-        dietary = DietaryOption(
-            guest_id=guest_uuid,
-            requirement_type=DietaryType.VEGETARIAN,
-            notes="Initial notes",
-        )
-        session.add(dietary)
-        await session.commit()
+        try:
+            user = await create_test_user(session)
+            guest = await create_test_guest(session, user)
+            guest_uuid = guest.uuid
 
-    write_model = SqlRSVPWriteModel(email_service=MockEmailService())
+            # Add initial dietary requirement
+            dietary = DietaryOption(
+                guest_id=guest_uuid,
+                requirement_type=DietaryType.VEGETARIAN,
+                notes="Initial notes",
+            )
+            session.add(dietary)
+            await session.flush()
 
-    await write_model.submit_rsvp(
-        token="test-token-12345",
-        attending=True,
-        plus_one_details=None,
-        dietary_requirements=[{"requirement_type": "vegan", "notes": "New preference"}],
-    )
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session,
+                email_service=MockEmailService()
+            )
 
-    # Verify old dietary requirements are cleared
-    async with async_session_manager() as session:
-        result = await session.execute(
-            select(DietaryOption).where(DietaryOption.guest_id == guest_uuid)
-        )
-        dietary_opts = result.scalars().all()
-        assert len(dietary_opts) == 1
-        assert dietary_opts[0].requirement_type == DietaryType.VEGAN
+            await write_model.submit_rsvp(
+                token="test-token-12345",
+                attending=True,
+                plus_one_details=None,
+                dietary_requirements=[{"requirement_type": "vegan", "notes": "New preference"}],
+            )
+
+            # Verify old dietary requirements are cleared
+            result = await session.execute(
+                select(DietaryOption).where(DietaryOption.guest_id == guest_uuid)
+            )
+            dietary_opts = result.scalars().all()
+            assert len(dietary_opts) == 1
+            assert dietary_opts[0].requirement_type == DietaryType.VEGAN
+        finally:
+            await session.rollback()
 
 
 @pytest.mark.asyncio
-async def test_submit_rsvp_without_email_service(setup_test_data):
+async def test_submit_rsvp_without_email_service():
     """Test submitting an RSVP without an email service (should not fail)."""
-    write_model = SqlRSVPWriteModel(email_service=None)
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session)
+            await create_test_guest(session, user)
 
-    result = await write_model.submit_rsvp(
-        token="test-token-12345",
-        attending=True,
-        plus_one_details=None,
-        dietary_requirements=[],
-    )
+            write_model = SqlRSVPWriteModel(session_overwrite=session)
 
-    assert isinstance(result, RSVPResponseDTO)
-    assert result.attending is True
+            result = await write_model.submit_rsvp(
+                token="test-token-12345",
+                attending=True,
+                plus_one_details=None,
+                dietary_requirements=[],
+            )
+
+            assert isinstance(result, RSVPResponseDTO)
+            assert result.attending is True
+        finally:
+            await session.rollback()
 
 
 @pytest.mark.asyncio
-async def test_submit_rsvp_declined_clears_plus_one(setup_test_data):
+async def test_submit_rsvp_declined_clears_plus_one():
     """Test that declining clears bring_a_plus_one_id."""
-    guest_uuid = setup_test_data["guest"].uuid
-
-    # Set initial bring_a_plus_one_id (simulating a guest who previously had a plus-one)
     async with async_session_manager() as session:
-        guest = await session.get(Guest, guest_uuid)
-        # Create a dummy plus-one guest to reference
-        plus_one_guest = Guest(
-            user_id=guest.user_id,  # Using same user for simplicity in test
-            first_name="Jane",
-            last_name="Doe",
-            plus_one_of_id=guest_uuid,
-        )
-        session.add(plus_one_guest)
-        await session.flush()
-        guest.bring_a_plus_one_id = plus_one_guest.uuid
-        await session.commit()
+        try:
+            user = await create_test_user(session)
+            guest = await create_test_guest(session, user)
+            guest_uuid = guest.uuid
 
-    write_model = SqlRSVPWriteModel(email_service=MockEmailService())
+            # Set initial bring_a_plus_one_id (simulating a guest who previously had a plus-one)
+            guest = await session.get(Guest, guest_uuid)
+            # Create a dummy plus-one guest to reference
+            plus_one_guest = Guest(
+                user_id=guest.user_id,
+                first_name="Jane",
+                last_name="Doe",
+                plus_one_of_id=guest_uuid,
+            )
+            session.add(plus_one_guest)
+            await session.flush()
+            guest.bring_a_plus_one_id = plus_one_guest.uuid
 
-    await write_model.submit_rsvp(
-        token="test-token-12345",
-        attending=False,
-        plus_one_details=None,
-        dietary_requirements=[],
-    )
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session,
+                email_service=MockEmailService()
+            )
 
-    # Verify bring_a_plus_one_id is cleared when declining
-    async with async_session_manager() as session:
-        guest = await session.get(Guest, guest_uuid)
-        assert guest.bring_a_plus_one_id is None
+            await write_model.submit_rsvp(
+                token="test-token-12345",
+                attending=False,
+                plus_one_details=None,
+                dietary_requirements=[],
+            )
+
+            # Verify bring_a_plus_one_id is cleared when declining
+            await session.refresh(guest)
+            assert guest.bring_a_plus_one_id is None
+        finally:
+            await session.rollback()
