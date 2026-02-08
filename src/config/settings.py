@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:4321"
     cors_origins: list[str] = ["*"]
 
+    ENVIRONMENT: str = "Production"
+
     # Database
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/wedding_rsvp"
     database_url_sync: str = "postgresql://postgres:postgres@localhost:5432/wedding_rsvp"
@@ -26,6 +28,10 @@ class Settings(BaseSettings):
     smtp_user: str = ""
     smtp_password: str = ""
     emails_from: str = "wedding@example.com"
+
+    SENTRY_DSN: str = ""
+    SENTRY_TRACES_SAMPLE_RATE: float = 0.0
+    SENTRY_PROFILES_SAMPLE_RATE: float = 0.0
 
     class Config:
         env_file = ".env"
