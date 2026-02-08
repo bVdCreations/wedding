@@ -10,12 +10,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.config.database import async_session_manager
 from src.email.service import EmailService
 from src.guests.dtos import (
-    FamilyMemberUpdateDTO,
-    GuestInfoUpdateDTO,
     GuestStatus,
-    PlusOneDTO,
     RSVPResponseDTO,
 )
+
+if TYPE_CHECKING:
+    from src.guests.features.update_rsvp.router import (
+        FamilyMemberSubmit,
+        GuestInfoSubmit,
+        RSVPResponseSubmit,
+    )
 from src.guests.repository.orm_models import DietaryOption, DietaryType, Guest, RSVPInfo
 from src.models.user import User
 
@@ -28,11 +32,7 @@ class RSVPWriteModel(ABC):
     async def submit_rsvp(
         self,
         token: str,
-        attending: bool,
-        plus_one_details: PlusOneDTO | None,
-        dietary_requirements: list[dict],
-        guest_info: GuestInfoUpdateDTO | None = None,
-        family_member_updates: dict[UUID, FamilyMemberUpdateDTO] | None = None,
+        rsvp_data: "RSVPResponseSubmit",
     ) -> RSVPResponseDTO:
         """
         Submit RSVP response for a guest.
@@ -77,7 +77,7 @@ class SqlRSVPWriteModel:
         return user.email if user else ""
 
     async def _update_guest_info(
-        self, session, guest: Guest, guest_info: GuestInfoUpdateDTO
+        self, session, guest: Guest, guest_info: "GuestInfoSubmit"
     ) -> None:
         """Update guest info (first_name, last_name, phone)."""
         guest.first_name = guest_info.first_name
@@ -89,7 +89,7 @@ class SqlRSVPWriteModel:
         self,
         session,
         family_member_uuid: UUID,
-        update_data: FamilyMemberUpdateDTO,
+        update_data: "FamilyMemberSubmit",
     ) -> None:
         """Update a family member's RSVP, dietary requirements, and guest info."""
         # Get family member guest
@@ -138,21 +138,20 @@ class SqlRSVPWriteModel:
     async def submit_rsvp(
         self,
         token: str,
-        attending: bool,
-        plus_one_details: PlusOneDTO | None,
-        dietary_requirements: list[dict],
-        guest_info: GuestInfoUpdateDTO | None = None,
-        family_member_updates: dict[UUID, FamilyMemberUpdateDTO] | None = None,
+        rsvp_data: "RSVPResponseSubmit",
     ) -> RSVPResponseDTO:
         """
         Submit RSVP response for a guest.
         Returns DTO instead of ORM model.
         Supports updating guest info and family member RSVP/dietary.
         """
+        attending = rsvp_data.attending
+        plus_one_details = rsvp_data.plus_one_details
+        dietary_requirements = rsvp_data.dietary_requirements
+        guest_info = rsvp_data.guest_info
+        family_member_updates = rsvp_data.family_member_updates
+
         async with async_session_manager(session_overwrite=self._session_overwrite) as session:
-            assert session is not None
-            assert self._email_service is not None
-            assert self._plus_one_guest_write_model is not None
             if self._plus_one_guest_write_model:
                 self._plus_one_guest_write_model.set_session_overwrite(session)
                 self._plus_one_guest_write_model.set_email_service(self._email_service)
@@ -182,10 +181,17 @@ class SqlRSVPWriteModel:
             # Add new dietary requirements if attending
             if attending and dietary_requirements:
                 for req in dietary_requirements:
+                    # Handle both dict and Pydantic model
+                    if isinstance(req, dict):
+                        req_type = req["requirement_type"]
+                        notes = req.get("notes")
+                    else:
+                        req_type = req.requirement_type
+                        notes = req.notes
                     dietary = DietaryOption(
                         guest_id=guest.uuid,
-                        requirement_type=DietaryType(req["requirement_type"]),
-                        notes=req.get("notes"),
+                        requirement_type=DietaryType(req_type),
+                        notes=notes,
                     )
                     session.add(dietary)
 
@@ -209,8 +215,10 @@ class SqlRSVPWriteModel:
 
             # Update family members if provided
             if family_member_updates:
-                for member_uuid, update_data in family_member_updates.items():
-                    await self._update_family_member(session, member_uuid, update_data)
+                for member_id, update_data in family_member_updates.items():
+                    await self._update_family_member(
+                        session, UUID(member_id), update_data
+                    )
 
             # Build response message
             message = (
@@ -221,11 +229,17 @@ class SqlRSVPWriteModel:
 
             # Send confirmation email if email_service is available
             if self._email_service:
-                dietary_str = (
-                    ", ".join([req["requirement_type"] for req in dietary_requirements])
-                    if dietary_requirements
-                    else "None"
-                )
+                # Handle both dict and Pydantic model for dietary_requirements
+                if dietary_requirements:
+                    dietary_list = []
+                    for req in dietary_requirements:
+                        if isinstance(req, dict):
+                            dietary_list.append(req["requirement_type"])
+                        else:
+                            dietary_list.append(req.requirement_type)
+                    dietary_str = ", ".join(dietary_list)
+                else:
+                    dietary_str = "None"
 
                 user_email = await self._get_user_email(session, guest.user_id)
                 guest_name = f"{guest.first_name} {guest.last_name}"

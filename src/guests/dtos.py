@@ -137,21 +137,3 @@ class GuestDTO:
     bring_a_plus_one_id: UUID | None = None
     family_id: UUID | None = None
     notes: str | None = None
-
-
-@dataclass(frozen=True)
-class GuestInfoUpdateDTO:
-    """DTO for updating guest info (first_name, last_name, phone)."""
-
-    first_name: str
-    last_name: str
-    phone: str | None = None
-
-
-@dataclass(frozen=True)
-class FamilyMemberUpdateDTO:
-    """DTO for updating family member RSVP and info."""
-
-    attending: bool
-    dietary_requirements: list[dict] = field(default_factory=list)
-    guest_info: GuestInfoUpdateDTO | None = None

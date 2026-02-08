@@ -1,16 +1,12 @@
 from dataclasses import asdict
-from typing import Dict
-from uuid import UUID
+from typing import TYPE_CHECKING, Dict
 
 import pytest
 
-from src.guests.dtos import (
-    FamilyMemberUpdateDTO,
-    GuestInfoUpdateDTO,
-    GuestStatus,
-    PlusOneDTO,
-    RSVPResponseDTO,
-)
+from src.guests.dtos import GuestStatus, RSVPResponseDTO
+
+if TYPE_CHECKING:
+    from src.guests.features.update_rsvp.router import RSVPResponseSubmit
 from src.guests.features.update_rsvp.router import get_rsvp_write_model
 from src.guests.repository.write_models import RSVPWriteModel
 from src.guests.urls import UPDATE_RSVP_URL
@@ -28,20 +24,11 @@ class InMemoryRSVPWriteModel(RSVPWriteModel):
     async def submit_rsvp(
         self,
         token: str,
-        attending: bool,
-        plus_one_details: PlusOneDTO | None,
-        dietary_requirements: list[dict],
-        guest_info: GuestInfoUpdateDTO | None = None,
-        family_member_updates: Dict[UUID, FamilyMemberUpdateDTO] | None = None,
+        rsvp_data: "RSVPResponseSubmit",
     ) -> RSVPResponseDTO:
-        self._memory[token] = {
-            "attending": attending,
-            "plus_one_details": plus_one_details,
-            "dietary_requirements": dietary_requirements,
-            "guest_info": guest_info,
-            "family_member_updates": family_member_updates,
-        }
+        self._memory[token] = rsvp_data.model_dump()
 
+        attending = rsvp_data.attending
         status = GuestStatus.CONFIRMED if attending else GuestStatus.DECLINED
         message = (
             "Thank you for confirming your attendance!"
@@ -153,7 +140,7 @@ async def test_submit_rsvp_with_plus_one(client_factory):
     assert data["attending"] is True
     assert data["status"] == GuestStatus.CONFIRMED.value
 
-    assert asdict(memory[token]["plus_one_details"]) == {
+    assert memory[token]["plus_one_details"] == {
         "email": "plusone@example.com",
         "first_name": "John",
         "last_name": "Doe",
