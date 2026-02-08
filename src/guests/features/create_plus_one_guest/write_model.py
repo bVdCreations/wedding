@@ -20,11 +20,13 @@ from src.models.user import User
 
 class CannotAddPlusOneError(Exception):
     """Raised when a plus-one guest tries to add their own plus-one."""
+
     pass
 
 
 class CannotChangePlusOneEmailError(Exception):
     """Raised when attempting to change a plus-one's email."""
+
     pass
 
 
@@ -44,9 +46,16 @@ class PlusOneGuestWriteModel(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def session_overwrite(self, session: AsyncSession) -> AsyncSession:
+    def set_session_overwrite(self, session: AsyncSession) -> None:
         """
-        Overwrite the session with a new session.
+        Set the session to use for database operations.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_email_service(self, email_service) -> None:
+        """
+        Set the email service instance.
         """
         raise NotImplementedError
 
@@ -57,11 +66,14 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
     async_session_manager = staticmethod(partial(async_session_manager))
 
     def __init__(self, session_overwrite: AsyncSession | None = None) -> None:
-        self.session_overwrite = session_overwrite
+        self._session_overwrite = session_overwrite
+        self._email_service = None
 
-    def session_overwrite(self, session: AsyncSession) -> AsyncSession:
-        self.session_overwrite = session
-        return session
+    def set_session_overwrite(self, session: AsyncSession) -> None:
+        self._session_overwrite = session
+
+    def set_email_service(self, email_service) -> None:
+        self._email_service = email_service
 
     async def create_plus_one_guest(
         self,
@@ -74,13 +86,15 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
         Raises CannotAddPlusOneError if the original guest is itself a plus-one.
         Raises CannotChangePlusOneEmailError if trying to change an existing plus-one's email.
         """
-        async with self.async_session_manager(session_overwrite=self.session_overwrite) as session:
+        async with self.async_session_manager(session_overwrite=self._session_overwrite) as session:
             # 1. Validate that original guest can add a plus-one
             await self._check_guest_can_add_plus_one(session, original_guest_id)
 
             # 2. Check if trying to change an existing plus-one's email
             # This must be done BEFORE getting/creating the user
-            await self._check_plus_one_email_not_changed(session, original_guest_id, plus_one_data.email)
+            await self._check_plus_one_email_not_changed(
+                session, original_guest_id, plus_one_data.email
+            )
 
             # 3. Get or create User by email
             user = await self._get_or_create_user(session, str(plus_one_data.email))
@@ -193,25 +207,23 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
         self, session: AsyncSession, original_guest_id: UUID
     ) -> None:
         """Check if the original guest can add a plus-one.
-        
+
         A guest who is already a plus-one (has plus_one_of_id set) cannot add their own plus-one.
         """
         result = await session.execute(select(Guest).where(Guest.uuid == original_guest_id))
         guest = result.scalar_one_or_none()
         if guest is None:
             raise ValueError(f"Guest with ID {original_guest_id} not found")
-        
+
         # A guest who is already a plus-one cannot add their own plus-one
         if guest.plus_one_of_id is not None:
-            raise CannotAddPlusOneError(
-                "A guest who is a plus-one cannot add their own plus-one"
-            )
+            raise CannotAddPlusOneError("A guest who is a plus-one cannot add their own plus-one")
 
     async def _check_plus_one_email_not_changed(
         self, session: AsyncSession, original_guest_id: UUID, new_email: str
     ) -> None:
         """Check if trying to change an existing plus-one's email.
-        
+
         If the original guest already has a plus-one with the same name but
         a different email is being provided, raise an error.
         """
@@ -222,11 +234,11 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
         original_guest = original_guest_result.scalar_one_or_none()
         if original_guest is None:
             return
-        
+
         # Check if original guest has a plus-one
         if original_guest.bring_a_plus_one_id is None:
             return
-        
+
         # Get the plus-one guest
         plus_one_result = await session.execute(
             select(Guest).where(Guest.uuid == original_guest.bring_a_plus_one_id)
@@ -234,14 +246,10 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
         plus_one_guest = plus_one_result.scalar_one_or_none()
         if plus_one_guest is None:
             return
-        
+
         # Get the plus-one's user
-        user_result = await session.execute(
-            select(User).where(User.uuid == plus_one_guest.user_id)
-        )
+        user_result = await session.execute(select(User).where(User.uuid == plus_one_guest.user_id))
         plus_one_user = user_result.scalar_one_or_none()
-        
+
         if plus_one_user is not None and plus_one_user.email != new_email:
-            raise CannotChangePlusOneEmailError(
-                "Cannot change the email of a guest's plus-one"
-            )
+            raise CannotChangePlusOneEmailError("Cannot change the email of a guest's plus-one")

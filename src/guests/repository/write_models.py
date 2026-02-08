@@ -1,7 +1,7 @@
 """RSVP models - Read and write models that return DTOs, never ORM models."""
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy import select
@@ -11,8 +11,8 @@ from src.config.database import async_session_manager
 from src.email.service import EmailService
 from src.guests.dtos import (
     FamilyMemberUpdateDTO,
-    GuestStatus,
     GuestInfoUpdateDTO,
+    GuestStatus,
     PlusOneDTO,
     RSVPResponseDTO,
 )
@@ -32,7 +32,7 @@ class RSVPWriteModel(ABC):
         plus_one_details: PlusOneDTO | None,
         dietary_requirements: list[dict],
         guest_info: GuestInfoUpdateDTO | None = None,
-        family_member_updates: Dict[UUID, FamilyMemberUpdateDTO] | None = None,
+        family_member_updates: dict[UUID, FamilyMemberUpdateDTO] | None = None,
     ) -> RSVPResponseDTO:
         """
         Submit RSVP response for a guest.
@@ -142,7 +142,7 @@ class SqlRSVPWriteModel:
         plus_one_details: PlusOneDTO | None,
         dietary_requirements: list[dict],
         guest_info: GuestInfoUpdateDTO | None = None,
-        family_member_updates: Dict[UUID, FamilyMemberUpdateDTO] | None = None,
+        family_member_updates: dict[UUID, FamilyMemberUpdateDTO] | None = None,
     ) -> RSVPResponseDTO:
         """
         Submit RSVP response for a guest.
@@ -150,8 +150,11 @@ class SqlRSVPWriteModel:
         Supports updating guest info and family member RSVP/dietary.
         """
         async with async_session_manager(session_overwrite=self._session_overwrite) as session:
+            assert session is not None
+            assert self._email_service is not None
+            assert self._plus_one_guest_write_model is not None
             if self._plus_one_guest_write_model:
-                self._plus_one_guest_write_model.session_overwrite(session)
+                self._plus_one_guest_write_model.set_session_overwrite(session)
                 self._plus_one_guest_write_model.set_email_service(self._email_service)
             guest = await self._get_guest_by_token(session, token)
             if not guest:
@@ -194,7 +197,10 @@ class SqlRSVPWriteModel:
 
             # Create plus-one guest if details provided
             if attending and plus_one_details and self._plus_one_guest_write_model:
-                _, plus_one_guest_uuid = await self._plus_one_guest_write_model.create_plus_one_guest(
+                (
+                    _,
+                    plus_one_guest_uuid,
+                ) = await self._plus_one_guest_write_model.create_plus_one_guest(
                     original_guest_id=guest.uuid,
                     plus_one_data=plus_one_details,
                 )

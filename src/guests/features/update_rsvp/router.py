@@ -1,19 +1,17 @@
-from typing import Dict
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 
-from src.email.service import EmailService, email_service
+from src.email.service import email_service
 from src.guests.dtos import (
     DietaryType,
     FamilyMemberUpdateDTO,
-    GuestStatus,
     GuestInfoUpdateDTO,
+    GuestStatus,
     PlusOneDTO,
 )
 from src.guests.features.create_plus_one_guest.write_model import (
-    PlusOneGuestWriteModel,
     SqlPlusOneGuestWriteModel,
 )
 from src.guests.repository.write_models import RSVPWriteModel, SqlRSVPWriteModel
@@ -64,23 +62,11 @@ class RSVPResponse(BaseModel):
     status: GuestStatus
 
 
-def get_email_service() -> EmailService:
-    """Dependency to get email service instance."""
-    return email_service
-
-
-def get_plus_one_guest_write_model() -> PlusOneGuestWriteModel:
-    """Dependency to get plus-one guest write model instance."""
-    return SqlPlusOneGuestWriteModel()
-
-
-def get_rsvp_write_model(
-    email_svc: EmailService = Depends(get_email_service),
-    plus_one_write_model: PlusOneGuestWriteModel = Depends(get_plus_one_guest_write_model),
-) -> RSVPWriteModel:
+def get_rsvp_write_model() -> RSVPWriteModel:
     """Dependency to get RSVP write model instance."""
+    plus_one_write_model = SqlPlusOneGuestWriteModel()
     return SqlRSVPWriteModel(
-        email_service=email_svc,
+        email_service=email_service,
         plus_one_guest_write_model=plus_one_write_model,
     )
 
@@ -115,7 +101,7 @@ async def submit_rsvp(
         )
 
     # Convert family_member_updates to dict of UUID -> FamilyMemberUpdateDTO
-    family_updates: Dict[UUID, FamilyMemberUpdateDTO] = {}
+    family_updates: dict[UUID, FamilyMemberUpdateDTO] = {}
     for member_id, update_data in rsvp_data.family_member_updates.items():
         guest_info_update = None
         if update_data.guest_info:
@@ -140,8 +126,7 @@ async def submit_rsvp(
             attending=rsvp_data.attending,
             plus_one_details=plus_one_dto,
             dietary_requirements=[
-                {"requirement_type": req.requirement_type}
-                for req in rsvp_data.dietary_requirements
+                {"requirement_type": req.requirement_type} for req in rsvp_data.dietary_requirements
             ],
             guest_info=guest_info_dto,
             family_member_updates=family_updates,
