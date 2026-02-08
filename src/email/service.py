@@ -90,14 +90,12 @@ class EmailService:
         html_body = EmailTemplates.CONFIRMATION_HTML.format(
             guest_name=guest_name,
             attending=attending,
-            plus_one=plus_one,
             dietary=dietary,
             couple_names="TODO change this",
         )
         text_body = EmailTemplates.CONFIRMATION_TEXT.format(
             guest_name=guest_name,
             attending=attending,
-            plus_one=plus_one,
             dietary=dietary,
             couple_names="TODO change this",
         )
