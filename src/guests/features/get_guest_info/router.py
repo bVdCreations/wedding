@@ -14,6 +14,7 @@ class DietaryRequirementResponse(BaseModel):
     """Response for dietary requirement."""
 
     requirement_type: DietaryType
+    notes: str | None = None
 
 
 class PlusOneResponse(BaseModel):

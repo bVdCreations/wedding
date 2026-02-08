@@ -22,6 +22,7 @@ router = APIRouter()
 
 class DietaryRequirementCreate(BaseModel):
     requirement_type: DietaryType
+    notes: str | None = None
 
 
 class PlusOneSubmit(BaseModel):
@@ -114,7 +115,7 @@ async def submit_rsvp(
         family_updates[UUID(member_id)] = FamilyMemberUpdateDTO(
             attending=update_data.attending,
             dietary_requirements=[
-                {"requirement_type": req.requirement_type}
+                {"requirement_type": req.requirement_type, "notes": req.notes}
                 for req in update_data.dietary_requirements
             ],
             guest_info=guest_info_update,
@@ -126,7 +127,8 @@ async def submit_rsvp(
             attending=rsvp_data.attending,
             plus_one_details=plus_one_dto,
             dietary_requirements=[
-                {"requirement_type": req.requirement_type} for req in rsvp_data.dietary_requirements
+                {"requirement_type": req.requirement_type, "notes": req.notes}
+                for req in rsvp_data.dietary_requirements
             ],
             guest_info=guest_info_dto,
             family_member_updates=family_updates,
