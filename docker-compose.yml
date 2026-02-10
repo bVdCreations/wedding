@@ -58,6 +58,7 @@ services:
       PUBLIC_BACKEND_API_URL: http://localhost:8000
     volumes:
       - ./frontend/src:/app/src
+      - ./frontend/public/:/app/public
     ports:
       - "4321:4321"
     depends_on:
