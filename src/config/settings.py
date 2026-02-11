@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     SENTRY_TRACES_SAMPLE_RATE: float = 0.0
     SENTRY_PROFILES_SAMPLE_RATE: float = 0.0
 
+    RUN_MIGRATIONS_ON_STARTUP: bool = False
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

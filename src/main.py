@@ -1,4 +1,9 @@
+import asyncio
+from contextlib import asynccontextmanager
+
 import sentry_sdk
+from alembic import command
+from alembic.config import Config
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sentry_sdk.integrations.fastapi import FastApiIntegration
@@ -7,6 +12,19 @@ from sentry_sdk.integrations.starlette import StarletteIntegration
 from src.config.settings import settings
 from src.guests.routers import router as guests_router
 from src.routers.healthz.router import router as healthz_router
+
+
+async def run_migrations():
+    alembic_cfg = Config("alembic.ini")
+    await asyncio.to_thread(command.upgrade, alembic_cfg, "head")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    if settings.RUN_MIGRATIONS_ON_STARTUP:
+        await run_migrations()
+    yield
+
 
 if settings.SENTRY_DSN:
     sentry_sdk.init(
@@ -25,6 +43,7 @@ app = FastAPI(
     title="Wedding RSVP API",
     description="API for managing wedding RSVPs and guest lists",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 # CORS middleware
