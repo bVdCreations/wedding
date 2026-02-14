@@ -105,7 +105,7 @@ class RSVPInfo(Base, TimeStamp):
     rsvp_link: Mapped[str] = mapped_column(String(255), nullable=False)
     notes: Mapped[str] = mapped_column(Text, nullable=True)
     # Track when invitation email was sent (None if not sent)
-    email_sent_on: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+    email_sent_on: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
 
     def __repr__(self) -> str:
         return f"<RSVPInfo {self.rsvp_token}>"
