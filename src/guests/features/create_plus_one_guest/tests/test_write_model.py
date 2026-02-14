@@ -1,5 +1,8 @@
 """Tests for SqlPlusOneGuestWriteModel."""
 
+from datetime import datetime, timezone
+from unittest.mock import AsyncMock
+
 import pytest
 from sqlalchemy import select
 
@@ -378,5 +381,82 @@ async def test_if_a_guest_with_a_plus_one_cannot_change_the_plus_one_email():
                     original_guest_id=original_guest.id,
                     plus_one_data=changed_email_data,
                 )
+        finally:
+            await db_session.rollback()
+
+
+async def test_plus_one_guest_email_sent_on_default():
+    """Test that email_sent_on is None by default when no email_service is set."""
+    async with async_session_maker() as db_session:
+        try:
+            # Create original guest
+            guest_write_model = SqlGuestCreateWriteModel(session_overwrite=db_session)
+            original_guest = await guest_write_model.create_guest(
+                email="original_email@test.com",
+                first_name="Original",
+                last_name="Guest",
+            )
+
+            # Create plus-one guest without email service
+            plus_one_write_model = SqlPlusOneGuestWriteModel(session_overwrite=db_session)
+            plus_one_data = PlusOneDTO(
+                email="plusone@test.com",
+                first_name="Plus",
+                last_name="One",
+            )
+            result, _ = await plus_one_write_model.create_plus_one_guest(
+                original_guest_id=original_guest.id,
+                plus_one_data=plus_one_data,
+            )
+
+            # Verify email_sent_on is None
+            rsvp_result = await db_session.execute(
+                select(RSVPInfo).where(RSVPInfo.guest_id == result.id)
+            )
+            rsvp_db = rsvp_result.scalar_one_or_none()
+            assert rsvp_db is not None
+            assert rsvp_db.email_sent_on is None
+        finally:
+            await db_session.rollback()
+
+
+async def test_plus_one_guest_email_service_not_called_by_default():
+    """Test that email_service is not called by default."""
+    mock_email_service = AsyncMock()
+    
+    async with async_session_maker() as db_session:
+        try:
+            # Create original guest
+            guest_write_model = SqlGuestCreateWriteModel(session_overwrite=db_session)
+            original_guest = await guest_write_model.create_guest(
+                email="original_nocall@test.com",
+                first_name="Original",
+                last_name="Guest",
+            )
+
+            # Create plus-one guest - email service is set but not called by default
+            plus_one_write_model = SqlPlusOneGuestWriteModel(session_overwrite=db_session)
+            plus_one_write_model.set_email_service(mock_email_service)
+            
+            plus_one_data = PlusOneDTO(
+                email="plusone_nocall@test.com",
+                first_name="Plus",
+                last_name="One",
+            )
+            result, _ = await plus_one_write_model.create_plus_one_guest(
+                original_guest_id=original_guest.id,
+                plus_one_data=plus_one_data,
+            )
+
+            # Verify email service was NOT called (current implementation doesn't send email for plus-one)
+            mock_email_service.send_invite_one_plus_one.assert_not_called()
+            mock_email_service.send_invitation.assert_not_called()
+            
+            # Verify email_sent_on is None
+            rsvp_result = await db_session.execute(
+                select(RSVPInfo).where(RSVPInfo.guest_id == result.id)
+            )
+            rsvp_db = rsvp_result.scalar_one_or_none()
+            assert rsvp_db.email_sent_on is None
         finally:
             await db_session.rollback()
