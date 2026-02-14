@@ -1,4 +1,4 @@
-.PHONY: start stop start-backend start-db start-frontend install test lint format fake-guest fake-plus-one
+.PHONY: start stop start-backend start-db start-frontend install test test-e2e lint format fake-guest fake-plus-one
 
 # Start all services with Docker Compose
 start:
@@ -27,6 +27,10 @@ install:
 # Run tests
 test:
 	pytest
+
+# Run e2e tests with Playwright
+test-e2e:
+	pnpm --dir packages/e2e test
 
 # Run linter
 lint:

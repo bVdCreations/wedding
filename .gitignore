@@ -216,3 +216,5 @@ __marimo__/
 
 node_modules
 .astro
+**/playwright-report
+**/test-results
