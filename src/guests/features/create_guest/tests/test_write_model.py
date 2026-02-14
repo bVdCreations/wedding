@@ -1,5 +1,8 @@
 """Tests for SqlGuestCreateWriteModel."""
 
+from datetime import datetime, timezone
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 from sqlalchemy import select
 
@@ -179,6 +182,48 @@ async def test_create_guest_creates_rsvp_info():
         assert rsvp_db.active is True
         assert rsvp_db.rsvp_token is not None
         assert rsvp_db.rsvp_link is not None
+        # email_sent_on is None when no email_service is provided
+        assert rsvp_db.email_sent_on is None
+        await db_session.rollback()
+
+
+async def test_create_guest_email_sent_on_without_service():
+    """Test email_sent_on is None when no email_service is provided."""
+    async with async_session_maker() as db_session:
+        write_model = SqlGuestCreateWriteModel(session_overwrite=db_session)
+        result = await write_model.create_guest(
+            email="noservice@example.com",
+            first_name="No",
+            last_name="Service",
+            send_email=True,  # Explicitly set to True but no email_service
+        )
+
+        result_db = await db_session.execute(
+            select(RSVPInfo).join(Guest).where(Guest.uuid == result.id)
+        )
+        rsvp_db = result_db.scalar_one_or_none()
+        assert rsvp_db is not None
+        assert rsvp_db.email_sent_on is None
+        await db_session.rollback()
+
+
+async def test_create_guest_send_email_false():
+    """Test email_sent_on is None when send_email is False."""
+    async with async_session_maker() as db_session:
+        write_model = SqlGuestCreateWriteModel(session_overwrite=db_session)
+        result = await write_model.create_guest(
+            email="noemail@example.com",
+            first_name="No",
+            last_name="Email",
+            send_email=False,
+        )
+
+        result_db = await db_session.execute(
+            select(RSVPInfo).join(Guest).where(Guest.uuid == result.id)
+        )
+        rsvp_db = result_db.scalar_one_or_none()
+        assert rsvp_db is not None
+        assert rsvp_db.email_sent_on is None
         await db_session.rollback()
 
 
@@ -206,4 +251,115 @@ async def test_create_guest_duplicate_guest_raises_error():
 
         # Verify the exception contains the correct email
         assert exc_info.value.email == email
+        await db_session.rollback()
+
+
+async def test_create_guest_with_email_service_sets_timestamp():
+    """Test that email_sent_on is set when email_service is provided and send_email=True."""
+    # Create a mock email service
+    mock_email_service = AsyncMock()
+    
+    async with async_session_maker() as db_session:
+        write_model = SqlGuestCreateWriteModel(
+            session_overwrite=db_session,
+            email_service=mock_email_service
+        )
+        result = await write_model.create_guest(
+            email="withservice@example.com",
+            first_name="With",
+            last_name="Service",
+            send_email=True,
+        )
+
+        result_db = await db_session.execute(
+            select(RSVPInfo).join(Guest).where(Guest.uuid == result.id)
+        )
+        rsvp_db = result_db.scalar_one_or_none()
+        assert rsvp_db is not None
+        # email_sent_on should be set when email_service is provided
+        assert rsvp_db.email_sent_on is not None
+        assert isinstance(rsvp_db.email_sent_on, datetime)
+        await db_session.rollback()
+
+
+async def test_create_guest_email_service_is_called():
+    """Test that email_service.send_invitation is called when send_email=True."""
+    # Create a mock email service
+    mock_email_service = AsyncMock()
+    
+    async with async_session_maker() as db_session:
+        write_model = SqlGuestCreateWriteModel(
+            session_overwrite=db_session,
+            email_service=mock_email_service
+        )
+        result = await write_model.create_guest(
+            email="testcall@example.com",
+            first_name="Test",
+            last_name="Call",
+            send_email=True,
+        )
+
+        # Verify the email service was called
+        mock_email_service.send_invitation.assert_called_once()
+        
+        # Verify the call arguments
+        call_kwargs = mock_email_service.send_invitation.call_args.kwargs
+        assert call_kwargs['to_address'] == "testcall@example.com"
+        assert call_kwargs['guest_name'] == "Test Call"
+        assert 'rsvp_url' in call_kwargs
+        
+        await db_session.rollback()
+
+
+async def test_create_guest_email_service_not_called_when_send_email_false():
+    """Test that email_service is NOT called when send_email=False."""
+    # Create a mock email service
+    mock_email_service = AsyncMock()
+    
+    async with async_session_maker() as db_session:
+        write_model = SqlGuestCreateWriteModel(
+            session_overwrite=db_session,
+            email_service=mock_email_service
+        )
+        result = await write_model.create_guest(
+            email="notcalled@example.com",
+            first_name="Not",
+            last_name="Called",
+            send_email=False,
+        )
+
+        # Verify the email service was NOT called
+        mock_email_service.send_invitation.assert_not_called()
+        
+        # Verify email_sent_on is None
+        result_db = await db_session.execute(
+            select(RSVPInfo).join(Guest).where(Guest.uuid == result.id)
+        )
+        rsvp_db = result_db.scalar_one_or_none()
+        assert rsvp_db.email_sent_on is None
+        
+        await db_session.rollback()
+
+
+async def test_create_guest_email_service_not_called_without_service():
+    """Test that email_service is NOT called when no email_service is provided."""
+    async with async_session_maker() as db_session:
+        write_model = SqlGuestCreateWriteModel(
+            session_overwrite=db_session,
+            email_service=None
+        )
+        result = await write_model.create_guest(
+            email="nopservice@example.com",
+            first_name="No",
+            last_name="Service",
+            send_email=True,
+        )
+
+        # Verify email_sent_on is None when no service provided
+        result_db = await db_session.execute(
+            select(RSVPInfo).join(Guest).where(Guest.uuid == result.id)
+        )
+        rsvp_db = result_db.scalar_one_or_none()
+        assert rsvp_db.email_sent_on is None
+        
         await db_session.rollback()

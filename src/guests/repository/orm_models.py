@@ -1,6 +1,7 @@
+from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import Boolean, Enum, ForeignKey, String, Text
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.config.table_names import TableNames
@@ -103,6 +104,8 @@ class RSVPInfo(Base, TimeStamp):
     rsvp_token: Mapped[str] = mapped_column(String(36), nullable=False, unique=True, index=True)
     rsvp_link: Mapped[str] = mapped_column(String(255), nullable=False)
     notes: Mapped[str] = mapped_column(Text, nullable=True)
+    # Track when invitation email was sent (None if not sent)
+    email_sent_on: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
 
     def __repr__(self) -> str:
         return f"<RSVPInfo {self.rsvp_token}>"

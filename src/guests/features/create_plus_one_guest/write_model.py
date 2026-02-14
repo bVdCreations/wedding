@@ -142,6 +142,7 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
                 rsvp_token=rsvp_token,
                 rsvp_link=f"{settings.frontend_url}/rsvp/?token={rsvp_token}?plus_one=true",
                 notes=None,
+                email_sent_on=None,  # Default to None, plus-one gets invite via original guest
             )
             session.add(rsvp_info)
 
