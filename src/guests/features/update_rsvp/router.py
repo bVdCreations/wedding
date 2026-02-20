@@ -23,6 +23,7 @@ class PlusOneSubmit(BaseModel):
     email: EmailStr
     first_name: str
     last_name: str
+    allergies: str | None = None
 
 
 class GuestInfoSubmit(BaseModel):
@@ -31,6 +32,7 @@ class GuestInfoSubmit(BaseModel):
     first_name: str
     last_name: str
     phone: str | None = None
+    allergies: str | None = None
 
 
 class FamilyMemberSubmit(BaseModel):
@@ -39,6 +41,7 @@ class FamilyMemberSubmit(BaseModel):
     attending: bool
     dietary_requirements: list[DietaryRequirementCreate] = []
     guest_info: GuestInfoSubmit | None = None
+    allergies: str | None = None
 
 
 class RSVPResponseSubmit(BaseModel):
@@ -47,6 +50,7 @@ class RSVPResponseSubmit(BaseModel):
     dietary_requirements: list[DietaryRequirementCreate] = []
     guest_info: GuestInfoSubmit | None = None
     family_member_updates: dict[str, FamilyMemberSubmit] = {}
+    allergies: str | None = None
 
 
 class RSVPResponse(BaseModel):

@@ -154,4 +154,5 @@ class SqlRSVPReadModel(RSVPReadModel):
                 plus_one_last_name=plus_one_last_name,
                 attending=attending,
                 dietary_requirements=dietary_requirements,
+                allergies=guest.allergies,
             )

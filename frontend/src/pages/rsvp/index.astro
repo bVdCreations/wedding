@@ -72,6 +72,11 @@ import Layout from '../../layouts/Layout.astro';
                   <input type="text" id="plus_one_last_name" name="plus_one_last_name" placeholder="Last name" 
                     class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
                 </div>
+                <div class="form-group mt-4">
+                  <label for="plus_one_allergies" class="block font-medium text-sm mb-1">Allergies</label>
+                  <textarea id="plus_one_allergies" name="plus_one_allergies" placeholder="Any allergies or food intolerances..." 
+                    rows="3" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors"></textarea>
+                </div>
               </div>
             </div>
             <div id="plus-one-not-allowed" style="display: none;">
@@ -133,6 +138,19 @@ import Layout from '../../layouts/Layout.astro';
             </div>
           </div>
 
+          <!-- Allergies Section -->
+          <div class="form-section mb-8 pb-6 border-b border-gray-100" id="allergies-section" style="display: none;">
+            <h2 class="text-xl font-serif mb-2 text-gray-800">Allergies</h2>
+            <p class="text-sm text-gray-500 mb-4">Please list any allergies or food intolerances (optional)</p>
+            <textarea
+              id="allergies"
+              name="allergies"
+              placeholder="e.g., Shellfish allergy, lactose intolerance, etc."
+              rows="3"
+              class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors"
+            ></textarea>
+          </div>
+
           <div class="form-actions text-center mt-8">
             <button type="submit" class="submit-btn bg-[#c9a66b] text-white border-none px-10 py-4 text-lg rounded-lg hover:bg-[#b8945a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
               Save All Responses
@@ -162,6 +180,7 @@ import Layout from '../../layouts/Layout.astro';
   const plusOneCheckbox = document.getElementById('plus-one-checkbox') as HTMLInputElement;
   const plusOneDetailsSection = document.getElementById('plus-one-details-section') as HTMLElement;
   const dietarySection = document.getElementById('dietary-section') as HTMLElement;
+  const allergiesSection = document.getElementById('allergies-section') as HTMLElement;
   const familySection = document.getElementById('family-section') as HTMLElement;
   const familyMembersContainer = document.getElementById('family-members-container') as HTMLElement;
   const successMessage = document.getElementById('success-message') as HTMLElement;
@@ -170,7 +189,7 @@ import Layout from '../../layouts/Layout.astro';
 
   let guestIsPlusOne = false;
   let guestUuid = '';
-  let familyMembers: Array<{uuid: string; first_name: string; last_name: string; attending: boolean | null; phone: string | null; dietary_requirements: Array<{requirement_type: string}>;}> = [];
+  let familyMembers: Array<{uuid: string; first_name: string; last_name: string; attending: boolean | null; phone: string | null; dietary_requirements: Array<{requirement_type: string}>; allergies: string | null;}> = [];
 
   const token = new URLSearchParams(window.location.search).get('token');
 
@@ -194,7 +213,7 @@ import Layout from '../../layouts/Layout.astro';
     }
   }
 
-  function prefillForm(data: {guest_uuid: string; first_name: string; last_name: string; phone: string | null; attending: boolean | null; is_plus_one: boolean; family_id: string | null; family_members: Array<{uuid: string; first_name: string; last_name: string; attending: boolean | null; phone: string | null; dietary_requirements: Array<{requirement_type: string; notes: string | null}>;}>; plus_one: {email: string; first_name: string; last_name: string} | null; dietary_requirements: Array<{requirement_type: string; notes: string | null}>;}) {
+  function prefillForm(data: {guest_uuid: string; first_name: string; last_name: string; phone: string | null; attending: boolean | null; is_plus_one: boolean; family_id: string | null; family_members: Array<{uuid: string; first_name: string; last_name: string; attending: boolean | null; phone: string | null; dietary_requirements: Array<{requirement_type: string; notes: string | null}>; allergies: string | null}>; plus_one: {email: string; first_name: string; last_name: string} | null; dietary_requirements: Array<{requirement_type: string; notes: string | null}>; allergies: string | null;}) {
     guestUuid = data.guest_uuid;
     guestIsPlusOne = data.is_plus_one;
     familyMembers = data.family_members || [];
@@ -202,9 +221,11 @@ import Layout from '../../layouts/Layout.astro';
     const firstNameInput = document.getElementById('first_name') as HTMLInputElement;
     const lastNameInput = document.getElementById('last_name') as HTMLInputElement;
     const phoneInput = document.getElementById('phone') as HTMLInputElement;
+    const allergiesInput = document.getElementById('allergies') as HTMLTextAreaElement;
     if (firstNameInput) firstNameInput.value = data.first_name || '';
     if (lastNameInput) lastNameInput.value = data.last_name || '';
     if (phoneInput && data.phone) phoneInput.value = data.phone;
+    if (allergiesInput && data.allergies) allergiesInput.value = data.allergies;
 
     if (data.attending !== null && data.attending !== undefined) {
       const attendingInput = document.querySelector(`input[name="attending"][value="${data.attending ? 'yes' : 'no'}"]`) as HTMLInputElement;
@@ -241,7 +262,7 @@ import Layout from '../../layouts/Layout.astro';
     }
   }
 
-  function renderFamilyMembers(members: Array<{uuid: string; first_name: string; last_name: string; guest_type?: string; attending: boolean | null; phone: string | null; dietary_requirements: Array<{requirement_type: string; notes: string | null}>;}>) {
+  function renderFamilyMembers(members: Array<{uuid: string; first_name: string; last_name: string; guest_type?: string; attending: boolean | null; phone: string | null; dietary_requirements: Array<{requirement_type: string; notes: string | null}>; allergies: string | null;}>) {
     familySection.style.display = 'block';
     familyMembersContainer.innerHTML = '';
     members.forEach((member, index) => {
@@ -282,6 +303,11 @@ import Layout from '../../layouts/Layout.astro';
           <input type="tel" id="family_phone_${index}" name="family_phone_${index}" value="${member.phone || ''}" 
             class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
         </div>
+        <div class="form-group mt-4">
+          <label for="family_allergies_${index}" class="block font-medium text-sm mb-1">Allergies</label>
+          <textarea id="family_allergies_${index}" name="family_allergies_${index}" placeholder="Any allergies or food intolerances..." 
+            rows="3" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors">${member.allergies || ''}</textarea>
+        </div>
       `;
       familyMembersContainer.appendChild(section);
     });
@@ -295,6 +321,7 @@ import Layout from '../../layouts/Layout.astro';
       if (attending === 'yes') {
         plusOneSection.style.display = 'block';
         dietarySection.style.display = 'block';
+        allergiesSection.style.display = 'block';
         if (guestIsPlusOne) {
           plusOneAllowed.style.display = 'none';
           plusOneNotAllowed.style.display = 'block';
@@ -305,6 +332,7 @@ import Layout from '../../layouts/Layout.astro';
       } else {
         plusOneSection.style.display = 'none';
         dietarySection.style.display = 'none';
+        allergiesSection.style.display = 'none';
         plusOneCheckbox.checked = false;
         plusOneDetailsSection.style.display = 'none';
       }
@@ -339,8 +367,9 @@ import Layout from '../../layouts/Layout.astro';
       const email = (document.getElementById('plus_one_email') as HTMLInputElement)?.value;
       const poFirstName = (document.getElementById('plus_one_first_name') as HTMLInputElement)?.value;
       const poLastName = (document.getElementById('plus_one_last_name') as HTMLInputElement)?.value;
+      const poAllergies = (document.getElementById('plus_one_allergies') as HTMLTextAreaElement)?.value || null;
       if (email && poFirstName && poLastName) {
-        plusOneDetails = {email: email, first_name: poFirstName, last_name: poLastName};
+        plusOneDetails = {email: email, first_name: poFirstName, last_name: poLastName, allergies: poAllergies};
       }
     }
 
@@ -354,6 +383,9 @@ import Layout from '../../layouts/Layout.astro';
       };
     });
 
+    // Get main guest allergies
+    const allergies = (document.getElementById('allergies') as HTMLTextAreaElement)?.value || null;
+
     const familyMemberUpdates: Record<string, object> = {};
     familyMembers.forEach((member, index) => {
       const memberAttending = document.querySelector(`input[name="family_attending_${index}"]:checked`) as HTMLInputElement;
@@ -361,6 +393,7 @@ import Layout from '../../layouts/Layout.astro';
       const memberFirstName = (document.getElementById(`family_first_name_${index}`) as HTMLInputElement)?.value;
       const memberLastName = (document.getElementById(`family_last_name_${index}`) as HTMLInputElement)?.value;
       const memberPhone = (document.getElementById(`family_phone_${index}`) as HTMLInputElement)?.value;
+      const memberAllergies = (document.getElementById(`family_allergies_${index}`) as HTMLTextAreaElement)?.value || null;
       
       const memberDietaryCheckboxes = document.querySelectorAll(`input[name="family_dietary_${index}"]:checked`);
       const memberDietaryRequirements = Array.from(memberDietaryCheckboxes).map(cb => ({
@@ -369,6 +402,7 @@ import Layout from '../../layouts/Layout.astro';
       
       familyMemberUpdates[member.uuid] = {
         attending: memberAttendingValue,
+        allergies: memberAllergies,
         dietary_requirements: memberDietaryRequirements,
         guest_info: {first_name: memberFirstName, last_name: memberLastName, phone: memberPhone || null},
       };
@@ -386,6 +420,7 @@ import Layout from '../../layouts/Layout.astro';
           attending: attendingValue,
           plus_one_details: plusOneDetails,
           dietary_requirements: dietaryRequirements,
+          allergies: allergies,
           guest_info: {first_name: firstName, last_name: lastName, phone: phone || null},
           family_member_updates: familyMemberUpdates,
         })

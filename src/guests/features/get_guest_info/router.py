@@ -34,6 +34,7 @@ class FamilyMemberResponse(BaseModel):
     attending: bool | None = None
     dietary_requirements: list[DietaryRequirementResponse]
     phone: str | None = None
+    allergies: str | None = None
 
 
 class RSVPTokenResponse(BaseModel):
@@ -51,6 +52,7 @@ class RSVPTokenResponse(BaseModel):
     plus_one: PlusOneResponse | None = None
     dietary_requirements: list[DietaryRequirementResponse]
     attending: bool | None = None
+    allergies: str | None = None
 
 
 def get_rsvp_read_model() -> RSVPReadModel:
@@ -92,6 +94,7 @@ async def get_guest_info(
                 last_name=member.last_name,
                 attending=member.attending,
                 phone=member.phone,
+                allergies=member.allergies,
                 dietary_requirements=[
                     DietaryRequirementResponse(**req)
                     for req in member.dietary_requirements
@@ -111,6 +114,7 @@ async def get_guest_info(
         family_members=family_members,
         plus_one=plus_one,
         attending=rsvp_info.attending,
+        allergies=rsvp_info.allergies,
         dietary_requirements=[
             DietaryRequirementResponse(**req) for req in rsvp_info.dietary_requirements
         ],

@@ -79,11 +79,13 @@ class SqlRSVPWriteModel:
     async def _update_guest_info(
         self, session, guest: Guest, guest_info: "GuestInfoSubmit"
     ) -> None:
-        """Update guest info (first_name, last_name, phone)."""
+        """Update guest info (first_name, last_name, phone, allergies)."""
         guest.first_name = guest_info.first_name
         guest.last_name = guest_info.last_name
         if guest_info.phone is not None:
             guest.phone = guest_info.phone
+        if guest_info.allergies is not None:
+            guest.allergies = guest_info.allergies
 
     async def _update_family_member(
         self,
@@ -91,7 +93,7 @@ class SqlRSVPWriteModel:
         family_member_uuid: UUID,
         update_data: "FamilyMemberSubmit",
     ) -> None:
-        """Update a family member's RSVP, dietary requirements, and guest info."""
+        """Update a family member's RSVP, dietary requirements, allergies, and guest info."""
         # Get family member guest
         stmt = select(Guest).where(Guest.uuid == family_member_uuid)
         result = await session.execute(stmt)
@@ -114,6 +116,10 @@ class SqlRSVPWriteModel:
         # Update guest info if provided
         if update_data.guest_info:
             await self._update_guest_info(session, family_member, update_data.guest_info)
+
+        # Update allergies if provided
+        if update_data.allergies is not None:
+            family_member.allergies = update_data.allergies
 
         # Update dietary requirements
         if update_data.dietary_requirements:
@@ -199,6 +205,10 @@ class SqlRSVPWriteModel:
             if guest_info:
                 await self._update_guest_info(session, guest, guest_info)
 
+            # Update main guest allergies if provided
+            if rsvp_data.allergies is not None:
+                guest.allergies = rsvp_data.allergies
+
             await session.refresh(guest)
 
             # Create plus-one guest if details provided
@@ -212,6 +222,14 @@ class SqlRSVPWriteModel:
                 )
                 # Set bring_a_plus_one_id to the plus-one guest's UUID
                 guest.bring_a_plus_one_id = plus_one_guest_uuid
+                # Save allergies for plus one if provided
+                plus_one_allergies = getattr(plus_one_details, 'allergies', None)
+                if plus_one_allergies:
+                    po_stmt = select(Guest).where(Guest.uuid == plus_one_guest_uuid)
+                    po_result = await session.execute(po_stmt)
+                    po_guest = po_result.scalar_one_or_none()
+                    if po_guest:
+                        po_guest.allergies = plus_one_allergies
 
             # Update family members if provided
             if family_member_updates:

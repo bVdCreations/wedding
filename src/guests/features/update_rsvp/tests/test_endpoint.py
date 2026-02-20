@@ -144,4 +144,5 @@ async def test_submit_rsvp_with_plus_one(client_factory):
         "email": "plusone@example.com",
         "first_name": "John",
         "last_name": "Doe",
+        "allergies": None,
     }

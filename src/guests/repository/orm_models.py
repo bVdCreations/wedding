@@ -81,6 +81,8 @@ class Guest(Base, TimeStamp):
 
     # Notes
     notes: Mapped[str] = mapped_column(Text, nullable=True)
+    # Allergies (free-text field for any allergies or dietary restrictions)
+    allergies: Mapped[str] = mapped_column(Text, nullable=True)
 
     def __repr__(self) -> str:
         return f"<Guest {self.name} - {self.status.value}>"

@@ -59,6 +59,7 @@ class FamilyMemberDTO:
     attending: bool | None = None
     dietary_requirements: list[dict] = field(default_factory=list)
     phone: str | None = None
+    allergies: str | None = None
 
     @classmethod
     def from_guest(cls, guest: "Guest", rsvp_status: GuestStatus | None = None, dietary_requirements: list[dict] = None) -> "FamilyMemberDTO":
@@ -77,6 +78,7 @@ class FamilyMemberDTO:
             attending=attending,
             dietary_requirements=dietary_requirements or [],
             phone=guest.phone,
+            allergies=getattr(guest, 'allergies', None),
         )
 
 
@@ -102,6 +104,7 @@ class RSVPInfoDTO:
     # Prefill fields
     attending: bool | None = None
     dietary_requirements: list[dict] = field(default_factory=list)
+    allergies: str | None = None
 
 
 @dataclass(frozen=True)
