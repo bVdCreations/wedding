@@ -8,7 +8,7 @@ from sqlalchemy import select
 
 from src.config.database import async_session_manager
 from src.email.service import email_service
-from src.guests.dtos import PlusOneDTO
+from src.guests.dtos import Language, PlusOneDTO
 from src.guests.features.create_guest.write_model import SqlGuestCreateWriteModel
 from src.guests.features.create_child_guest.write_model import SqlChildGuestCreateWriteModel
 from src.guests.features.create_plus_one_guest.write_model import SqlPlusOneGuestWriteModel
@@ -18,7 +18,7 @@ from src.models.user import User
 app = typer.Typer(help="CLI commands for wedding RSVP management")
 
 
-async def _create_guest_and_send_email():
+async def _create_guest_and_send_email(language: Language = Language.EN):
     """Async helper to create guest and send email."""
     # Hardcoded test data
     email = "test@guest.example"
@@ -31,6 +31,7 @@ async def _create_guest_and_send_email():
         email=email,
         first_name=first_name,
         last_name=last_name,
+        preferred_language=language,
     )
 
     # Send invitation email
@@ -41,20 +42,38 @@ async def _create_guest_and_send_email():
         event_location="Castillo de Example, Spain",
         rsvp_url=guest.rsvp.link,
         response_deadline="July 15, 2026",
+        language=language,
     )
 
     return guest
 
 
 @app.command()
-def create_guest():
+def create_guest(
+    language: str = typer.Option(
+        "en",
+        "--language",
+        "-l",
+        help="Preferred language for the guest (en, es, nl)",
+    ),
+):
     """Create a dummy guest and send invitation email to Mailhog."""
+    # Validate language
+    try:
+        lang = Language(language)
+    except ValueError:
+        typer.secho(
+            f"Invalid language: {language}. Must be one of: en, es, nl", fg=typer.colors.RED
+        )
+        raise typer.Exit(1)
+
     # Typer doesn't support async directly, so use asyncio.run
-    guest = asyncio.run(_create_guest_and_send_email())
+    guest = asyncio.run(_create_guest_and_send_email(lang))
 
     # Output results
     typer.secho("Guest created successfully!", fg=typer.colors.GREEN)
     typer.secho("Email: test@guest.example", fg=typer.colors.BLUE)
+    typer.secho(f"Language: {language}", fg=typer.colors.BLUE)
     typer.secho(f"RSVP URL: {guest.rsvp.link}", fg=typer.colors.CYAN)
     typer.secho(f"RSVP Token: {guest.rsvp.token}", fg=typer.colors.CYAN)
     typer.secho("Email sent to Mailhog!", fg=typer.colors.GREEN)
@@ -169,6 +188,7 @@ def create_family(
     ),
 ):
     """Create a new family and optionally add guests to it."""
+
     async def _create_family():
         async with async_session_manager() as session:
             # Create family
@@ -217,6 +237,7 @@ def add_to_family(
     ),
 ):
     """Add an existing guest to a family."""
+
     async def _add_to_family():
         async with async_session_manager() as session:
             # Get family
@@ -247,7 +268,9 @@ def add_to_family(
         typer.secho(f"  Guest: {guest.first_name} {guest.last_name}", fg=typer.colors.BLUE)
         typer.secho(f"  Family ID: {family.uuid}", fg=typer.colors.CYAN)
         if old_family_id:
-            typer.secho(f"  (Removed from previous family: {old_family_id})", fg=typer.colors.YELLOW)
+            typer.secho(
+                f"  (Removed from previous family: {old_family_id})", fg=typer.colors.YELLOW
+            )
     except ValueError as e:
         typer.secho(str(e), fg=typer.colors.RED)
         raise typer.Exit(1)
@@ -271,6 +294,7 @@ def link_guests(
     ),
 ):
     """Link two guests together as a family (creates new family if needed)."""
+
     async def _link_guests():
         async with async_session_manager() as session:
             # Get first guest
@@ -333,6 +357,7 @@ def show_family(
     ),
 ):
     """Show family details for a guest."""
+
     async def _show_family():
         async with async_session_manager() as session:
             # Get guest
@@ -367,7 +392,9 @@ def show_family(
         typer.secho("Guest Info", fg=typer.colors.GREEN)
         typer.secho(f"  Name: {guest.first_name} {guest.last_name}", fg=typer.colors.BLUE)
         typer.secho(f"  ID: {guest.uuid}", fg=typer.colors.CYAN)
-        typer.secho(f"  Guest Type: {getattr(guest, 'guest_type', 'adult')}", fg=typer.colors.MAGENTA)
+        typer.secho(
+            f"  Guest Type: {getattr(guest, 'guest_type', 'adult')}", fg=typer.colors.MAGENTA
+        )
         typer.secho(f"  Email: {guest.phone or 'N/A'}", fg=typer.colors.BLUE)
 
         if family:
@@ -378,9 +405,12 @@ def show_family(
             typer.secho("Family Members:", fg=typer.colors.GREEN)
             for member in family_members:
                 is_current = " (current)" if member.uuid == guest.uuid else ""
-                guest_type = getattr(member, 'guest_type', 'adult')
-                type_label = f" ({guest_type})" if guest_type == 'child' else ""
-                typer.secho(f"  - {member.first_name} {member.last_name}{type_label}{is_current}", fg=typer.colors.BLUE)
+                guest_type = getattr(member, "guest_type", "adult")
+                type_label = f" ({guest_type})" if guest_type == "child" else ""
+                typer.secho(
+                    f"  - {member.first_name} {member.last_name}{type_label}{is_current}",
+                    fg=typer.colors.BLUE,
+                )
         else:
             typer.echo()
             typer.secho("Not part of any family", fg=typer.colors.YELLOW)
@@ -411,6 +441,7 @@ def create_child(
     ),
 ):
     """Create a child guest linked to a family (no User account, no RSVP invite)."""
+
     async def _create_child():
         write_model = SqlChildGuestCreateWriteModel()
         guest = await write_model.create_child_guest(
@@ -431,8 +462,12 @@ def create_child(
         if guest.phone:
             typer.secho(f"  Phone: {guest.phone}", fg=typer.colors.BLUE)
         typer.echo()
-        typer.secho("Note: Child guests do not receive separate RSVP invites.", fg=typer.colors.YELLOW)
-        typer.secho("Their RSVP will be managed by the adult family member.", fg=typer.colors.YELLOW)
+        typer.secho(
+            "Note: Child guests do not receive separate RSVP invites.", fg=typer.colors.YELLOW
+        )
+        typer.secho(
+            "Their RSVP will be managed by the adult family member.", fg=typer.colors.YELLOW
+        )
     except ValueError as e:
         typer.secho(str(e), fg=typer.colors.RED)
         raise typer.Exit(1)
