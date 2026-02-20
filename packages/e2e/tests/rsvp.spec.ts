@@ -2,57 +2,60 @@ import { test, expect } from '../src/fixtures';
 
 /**
  * E2E tests for the RSVP flow
- * 
+ *
  * These tests verify the full-stack integration between the frontend
  * and backend API for the wedding RSVP functionality.
+ *
+ * Tests run against the configured language (default: 'en').
+ * Set TEST_LANGUAGE env var to test other languages (en, es, nl).
  */
 
 test.describe('RSVP Page', () => {
-  test.beforeEach(async ({ page }) => {
-    // Navigate to the RSVP page before each test
-    await page.goto('/rsvp');
+  test.beforeEach(async ({ page, language }) => {
+    // Navigate to the RSVP page with language prefix
+    await page.goto(`/${language}/rsvp`);
   });
 
   test('should display the RSVP form', async ({ page }) => {
-    // Check that the main heading is visible
-    await expect(page.getByRole('heading', { level: 1 })).toContainText("You're Invited!");
-    
+    // Check that the main heading is visible (matches any language)
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+
     // Check that the form is visible
     await expect(page.locator('#rsvp-form')).toBeVisible();
-    
-    // Check that the name fields are visible
-    await expect(page.getByLabel('First Name')).toBeVisible();
-    await expect(page.getByLabel('Last Name')).toBeVisible();
+
+    // Check that name input fields exist (by id since labels vary by language)
+    await expect(page.locator('#first_name')).toBeVisible();
+    await expect(page.locator('#last_name')).toBeVisible();
   });
 
   test('should validate required fields', async ({ page }) => {
     // Try to submit without filling required fields
-    await page.getByRole('button', { name: /submit|send/i }).click();
-    
+    await page.locator('button[type="submit"]').click();
+
     // Check that HTML5 validation prevents submission
     // The form should show validation errors
-    const firstNameInput = page.getByLabel('First Name');
+    const firstNameInput = page.locator('#first_name');
     await expect(firstNameInput).toHaveAttribute('required', '');
   });
 
   test('should show attending options', async ({ page }) => {
-    // Check that attending radio buttons are visible
-    await expect(page.getByRole('radio', { name: /yes, i'll be there/i })).toBeVisible();
-    await expect(page.getByRole('radio', { name: /can't make it/i })).toBeVisible();
+    // Check that attending radio buttons are visible (by value since labels vary)
+    await expect(page.locator('input[name="attending"][value="yes"]')).toBeVisible();
+    await expect(page.locator('input[name="attending"][value="no"]')).toBeVisible();
   });
 
   test('should accept valid RSVP submission', async ({ page, apiRequest }) => {
     // Note: This test requires the backend to be running
     // and properly configured to handle form submissions
-    
-    // Fill in the form
-    await page.getByLabel('First Name').fill('John');
-    await page.getByLabel('Last Name').fill('Doe');
-    await page.getByLabel('Phone (optional)').fill('+1234567890');
-    
+
+    // Fill in the form using element ids (language-independent)
+    await page.locator('#first_name').fill('John');
+    await page.locator('#last_name').fill('Doe');
+    await page.locator('#phone').fill('+1234567890');
+
     // Select attending
-    await page.getByRole('radio', { name: /yes, i'll be there/i }).check();
-    
+    await page.locator('input[name="attending"][value="yes"]').check();
+
     // Note: Full submission test would require:
     // 1. Creating a valid guest token in the database
     // 2. Using that token in the form submission
@@ -60,16 +63,60 @@ test.describe('RSVP Page', () => {
   });
 
   test('should handle declining RSVP', async ({ page }) => {
-    // Fill in the form
-    await page.getByLabel('First Name').fill('Jane');
-    await page.getByLabel('Last Name').fill('Smith');
-    
+    // Fill in the form using element ids (language-independent)
+    await page.locator('#first_name').fill('Jane');
+    await page.locator('#last_name').fill('Smith');
+
     // Select not attending
-    await page.getByRole('radio', { name: /can't make it/i }).check();
-    
+    await page.locator('input[name="attending"][value="no"]').check();
+
     // The form should still be submittable
-    const submitButton = page.getByRole('button', { name: /submit|send/i });
+    const submitButton = page.locator('button[type="submit"]');
     await expect(submitButton).toBeVisible();
+  });
+});
+
+test.describe('Home Page', () => {
+  test('should redirect root to default language', async ({ page }) => {
+    // Navigate to root
+    await page.goto('/');
+
+    // Should redirect to /en (default language)
+    await expect(page).toHaveURL(/\/en\/?$/);
+  });
+
+  test('should display language switcher', async ({ page, language }) => {
+    await page.goto(`/${language}`);
+
+    // Check that language switcher is visible with all language options
+    await expect(page.locator('.language-switcher')).toBeVisible();
+    await expect(page.locator('.language-switcher a[href="/en"]')).toBeVisible();
+    await expect(page.locator('.language-switcher a[href="/es"]')).toBeVisible();
+    await expect(page.locator('.language-switcher a[href="/nl"]')).toBeVisible();
+  });
+
+  test('should navigate between languages', async ({ page }) => {
+    // Start at English home page
+    await page.goto('/en');
+    await expect(page).toHaveURL(/\/en\/?$/);
+
+    // Click Spanish language link
+    await page.locator('.language-switcher a[href="/es"]').click();
+    await expect(page).toHaveURL(/\/es\/?$/);
+
+    // Click Dutch language link
+    await page.locator('.language-switcher a[href="/nl"]').click();
+    await expect(page).toHaveURL(/\/nl\/?$/);
+  });
+
+  test('should preserve path when switching language', async ({ page }) => {
+    // Start at English RSVP page
+    await page.goto('/en/rsvp');
+    await expect(page).toHaveURL(/\/en\/rsvp/);
+
+    // Click Spanish language link
+    await page.locator('.language-switcher a[href="/es/rsvp"]').click();
+    await expect(page).toHaveURL(/\/es\/rsvp/);
   });
 });
 

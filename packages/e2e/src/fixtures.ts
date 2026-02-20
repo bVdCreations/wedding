@@ -2,11 +2,17 @@ import { test as base } from '@playwright/test';
 import type { Page, APIRequestContext } from '@playwright/test';
 
 /**
+ * Supported languages for i18n
+ */
+export type Language = 'en' | 'es' | 'nl';
+
+/**
  * Test configuration options
  */
 export interface TestOptions {
   frontendURL: string;
   apiURL: string;
+  language: Language;
 }
 
 /**
@@ -15,6 +21,7 @@ export interface TestOptions {
 export interface TestFixtures {
   frontendURL: string;
   apiURL: string;
+  language: Language;
   apiRequest: APIRequestContext;
 }
 
@@ -27,6 +34,9 @@ export const test = base.extend<TestFixtures>({
   },
   apiURL: async ({}, use) => {
     await use(process.env.API_URL || 'http://localhost:8000');
+  },
+  language: async ({}, use) => {
+    await use((process.env.TEST_LANGUAGE as Language) || 'en');
   },
   apiRequest: async ({ request }, use) => {
     // Use the request context from the test
