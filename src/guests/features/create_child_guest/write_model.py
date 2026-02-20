@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import async_session_manager
-from src.guests.dtos import GuestDTO, GuestStatus, GuestType, RSVPDTO
+from src.guests.dtos import GuestDTO, GuestStatus, GuestType, Language, RSVPDTO
 from src.guests.repository.orm_models import Guest, RSVPInfo
 
 
@@ -50,11 +50,22 @@ class SqlChildGuestCreateWriteModel(ChildGuestCreateWriteModel):
         async with self.async_session_manager(session_overwrite=self.session_overwrite) as session:
             # Validate family exists
             from src.guests.repository.orm_models import Family
+
             stmt = select(Family).where(Family.uuid == family_id)
             result = await session.execute(stmt)
             family = result.scalar_one_or_none()
             if family is None:
                 raise ValueError(f"Family not found: {family_id}")
+
+            # Get language from another family member (if any)
+            family_member_stmt = select(Guest).where(Guest.family_id == family_id).limit(1)
+            family_member_result = await session.execute(family_member_stmt)
+            family_member = family_member_result.scalar_one_or_none()
+            preferred_language = (
+                getattr(family_member, "preferred_language", Language.EN)
+                if family_member
+                else Language.EN
+            )
 
             # Create Guest with guest_type=CHILD, no user_id
             guest = Guest(
@@ -64,6 +75,7 @@ class SqlChildGuestCreateWriteModel(ChildGuestCreateWriteModel):
                 phone=phone,
                 guest_type=GuestType.CHILD,
                 family_id=family_id,
+                preferred_language=preferred_language,
             )
             session.add(guest)
             await session.flush()  # Get guest.uuid
@@ -74,7 +86,7 @@ class SqlChildGuestCreateWriteModel(ChildGuestCreateWriteModel):
                 status=GuestStatus.PENDING,
                 active=True,
                 rsvp_token="",  # Empty - no separate invite
-                rsvp_link="",   # Empty - no separate invite
+                rsvp_link="",  # Empty - no separate invite
             )
             session.add(rsvp_info)
             await session.flush()

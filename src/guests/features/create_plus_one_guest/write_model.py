@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import async_session_manager
 from src.config.settings import settings
-from src.guests.dtos import RSVPDTO, GuestDTO, GuestStatus, PlusOneDTO
+from src.guests.dtos import RSVPDTO, GuestDTO, GuestStatus, Language, PlusOneDTO
 from src.guests.repository.orm_models import Guest, RSVPInfo
 from src.models.user import User
 
@@ -121,7 +121,14 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
                     existing_guest.uuid,
                 )
 
-            # 5. Create Guest linked to User with plus_one_of_id set
+            # 5. Get original guest's preferred language
+            original_guest_for_lang = await session.execute(
+                select(Guest).where(Guest.uuid == original_guest_id)
+            )
+            original_guest_obj = original_guest_for_lang.scalar_one()
+            preferred_language = getattr(original_guest_obj, "preferred_language", Language.EN)
+
+            # 6. Create Guest linked to User with plus_one_of_id set
             guest = Guest(
                 user_id=user.uuid,
                 first_name=plus_one_data.first_name,
@@ -129,18 +136,24 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
                 phone=None,
                 plus_one_of_id=original_guest_id,
                 notes=None,
+                preferred_language=preferred_language,
             )
             session.add(guest)
             await session.flush()
 
-            # 6. Create RSVPInfo linked to Guest
+            # 7. Create RSVPInfo linked to Guest
             rsvp_token = str(uuid4())
+            lang_prefix = (
+                preferred_language.value
+                if hasattr(preferred_language, "value")
+                else preferred_language
+            )
             rsvp_info = RSVPInfo(
                 guest_id=guest.uuid,
                 status=GuestStatus.PENDING,
                 active=True,
                 rsvp_token=rsvp_token,
-                rsvp_link=f"{settings.frontend_url}/rsvp/?token={rsvp_token}?plus_one=true",
+                rsvp_link=f"{settings.frontend_url}/{lang_prefix}/rsvp/?token={rsvp_token}&plus_one=true",
                 notes=None,
                 email_sent_on=None,  # Default to None, plus-one gets invite via original guest
             )

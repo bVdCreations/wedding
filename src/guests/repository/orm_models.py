@@ -5,7 +5,7 @@ from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.config.table_names import TableNames
-from src.guests.dtos import DietaryType, GuestStatus, GuestType
+from src.guests.dtos import DietaryType, GuestStatus, GuestType, Language
 from src.models.base import Base, TimeStamp
 
 
@@ -83,6 +83,12 @@ class Guest(Base, TimeStamp):
     notes: Mapped[str] = mapped_column(Text, nullable=True)
     # Allergies (free-text field for any allergies or dietary restrictions)
     allergies: Mapped[str] = mapped_column(Text, nullable=True)
+    # Preferred language for communication (emails, RSVP page)
+    preferred_language: Mapped[str] = mapped_column(
+        Enum(Language, name="language_enum", values_callable=lambda x: [e.value for e in x]),
+        default=Language.EN,
+        nullable=False,
+    )
 
     def __repr__(self) -> str:
         return f"<Guest {self.name} - {self.status.value}>"
@@ -107,7 +113,9 @@ class RSVPInfo(Base, TimeStamp):
     rsvp_link: Mapped[str] = mapped_column(String(255), nullable=False)
     notes: Mapped[str] = mapped_column(Text, nullable=True)
     # Track when invitation email was sent (None if not sent)
-    email_sent_on: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
+    email_sent_on: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
 
     def __repr__(self) -> str:
         return f"<RSVPInfo {self.rsvp_token}>"

@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.config.database import async_session_manager
 from src.config.settings import settings
 from src.email.service import EmailService
-from src.guests.dtos import RSVPDTO, GuestAlreadyExistsError, GuestDTO, GuestStatus
+from src.guests.dtos import RSVPDTO, GuestAlreadyExistsError, GuestDTO, GuestStatus, Language
 from src.guests.repository.orm_models import Guest, RSVPInfo
 from src.models.user import User
 
@@ -32,6 +32,7 @@ class GuestCreateWriteModel(ABC):
         phone: str | None = None,
         notes: str | None = None,
         send_email: bool = True,
+        preferred_language: Language = Language.EN,
     ) -> GuestDTO:
         """Create a new guest with user and RSVP info. Returns DTO.
 
@@ -42,6 +43,7 @@ class GuestCreateWriteModel(ABC):
             phone: Optional phone number
             notes: Optional notes
             send_email: Whether to send invitation email (default True)
+            preferred_language: Preferred language for communication (default English)
         """
         raise NotImplementedError
 
@@ -68,6 +70,7 @@ class SqlGuestCreateWriteModel(GuestCreateWriteModel):
         phone: str | None = None,
         notes: str | None = None,
         send_email: bool = True,
+        preferred_language: Language = Language.EN,
     ) -> GuestDTO:
         """Create a new guest with user and RSVP info. Returns DTO.
 
@@ -78,6 +81,7 @@ class SqlGuestCreateWriteModel(GuestCreateWriteModel):
             phone: Optional phone number
             notes: Optional notes
             send_email: Whether to send invitation email (default True)
+            preferred_language: Preferred language for communication (default English)
         """
         async with self.async_session_manager(session_overwrite=self.session_overwrite) as session:
             # 1. Get or create User by email
@@ -95,18 +99,20 @@ class SqlGuestCreateWriteModel(GuestCreateWriteModel):
                 last_name=last_name or "",
                 phone=phone,
                 notes=notes,
+                preferred_language=preferred_language,
             )
             session.add(guest)
             await session.flush()  # Get guest.id without full refresh
 
             # 4. Create RSVPInfo linked to Guest
             rsvp_token = str(uuid4())
+            lang_prefix = preferred_language.value
             rsvp_info = RSVPInfo(
                 guest_id=guest.uuid,
                 status=GuestStatus.PENDING,
                 active=True,
                 rsvp_token=rsvp_token,
-                rsvp_link=f"{settings.frontend_url}/rsvp/?token={rsvp_token}",
+                rsvp_link=f"{settings.frontend_url}/{lang_prefix}/rsvp/?token={rsvp_token}",
                 notes=None,
                 email_sent_on=None,  # Default to None, will set timestamp if email sent
             )
@@ -124,6 +130,7 @@ class SqlGuestCreateWriteModel(GuestCreateWriteModel):
                             event_location="Castillo de Example, Spain",
                             rsvp_url=rsvp_info.rsvp_link,
                             response_deadline="July 15, 2026",
+                            language=preferred_language,
                         )
                         email_sent_on = datetime.now(UTC)
                 except Exception:

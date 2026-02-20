@@ -4,6 +4,7 @@ from email.mime.text import MIMEText
 
 from src.config.settings import settings
 from src.email.templates import EmailTemplates
+from src.guests.dtos import Language
 
 
 class EmailService:
@@ -53,27 +54,31 @@ class EmailService:
         event_location: str,
         rsvp_url: str,
         response_deadline: str,
+        language: Language = Language.EN,
     ) -> None:
-        html_body = EmailTemplates.INVITATION_HTML.format(
+        # Get templates for the specified language
+        subject, html_template, text_template = EmailTemplates.get_invitation_templates(language)
+
+        html_body = html_template.format(
             guest_name=guest_name,
             event_date=event_date,
             event_location=event_location,
             rsvp_url=rsvp_url,
             response_deadline=response_deadline,
-            couple_names="TODO change this",
+            couple_names="Bastiaan & Gemma",
         )
-        text_body = EmailTemplates.INVITATION_TEXT.format(
+        text_body = text_template.format(
             guest_name=guest_name,
             event_date=event_date,
             event_location=event_location,
             rsvp_url=rsvp_url,
             response_deadline=response_deadline,
-            couple_names="TODO change this",
+            couple_names="Bastiaan & Gemma",
         )
 
         msg = self._create_message(
             to_address=to_address,
-            subject=EmailTemplates.INVITATION_SUBJECT,
+            subject=subject,
             html_body=html_body,
             text_body=text_body,
         )
@@ -86,23 +91,27 @@ class EmailService:
         guest_name: str,
         attending: str,
         dietary: str,
+        language: Language = Language.EN,
     ) -> None:
-        html_body = EmailTemplates.CONFIRMATION_HTML.format(
+        # Get templates for the specified language
+        subject, html_template, text_template = EmailTemplates.get_confirmation_templates(language)
+
+        html_body = html_template.format(
             guest_name=guest_name,
             attending=attending,
             dietary=dietary,
-            couple_names="TODO change this",
+            couple_names="Bastiaan & Gemma",
         )
-        text_body = EmailTemplates.CONFIRMATION_TEXT.format(
+        text_body = text_template.format(
             guest_name=guest_name,
             attending=attending,
             dietary=dietary,
-            couple_names="TODO change this",
+            couple_names="Bastiaan & Gemma",
         )
 
         msg = self._create_message(
             to_address=to_address,
-            subject=EmailTemplates.CONFIRMATION_SUBJECT,
+            subject=subject,
             html_body=html_body,
             text_body=text_body,
         )
@@ -114,9 +123,9 @@ class EmailService:
         to_address: str,
         guest_name: str,
         plus_one_details: dict,
+        language: Language = Language.EN,
     ) -> None:
         # TODO: Add plus_one_details to template
-
         pass
 
 

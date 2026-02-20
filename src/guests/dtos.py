@@ -39,6 +39,12 @@ class GuestType(str, Enum):
     CHILD = "child"
 
 
+class Language(str, Enum):
+    EN = "en"
+    ES = "es"
+    NL = "nl"
+
+
 @dataclass(frozen=True)
 class PlusOneDTO:
     """DTO for plus one guest data used in RSVP submission."""
@@ -62,7 +68,12 @@ class FamilyMemberDTO:
     allergies: str | None = None
 
     @classmethod
-    def from_guest(cls, guest: "Guest", rsvp_status: GuestStatus | None = None, dietary_requirements: list[dict] = None) -> "FamilyMemberDTO":
+    def from_guest(
+        cls,
+        guest: "Guest",
+        rsvp_status: GuestStatus | None = None,
+        dietary_requirements: list[dict] = None,
+    ) -> "FamilyMemberDTO":
         """Create FamilyMemberDTO from Guest ORM model."""
         attending = None
         if rsvp_status == GuestStatus.CONFIRMED:
@@ -74,11 +85,11 @@ class FamilyMemberDTO:
             uuid=guest.uuid,
             first_name=guest.first_name,
             last_name=guest.last_name,
-            guest_type=getattr(guest, 'guest_type', 'adult'),
+            guest_type=getattr(guest, "guest_type", "adult"),
             attending=attending,
             dietary_requirements=dietary_requirements or [],
             phone=guest.phone,
-            allergies=getattr(guest, 'allergies', None),
+            allergies=getattr(guest, "allergies", None),
         )
 
 

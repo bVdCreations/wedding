@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from src.config.database import async_session_manager
 from src.email.service import EmailService
-from src.guests.dtos import DietaryType, GuestStatus, RSVPResponseDTO
+from src.guests.dtos import DietaryType, GuestStatus, Language, RSVPResponseDTO
 from src.guests.features.update_rsvp.router import RSVPResponseSubmit
 from src.guests.repository.orm_models import DietaryOption, Guest, RSVPInfo
 from src.guests.repository.write_models import SqlRSVPWriteModel
@@ -22,6 +22,7 @@ class MockEmailService(EmailService):
         guest_name: str,
         attending: str,
         dietary: str,
+        language: Language = Language.EN,
     ) -> None:
         """Mock send confirmation - does nothing."""
         pass
@@ -30,9 +31,7 @@ class MockEmailService(EmailService):
 async def create_test_user(async_session, email="test@example.com"):
     """Create a test user, cleaning up any existing test data first."""
     # Clean up existing test user if it exists
-    existing_user = await async_session.execute(
-        select(User).where(User.email == email)
-    )
+    existing_user = await async_session.execute(select(User).where(User.email == email))
     if existing_user.scalar_one_or_none():
         await async_session.execute(User.__table__.delete().where(User.email == email))
         await async_session.flush()
@@ -73,6 +72,7 @@ async def create_test_guest(async_session, test_user, rsvp_token="test-token-123
         first_name="John",
         last_name="Doe",
         phone="+1234567890",
+        preferred_language=Language.EN,
     )
     async_session.add(guest)
     await async_session.flush()
@@ -101,8 +101,7 @@ async def test_submit_rsvp_attending():
             guest_uuid = guest.uuid
 
             write_model = SqlRSVPWriteModel(
-                session_overwrite=session,
-                email_service=MockEmailService()
+                session_overwrite=session, email_service=MockEmailService()
             )
 
             rsvp_data = RSVPResponseSubmit(
@@ -122,7 +121,9 @@ async def test_submit_rsvp_attending():
             assert "Thank you for confirming" in result.message
 
             # Verify database state
-            rsvp_result = await session.execute(select(RSVPInfo).where(RSVPInfo.guest_id == guest_uuid))
+            rsvp_result = await session.execute(
+                select(RSVPInfo).where(RSVPInfo.guest_id == guest_uuid)
+            )
             rsvp_info = rsvp_result.scalar_one()
             assert rsvp_info.status == GuestStatus.CONFIRMED
         finally:
@@ -139,8 +140,7 @@ async def test_submit_rsvp_not_attending():
             guest_uuid = guest.uuid
 
             write_model = SqlRSVPWriteModel(
-                session_overwrite=session,
-                email_service=MockEmailService()
+                session_overwrite=session, email_service=MockEmailService()
             )
 
             rsvp_data = RSVPResponseSubmit(
@@ -160,7 +160,9 @@ async def test_submit_rsvp_not_attending():
             assert "We're sorry you can't make it" in result.message
 
             # Verify database state
-            rsvp_result = await session.execute(select(RSVPInfo).where(RSVPInfo.guest_id == guest_uuid))
+            rsvp_result = await session.execute(
+                select(RSVPInfo).where(RSVPInfo.guest_id == guest_uuid)
+            )
             rsvp_info = rsvp_result.scalar_one()
             assert rsvp_info.status == GuestStatus.DECLINED
         finally:
@@ -177,8 +179,7 @@ async def test_submit_rsvp_with_dietary_requirements():
             guest_uuid = guest.uuid
 
             write_model = SqlRSVPWriteModel(
-                session_overwrite=session,
-                email_service=MockEmailService()
+                session_overwrite=session, email_service=MockEmailService()
             )
 
             rsvp_data = RSVPResponseSubmit(
@@ -223,8 +224,7 @@ async def test_submit_rsvp_with_plus_one():
             guest = await create_test_guest(session, user)
 
             write_model = SqlRSVPWriteModel(
-                session_overwrite=session,
-                email_service=MockEmailService()
+                session_overwrite=session, email_service=MockEmailService()
             )
 
             # Test that plus_one_details data is accepted (actual creation requires separate test)
@@ -283,8 +283,7 @@ async def test_submit_rsvp_clears_previous_dietary():
             await session.flush()
 
             write_model = SqlRSVPWriteModel(
-                session_overwrite=session,
-                email_service=MockEmailService()
+                session_overwrite=session, email_service=MockEmailService()
             )
 
             rsvp_data = RSVPResponseSubmit(
@@ -353,14 +352,14 @@ async def test_submit_rsvp_declined_clears_plus_one():
                 first_name="Jane",
                 last_name="Doe",
                 plus_one_of_id=guest_uuid,
+                preferred_language=Language.EN,
             )
             session.add(plus_one_guest)
             await session.flush()
             guest.bring_a_plus_one_id = plus_one_guest.uuid
 
             write_model = SqlRSVPWriteModel(
-                session_overwrite=session,
-                email_service=MockEmailService()
+                session_overwrite=session, email_service=MockEmailService()
             )
 
             rsvp_data = RSVPResponseSubmit(
@@ -377,5 +376,181 @@ async def test_submit_rsvp_declined_clears_plus_one():
             # Verify bring_a_plus_one_id is cleared when declining
             await session.refresh(guest)
             assert guest.bring_a_plus_one_id is None
+        finally:
+            await session.rollback()
+
+
+# Language-specific tests
+
+
+class SpyEmailService(EmailService):
+    """Email service that captures calls for testing."""
+
+    def __init__(self):
+        self.send_confirmation_calls = []
+
+    async def send_confirmation(
+        self,
+        to_address: str,
+        guest_name: str,
+        attending: str,
+        dietary: str,
+        language: Language = Language.EN,
+    ) -> None:
+        """Capture send confirmation calls."""
+        self.send_confirmation_calls.append({
+            "to_address": to_address,
+            "guest_name": guest_name,
+            "attending": attending,
+            "dietary": dietary,
+            "language": language,
+        })
+
+
+async def create_test_guest_with_language(
+    async_session, test_user, rsvp_token: str, language: Language
+):
+    """Create a test guest with RSVP info and specific language."""
+    # Clean up existing guest with same token if it exists
+    existing_rsvp = await async_session.execute(
+        select(RSVPInfo).where(RSVPInfo.rsvp_token == rsvp_token)
+    )
+    existing_rsvp_data = existing_rsvp.scalar_one_or_none()
+    if existing_rsvp_data:
+        await async_session.execute(
+            DietaryOption.__table__.delete().where(
+                DietaryOption.guest_id == existing_rsvp_data.guest_id
+            )
+        )
+        await async_session.execute(
+            RSVPInfo.__table__.delete().where(RSVPInfo.rsvp_token == rsvp_token)
+        )
+        await async_session.execute(
+            Guest.__table__.delete().where(Guest.uuid == existing_rsvp_data.guest_id)
+        )
+        await async_session.flush()
+
+    guest = Guest(
+        user_id=test_user.uuid,
+        first_name="John",
+        last_name="Doe",
+        phone="+1234567890",
+        preferred_language=language,
+    )
+    async_session.add(guest)
+    await async_session.flush()
+    await async_session.refresh(guest)
+
+    rsvp_info = RSVPInfo(
+        guest_id=guest.uuid,
+        status=GuestStatus.PENDING,
+        rsvp_token=rsvp_token,
+        rsvp_link=f"http://example.com/{language.value}/rsvp/{rsvp_token}",
+    )
+    async_session.add(rsvp_info)
+    await async_session.flush()
+    await async_session.refresh(guest)
+
+    return guest
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_sends_confirmation_email_in_spanish():
+    """Test that RSVP confirmation email is sent in Spanish for Spanish guest."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="spanish_rsvp@example.com")
+            guest = await create_test_guest_with_language(
+                session, user, "spanish-token-123", Language.ES
+            )
+
+            spy_email_service = SpyEmailService()
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session, email_service=spy_email_service
+            )
+
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                dietary_requirements=[],
+                family_member_updates={},
+            )
+
+            await write_model.submit_rsvp(
+                token="spanish-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            # Verify email was sent with Spanish language
+            assert len(spy_email_service.send_confirmation_calls) == 1
+            call = spy_email_service.send_confirmation_calls[0]
+            assert call["language"] == Language.ES
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_sends_confirmation_email_in_dutch():
+    """Test that RSVP confirmation email is sent in Dutch for Dutch guest."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="dutch_rsvp@example.com")
+            guest = await create_test_guest_with_language(
+                session, user, "dutch-token-123", Language.NL
+            )
+
+            spy_email_service = SpyEmailService()
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session, email_service=spy_email_service
+            )
+
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                dietary_requirements=[],
+                family_member_updates={},
+            )
+
+            await write_model.submit_rsvp(
+                token="dutch-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            # Verify email was sent with Dutch language
+            assert len(spy_email_service.send_confirmation_calls) == 1
+            call = spy_email_service.send_confirmation_calls[0]
+            assert call["language"] == Language.NL
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_sends_confirmation_email_in_english_by_default():
+    """Test that RSVP confirmation email is sent in English for English guest."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="english_rsvp@example.com")
+            guest = await create_test_guest_with_language(
+                session, user, "english-token-123", Language.EN
+            )
+
+            spy_email_service = SpyEmailService()
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session, email_service=spy_email_service
+            )
+
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                dietary_requirements=[],
+                family_member_updates={},
+            )
+
+            await write_model.submit_rsvp(
+                token="english-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            # Verify email was sent with English language
+            assert len(spy_email_service.send_confirmation_calls) == 1
+            call = spy_email_service.send_confirmation_calls[0]
+            assert call["language"] == Language.EN
         finally:
             await session.rollback()

@@ -48,9 +48,7 @@ class SqlRSVPReadModel(RSVPReadModel):
                 attending = None  # PENDING
 
             # Get dietary requirements for current guest
-            dietary_stmt = select(DietaryOption).where(
-                DietaryOption.guest_id == rsvp_info.guest_id
-            )
+            dietary_stmt = select(DietaryOption).where(DietaryOption.guest_id == rsvp_info.guest_id)
             dietary_result = await session.execute(dietary_stmt)
             dietary_options = dietary_result.scalars().all()
 
@@ -92,9 +90,7 @@ class SqlRSVPReadModel(RSVPReadModel):
                     family_rsvp_result = await session.execute(family_rsvp_stmt)
                     family_rsvp_info = family_rsvp_result.scalar_one_or_none()
 
-                    family_rsvp_status = (
-                        family_rsvp_info.status if family_rsvp_info else None
-                    )
+                    family_rsvp_status = family_rsvp_info.status if family_rsvp_info else None
 
                     # Get dietary requirements for family member
                     family_dietary_stmt = select(DietaryOption).where(
@@ -124,9 +120,7 @@ class SqlRSVPReadModel(RSVPReadModel):
             plus_one_first_name = None
             plus_one_last_name = None
             if guest.bring_a_plus_one_id:
-                plus_one_stmt = select(Guest).where(
-                    Guest.uuid == guest.bring_a_plus_one_id
-                )
+                plus_one_stmt = select(Guest).where(Guest.uuid == guest.bring_a_plus_one_id)
                 plus_one_result = await session.execute(plus_one_stmt)
                 plus_one_guest = plus_one_result.scalar_one_or_none()
                 if plus_one_guest:

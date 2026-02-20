@@ -11,20 +11,19 @@ from src.config.database import async_session_manager
 from src.email.service import EmailService
 from src.guests.dtos import (
     GuestStatus,
+    Language,
     RSVPResponseDTO,
 )
-
-if TYPE_CHECKING:
-    from src.guests.features.update_rsvp.router import (
-        FamilyMemberSubmit,
-        GuestInfoSubmit,
-        RSVPResponseSubmit,
-    )
 from src.guests.repository.orm_models import DietaryOption, DietaryType, Guest, RSVPInfo
 from src.models.user import User
 
 if TYPE_CHECKING:
     from src.guests.features.create_plus_one_guest.write_model import PlusOneGuestWriteModel
+    from src.guests.features.update_rsvp.router import (
+        FamilyMemberSubmit,
+        GuestInfoSubmit,
+        RSVPResponseSubmit,
+    )
 
 
 class RSVPWriteModel(ABC):
@@ -223,7 +222,7 @@ class SqlRSVPWriteModel:
                 # Set bring_a_plus_one_id to the plus-one guest's UUID
                 guest.bring_a_plus_one_id = plus_one_guest_uuid
                 # Save allergies for plus one if provided
-                plus_one_allergies = getattr(plus_one_details, 'allergies', None)
+                plus_one_allergies = getattr(plus_one_details, "allergies", None)
                 if plus_one_allergies:
                     po_stmt = select(Guest).where(Guest.uuid == plus_one_guest_uuid)
                     po_result = await session.execute(po_stmt)
@@ -234,9 +233,7 @@ class SqlRSVPWriteModel:
             # Update family members if provided
             if family_member_updates:
                 for member_id, update_data in family_member_updates.items():
-                    await self._update_family_member(
-                        session, UUID(member_id), update_data
-                    )
+                    await self._update_family_member(session, UUID(member_id), update_data)
 
             # Build response message
             message = (
@@ -262,11 +259,15 @@ class SqlRSVPWriteModel:
                 user_email = await self._get_user_email(session, guest.user_id)
                 guest_name = f"{guest.first_name} {guest.last_name}"
 
+                # Get guest's preferred language
+                preferred_language = getattr(guest, "preferred_language", Language.EN)
+
                 await self._email_service.send_confirmation(
                     to_address=user_email,
                     guest_name=guest_name,
                     attending="Yes" if attending else "No",
                     dietary=dietary_str,
+                    language=preferred_language,
                 )
 
             # Return DTO instead of ORM model

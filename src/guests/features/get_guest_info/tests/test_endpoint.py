@@ -52,7 +52,13 @@ class InMemoryRSVPReadModel(RSVPReadModel):
 class InMemoryRSVPReadModelWithDietary(RSVPReadModel):
     """In-memory read model with dietary requirements for testing."""
 
-    def __init__(self, guests: list[GuestDTO] = None, plus_one_email: str = None, plus_one_first_name: str = None, plus_one_last_name: str = None):
+    def __init__(
+        self,
+        guests: list[GuestDTO] = None,
+        plus_one_email: str = None,
+        plus_one_first_name: str = None,
+        plus_one_last_name: str = None,
+    ):
         self._guests: dict[str, GuestDTO] = {}
         self._plus_one_email = plus_one_email
         self._plus_one_first_name = plus_one_first_name

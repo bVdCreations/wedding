@@ -96,8 +96,7 @@ async def get_guest_info(
                 phone=member.phone,
                 allergies=member.allergies,
                 dietary_requirements=[
-                    DietaryRequirementResponse(**req)
-                    for req in member.dietary_requirements
+                    DietaryRequirementResponse(**req) for req in member.dietary_requirements
                 ],
             )
         )
