@@ -1,0 +1,103 @@
+{
+  "meta": {
+    "title": "Bastiaan & Gemma - 7 november 2026",
+    "description": "Bastiaan & Gemma - Bruiloft 7 november 2026"
+  },
+  "hero": {
+    "saveTheDate": "Save the Date",
+    "names": "Bastiaan & Gemma",
+    "date": "7 november 2026",
+    "location": "Malaga, Spanje"
+  },
+  "countdown": {
+    "title": "De Grote Dag",
+    "days": "Dagen",
+    "hours": "Uren",
+    "minutes": "Minuten",
+    "seconds": "Seconden"
+  },
+  "intro": {
+    "title": "Wij Gaan Trouwen!",
+    "text": "We zijn ontzettend blij om onze speciale dag te vieren met de mensen van wie we het meest houden. Na jaren van avonturen samen, kunnen we niet wachten om \"ja\" te zeggen in de prachtige stad Barcelona. Vier met ons mee op een dag vol liefde, gelach en onvergetelijke herinneringen."
+  },
+  "ceremony": {
+    "label": "De Ceremonie",
+    "title": "Zeg \"Ja\"",
+    "date": "7 november 2026",
+    "time": "12:00",
+    "venue": "Sant Pau Recinte Modernista",
+    "address": "Carrer de Sant Antoni Maria Claret, 167",
+    "city": "08025 Barcelona, Spanje"
+  },
+  "reception": {
+    "label": "De Receptie",
+    "title": "Vier Met Ons",
+    "timing": "Na de Ceremonie",
+    "cava": "Cava & Hapjes",
+    "dinner": "Bruiloftsdiner",
+    "dancing": "Dansen & Feesten",
+    "dressCode": "Dresscode: Formeel / Cocktail"
+  },
+  "gallery": {
+    "title": "Onze Herinneringen"
+  },
+  "rsvpSection": {
+    "title": "RSVP",
+    "text": "Het zou ons een eer zijn als je deze speciale dag met ons wilt vieren.",
+    "deadline": "Gelieve te reageren voor 7 september 2026",
+    "button": "Reageer op Uitnodiging"
+  },
+  "registry": {
+    "title": "Cadeaulijst",
+    "text": "Jouw aanwezigheid op onze bruiloft is het mooiste cadeau. Maar als je ons wilt eren met een geschenk, zijn we geregistreerd bij:"
+  },
+  "contact": {
+    "title": "Vragen?",
+    "text": "Als je vragen hebt over de bruiloft, neem dan gerust contact met ons op."
+  },
+  "footer": {
+    "text": "Bastiaan & Gemma — 7 november 2026"
+  },
+  "rsvpPage": {
+    "title": "RSVP - Bastiaan & Gemma",
+    "heading": "Je Bent Uitgenodigd!",
+    "subheading": "Laat ons weten of je bij onze speciale dag kunt zijn.",
+    "yourInfo": "Jouw Gegevens",
+    "firstName": "Voornaam",
+    "lastName": "Achternaam",
+    "phone": "Telefoon (optioneel)",
+    "phonePlaceholder": "+31612345678",
+    "attending": "Kom je?",
+    "attendingYes": "Ja, ik ben erbij!",
+    "attendingNo": "Helaas kan ik niet komen",
+    "plusOne": "Plus Een",
+    "bringingPlusOne": "Ik neem iemand mee",
+    "plusOneDetails": "Gegevens Plus Een",
+    "email": "E-mail",
+    "emailPlaceholder": "email@voorbeeld.nl",
+    "plusOneNotAllowed": "Als plus een kun je geen extra gasten meenemen.",
+    "dietary": "Dieetwensen",
+    "dietarySubtext": "Selecteer alles wat van toepassing is",
+    "vegetarian": "Vegetarisch",
+    "vegan": "Veganistisch",
+    "glutenFree": "Glutenvrij",
+    "dairyFree": "Lactosevrij",
+    "halal": "Halal",
+    "kosher": "Koosjer",
+    "nutAllergy": "Notenallergie",
+    "other": "Anders (specificeer hieronder)",
+    "dietaryNotesPlaceholder": "Beschrijf je dieetwensen...",
+    "allergies": "Allergieen",
+    "allergiesSubtext": "Vermeld eventuele allergieen of intoleranties (optioneel)",
+    "allergiesPlaceholder": "Bijv. Schelpdierenallergie, lactose-intolerantie, etc.",
+    "submit": "Alle Antwoorden Opslaan",
+    "submitting": "Verzenden...",
+    "successTitle": "Bedankt voor je reactie!",
+    "invalidLink": "Ongeldige RSVP link.",
+    "networkError": "Netwerkfout",
+    "familyMemberAttending": "Komt {name}?",
+    "yes": "Ja",
+    "no": "Nee",
+    "child": "Kind"
+  }
+}

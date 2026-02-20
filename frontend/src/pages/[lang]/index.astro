@@ -1,0 +1,266 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { languages, getTranslations, isValidLanguage, type Language } from '../../i18n';
+
+export function getStaticPaths() {
+  return languages.map((lang) => ({
+    params: { lang },
+  }));
+}
+
+const { lang } = Astro.params;
+
+if (!isValidLanguage(lang)) {
+  return Astro.redirect('/en');
+}
+
+const t = getTranslations(lang as Language);
+
+const weddingDate = new Date('2026-11-07T00:00:00');
+const today = new Date();
+const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+---
+
+<Layout title={t.meta.title} lang={lang as Language} description={t.meta.description}>
+  <!-- Hero Section -->
+  <section class="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden">
+    <!-- Background Image -->
+    <div class="absolute inset-0 z-0">
+      <img
+        src="/main-hero.jpg"
+        alt="Wedding background"
+        class="w-full h-full object-cover"
+      />
+      <div class="absolute inset-0 bg-black/30"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="relative z-10 text-center text-white px-4">
+      <p class="text-lg md:text-xl tracking-widest uppercase mb-4 opacity-90 font-light">{t.hero.saveTheDate}</p>
+      <h1 class="text-5xl md:text-7xl lg:text-8xl font-serif font-light mb-6 leading-tight">
+        {t.hero.names}
+      </h1>
+      <p class="text-2xl md:text-3xl font-serif mb-4">{t.hero.date}</p>
+      <p class="text-lg md:text-xl opacity-90 font-light">{t.hero.location}</p>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 animate-bounce">
+      <svg class="w-6 h-6 text-white opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+      </svg>
+    </div>
+  </section>
+
+  <!-- Countdown Section -->
+  <section class="py-16 md:py-24 bg-stone-50">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+      <h2 class="text-3xl md:text-4xl font-serif mb-8 text-gray-800">{t.countdown.title}</h2>
+      <div class="flex flex-wrap justify-center gap-6 md:gap-12" id="countdown">
+        <div class="text-center">
+          <span class="block text-4xl md:text-6xl font-serif text-gray-800" id="days">0</span>
+          <span class="text-sm uppercase tracking-wider text-gray-500">{t.countdown.days}</span>
+        </div>
+        <div class="text-center">
+          <span class="block text-4xl md:text-6xl font-serif text-gray-800" id="hours">0</span>
+          <span class="text-sm uppercase tracking-wider text-gray-500">{t.countdown.hours}</span>
+        </div>
+        <div class="text-center">
+          <span class="block text-4xl md:text-6xl font-serif text-gray-800" id="minutes">0</span>
+          <span class="text-sm uppercase tracking-wider text-gray-500">{t.countdown.minutes}</span>
+        </div>
+        <div class="text-center">
+          <span class="block text-4xl md:text-6xl font-serif text-gray-800" id="seconds">0</span>
+          <span class="text-sm uppercase tracking-wider text-gray-500">{t.countdown.seconds}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Our Story / Intro -->
+  <section class="py-16 md:py-24 bg-white">
+    <div class="max-w-3xl mx-auto px-4 text-center">
+      <h2 class="text-3xl md:text-4xl font-serif mb-6 text-gray-800">{t.intro.title}</h2>
+      <p class="text-lg text-gray-600 leading-relaxed font-light">
+        {t.intro.text}
+      </p>
+    </div>
+  </section>
+
+  <!-- Ceremony Section -->
+  <section class="py-16 md:py-24 bg-stone-100">
+    <div class="max-w-4xl mx-auto px-4">
+      <div class="grid md:grid-cols-2 gap-12 items-center">
+        <div class="text-center md:text-left">
+          <p class="text-sm uppercase tracking-widest text-gray-500 mb-2">{t.ceremony.label}</p>
+          <h2 class="text-3xl md:text-4xl font-serif mb-4 text-gray-800">{t.ceremony.title}</h2>
+          <div class="space-y-3 text-gray-600">
+            <p class="text-xl font-serif">{t.ceremony.date}</p>
+            <p class="text-lg">{t.ceremony.time}</p>
+            <p class="font-medium text-gray-700">{t.ceremony.venue}</p>
+            <p class="text-gray-500">{t.ceremony.address}<br/>{t.ceremony.city}</p>
+          </div>
+        </div>
+        <div class="relative">
+          <img
+            src="/i-do.jpg"
+            alt="Ceremony venue"
+            class="w-full h-64 md:h-80 object-cover rounded-lg shadow-lg"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Reception Section -->
+  <section class="py-16 md:py-24 bg-white">
+    <div class="max-w-4xl mx-auto px-4">
+      <div class="grid md:grid-cols-2 gap-12 items-center md:flex-row-reverse">
+        <div class="relative md:order-2">
+          <img
+            src="/party.jpg"
+            alt="Reception venue"
+            class="w-full h-64 md:h-80 object-cover rounded-lg shadow-lg"
+          />
+        </div>
+        <div class="text-center md:text-left md:order-1">
+          <p class="text-sm uppercase tracking-widest text-gray-500 mb-2">{t.reception.label}</p>
+          <h2 class="text-3xl md:text-4xl font-serif mb-4 text-gray-800">{t.reception.title}</h2>
+          <div class="space-y-3 text-gray-600">
+            <p class="text-xl font-serif">{t.reception.timing}</p>
+            <p class="font-medium text-gray-700">{t.reception.cava}</p>
+            <p class="font-medium text-gray-700">{t.reception.dinner}</p>
+            <p class="font-medium text-gray-700">{t.reception.dancing}</p>
+            <p class="text-gray-500 pt-2">{t.reception.dressCode}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Photo Gallery -->
+  <section class="py-16 md:py-24 bg-stone-50">
+    <div class="max-w-6xl mx-auto px-4">
+      <h2 class="text-3xl md:text-4xl font-serif text-center mb-12 text-gray-800">{t.gallery.title}</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <img
+          src="/memory-1.jpg"
+          alt="Couple photo 1"
+          class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+        />
+        <img
+          src="/memory-2.jpg"
+          alt="Couple photo 2"
+          class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+        />
+        <img
+          src="/memory-3.jpg"
+          alt="Couple photo 3"
+          class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer hidden md:block"
+        />
+        <img
+          src="/memory-4.jpg"
+          alt="Couple photo 4"
+          class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer hidden md:block"
+        />
+        <img
+          src="/memory-5.jpg"
+          alt="Couple photo 5"
+          class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer hidden md:block"
+        />
+        <img
+          src="/memory-6.jpg"
+          alt="Couple photo 6"
+          class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer hidden md:block"
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- RSVP Section -->
+  <section class="py-16 md:py-24 bg-gray-800 text-white">
+    <div class="max-w-3xl mx-auto px-4 text-center">
+      <h2 class="text-3xl md:text-4xl font-serif mb-6">{t.rsvpSection.title}</h2>
+      <p class="text-lg opacity-90 mb-8 font-light">
+        {t.rsvpSection.text}<br/>
+        {t.rsvpSection.deadline}
+      </p>
+      <a
+        href={`/${lang}/rsvp`}
+        class="inline-block px-8 py-4 bg-[#c9a66b] text-white text-lg font-medium rounded-lg hover:bg-[#b8945a] transition-colors duration-300"
+      >
+        {t.rsvpSection.button}
+      </a>
+    </div>
+  </section>
+
+  <!-- Registry Section -->
+  <section class="py-16 md:py-24 bg-white">
+    <div class="max-w-3xl mx-auto px-4 text-center">
+      <h2 class="text-3xl md:text-4xl font-serif mb-6 text-gray-800">{t.registry.title}</h2>
+      <p class="text-lg text-gray-600 mb-8 font-light">
+        {t.registry.text}
+      </p>
+      <div class="flex flex-wrap justify-center gap-6">
+        <a
+          href="#"
+          class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700"
+        >
+          Amazon
+        </a>
+        <a
+          href="#"
+          class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700"
+        >
+          Zola
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section class="py-16 md:py-24 bg-stone-100">
+    <div class="max-w-2xl mx-auto px-4 text-center">
+      <h2 class="text-3xl md:text-4xl font-serif mb-6 text-gray-800">{t.contact.title}</h2>
+      <p class="text-lg text-gray-600 mb-8 font-light">
+        {t.contact.text}
+      </p>
+      <a
+        href="mailto:bastiaan.gemma.wedding@email.com"
+        class="text-xl text-[#c9a66b] hover:text-[#b8945a] transition-colors font-serif"
+      >
+        bastiaan.gemma.wedding@email.com
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-8 bg-gray-800 text-white text-center">
+    <p class="text-sm opacity-70 font-light">{t.footer.text}</p>
+  </footer>
+</Layout>
+
+<script>
+  // Countdown timer
+  const weddingDate = new Date('2026-11-07T00:00:00').getTime();
+
+  function updateCountdown() {
+    const now = new Date().getTime();
+    const distance = weddingDate - now;
+
+    if (distance > 0) {
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      document.getElementById('days')!.textContent = days.toString();
+      document.getElementById('hours')!.textContent = hours.toString();
+      document.getElementById('minutes')!.textContent = minutes.toString();
+      document.getElementById('seconds')!.textContent = seconds.toString();
+    }
+  }
+
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+</script>

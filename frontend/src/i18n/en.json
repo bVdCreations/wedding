@@ -1,0 +1,103 @@
+{
+  "meta": {
+    "title": "Bastiaan & Gemma - November 7, 2026",
+    "description": "Bastiaan & Gemma - Wedding November 7, 2026"
+  },
+  "hero": {
+    "saveTheDate": "Save the Date",
+    "names": "Bastiaan & Gemma",
+    "date": "November 7, 2026",
+    "location": "Malaga, Spain"
+  },
+  "countdown": {
+    "title": "The Big Day",
+    "days": "Days",
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "seconds": "Seconds"
+  },
+  "intro": {
+    "title": "We're Getting Married!",
+    "text": "We are thrilled to celebrate our special day with the people we love most. After years of adventures together, we can't wait to say \"I do\" in the beautiful city of Barcelona. Join us for a day filled with love, laughter, and unforgettable memories."
+  },
+  "ceremony": {
+    "label": "The Ceremony",
+    "title": "Say \"I Do\"",
+    "date": "November 7, 2026",
+    "time": "12:00",
+    "venue": "Sant Pau Recinte Modernista",
+    "address": "Carrer de Sant Antoni Maria Claret, 167",
+    "city": "08025 Barcelona, Spain"
+  },
+  "reception": {
+    "label": "The Reception",
+    "title": "Celebrate With Us",
+    "timing": "Following the Ceremony",
+    "cava": "Cava & Appetizers",
+    "dinner": "Wedding Dinner",
+    "dancing": "Dancing & Celebration",
+    "dressCode": "Dress Code: Formal / Cocktail"
+  },
+  "gallery": {
+    "title": "Our Memories"
+  },
+  "rsvpSection": {
+    "title": "RSVP",
+    "text": "We would be honored to have you celebrate this special day with us.",
+    "deadline": "Please respond by September 7, 2026",
+    "button": "Respond to Invitation"
+  },
+  "registry": {
+    "title": "Gift Registry",
+    "text": "Your presence at our wedding is the greatest gift of all. However, if you wish to honor us with a gift, we have registered at:"
+  },
+  "contact": {
+    "title": "Questions?",
+    "text": "If you have any questions about the wedding, please don't hesitate to reach out."
+  },
+  "footer": {
+    "text": "Bastiaan & Gemma — November 7, 2026"
+  },
+  "rsvpPage": {
+    "title": "RSVP - Bastiaan & Gemma",
+    "heading": "You're Invited!",
+    "subheading": "Please let us know if you can make it to our special day.",
+    "yourInfo": "Your Information",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "phone": "Phone (optional)",
+    "phonePlaceholder": "+1234567890",
+    "attending": "Will you be attending?",
+    "attendingYes": "Yes, I'll be there!",
+    "attendingNo": "Unfortunately, I can't make it",
+    "plusOne": "Plus One",
+    "bringingPlusOne": "I'm bringing a plus one",
+    "plusOneDetails": "Plus One Details",
+    "email": "Email",
+    "emailPlaceholder": "email@example.com",
+    "plusOneNotAllowed": "As a plus one, you cannot bring additional guests.",
+    "dietary": "Dietary Requirements",
+    "dietarySubtext": "Select all that apply to you",
+    "vegetarian": "Vegetarian",
+    "vegan": "Vegan",
+    "glutenFree": "Gluten Free",
+    "dairyFree": "Dairy Free",
+    "halal": "Halal",
+    "kosher": "Kosher",
+    "nutAllergy": "Nut Allergy",
+    "other": "Other (please specify below)",
+    "dietaryNotesPlaceholder": "Please describe your dietary requirements...",
+    "allergies": "Allergies",
+    "allergiesSubtext": "Please list any allergies or food intolerances (optional)",
+    "allergiesPlaceholder": "e.g., Shellfish allergy, lactose intolerance, etc.",
+    "submit": "Save All Responses",
+    "submitting": "Submitting...",
+    "successTitle": "Thank you for your response!",
+    "invalidLink": "Invalid RSVP link.",
+    "networkError": "Network error",
+    "familyMemberAttending": "Will {name} be attending?",
+    "yes": "Yes",
+    "no": "No",
+    "child": "Child"
+  }
+}

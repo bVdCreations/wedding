@@ -1,86 +1,101 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import Layout from '../../../layouts/Layout.astro';
+import { languages, getTranslations, isValidLanguage, type Language } from '../../../i18n';
+
+export function getStaticPaths() {
+  return languages.map((lang) => ({
+    params: { lang },
+  }));
+}
+
+const { lang } = Astro.params;
+
+if (!isValidLanguage(lang)) {
+  return Astro.redirect('/en/rsvp');
+}
+
+const t = getTranslations(lang as Language);
 ---
 
-<Layout title="RSVP - Bastiaan & Gemma">
+<Layout title={t.rsvpPage.title} lang={lang as Language}>
   <main class="min-h-screen flex items-center justify-center py-16 px-4 bg-stone-50">
     <div class="w-full max-w-2xl">
       <div class="rsvp-card bg-white rounded-xl shadow-lg p-8">
-        <h1 class="text-3xl md:text-4xl font-serif text-center text-gray-800 mb-4">You're Invited!</h1>
-        <p class="text-center text-gray-600 mb-8">Please let us know if you can make it to our special day.</p>
-        
+        <h1 class="text-3xl md:text-4xl font-serif text-center text-gray-800 mb-4">{t.rsvpPage.heading}</h1>
+        <p class="text-center text-gray-600 mb-8">{t.rsvpPage.subheading}</p>
+
         <form id="rsvp-form">
           <!-- Main Guest Section -->
           <div class="form-section mb-8 pb-6 border-b border-gray-100">
-            <h2 class="text-xl font-serif mb-4 text-gray-800">Your Information</h2>
+            <h2 class="text-xl font-serif mb-4 text-gray-800">{t.rsvpPage.yourInfo}</h2>
             <div class="grid md:grid-cols-2 gap-4">
               <div class="form-group">
-                <label for="first_name" class="block font-medium text-sm mb-1">First Name</label>
-                <input type="text" id="first_name" name="first_name" required 
+                <label for="first_name" class="block font-medium text-sm mb-1">{t.rsvpPage.firstName}</label>
+                <input type="text" id="first_name" name="first_name" required
                   class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
               </div>
               <div class="form-group">
-                <label for="last_name" class="block font-medium text-sm mb-1">Last Name</label>
-                <input type="text" id="last_name" name="last_name" required 
+                <label for="last_name" class="block font-medium text-sm mb-1">{t.rsvpPage.lastName}</label>
+                <input type="text" id="last_name" name="last_name" required
                   class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
               </div>
             </div>
             <div class="form-group mt-4">
-              <label for="phone" class="block font-medium text-sm mb-1">Phone (optional)</label>
-              <input type="tel" id="phone" name="phone" placeholder="+1234567890" 
+              <label for="phone" class="block font-medium text-sm mb-1">{t.rsvpPage.phone}</label>
+              <input type="tel" id="phone" name="phone" placeholder={t.rsvpPage.phonePlaceholder}
                 class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
             </div>
           </div>
 
           <div class="form-section mb-8 pb-6 border-b border-gray-100">
-            <h2 class="text-xl font-serif mb-4 text-gray-800">Will you be attending?</h2>
+            <h2 class="text-xl font-serif mb-4 text-gray-800">{t.rsvpPage.attending}</h2>
             <div class="flex flex-col gap-3">
               <label class="radio-label cursor-pointer flex items-center gap-3 p-4 rounded-lg hover:bg-stone-50 transition-colors">
                 <input type="radio" name="attending" value="yes" required class="w-5 h-5 accent-[#c9a66b]" />
-                <span class="text-gray-700">Yes, I'll be there!</span>
+                <span class="text-gray-700">{t.rsvpPage.attendingYes}</span>
               </label>
               <label class="radio-label cursor-pointer flex items-center gap-3 p-4 rounded-lg hover:bg-stone-50 transition-colors">
                 <input type="radio" name="attending" value="no" required class="w-5 h-5 accent-[#c9a66b]" />
-                <span class="text-gray-700">Unfortunately, I can't make it</span>
+                <span class="text-gray-700">{t.rsvpPage.attendingNo}</span>
               </label>
             </div>
           </div>
 
           <!-- Plus One Section -->
           <div class="form-section mb-8 pb-6 border-b border-gray-100" id="plus-one-section" style="display: none;">
-            <h2 class="text-xl font-serif mb-4 text-gray-800">Plus One</h2>
+            <h2 class="text-xl font-serif mb-4 text-gray-800">{t.rsvpPage.plusOne}</h2>
             <div id="plus-one-allowed" style="display: none;">
               <label class="checkbox-label cursor-pointer flex items-center gap-3 p-4 rounded-lg hover:bg-stone-50 transition-colors">
                 <input type="checkbox" name="plus_one" id="plus-one-checkbox" class="w-5 h-5 accent-[#c9a66b]" />
-                <span class="text-gray-700">I'm bringing a plus one</span>
+                <span class="text-gray-700">{t.rsvpPage.bringingPlusOne}</span>
               </label>
 
               <div id="plus-one-details-section" style="display: none; margin-top: 1rem;" class="bg-stone-50 p-6 rounded-lg">
-                <h3 class="text-lg font-serif mb-4 text-gray-800">Plus One Details</h3>
+                <h3 class="text-lg font-serif mb-4 text-gray-800">{t.rsvpPage.plusOneDetails}</h3>
                 <div class="form-group">
-                  <label for="plus_one_email" class="block font-medium text-sm mb-1">Email</label>
-                  <input type="email" id="plus_one_email" name="plus_one_email" placeholder="email@example.com" 
+                  <label for="plus_one_email" class="block font-medium text-sm mb-1">{t.rsvpPage.email}</label>
+                  <input type="email" id="plus_one_email" name="plus_one_email" placeholder={t.rsvpPage.emailPlaceholder}
                     class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
                 </div>
                 <div class="form-group mt-4">
-                  <label for="plus_one_first_name" class="block font-medium text-sm mb-1">First Name</label>
-                  <input type="text" id="plus_one_first_name" name="plus_one_first_name" placeholder="First name" 
+                  <label for="plus_one_first_name" class="block font-medium text-sm mb-1">{t.rsvpPage.firstName}</label>
+                  <input type="text" id="plus_one_first_name" name="plus_one_first_name" placeholder={t.rsvpPage.firstName}
                     class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
                 </div>
                 <div class="form-group mt-4">
-                  <label for="plus_one_last_name" class="block font-medium text-sm mb-1">Last Name</label>
-                  <input type="text" id="plus_one_last_name" name="plus_one_last_name" placeholder="Last name" 
+                  <label for="plus_one_last_name" class="block font-medium text-sm mb-1">{t.rsvpPage.lastName}</label>
+                  <input type="text" id="plus_one_last_name" name="plus_one_last_name" placeholder={t.rsvpPage.lastName}
                     class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
                 </div>
                 <div class="form-group mt-4">
-                  <label for="plus_one_allergies" class="block font-medium text-sm mb-1">Allergies</label>
-                  <textarea id="plus_one_allergies" name="plus_one_allergies" placeholder="Any allergies or food intolerances..." 
+                  <label for="plus_one_allergies" class="block font-medium text-sm mb-1">{t.rsvpPage.allergies}</label>
+                  <textarea id="plus_one_allergies" name="plus_one_allergies" placeholder={t.rsvpPage.allergiesPlaceholder}
                     rows="3" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors"></textarea>
                 </div>
               </div>
             </div>
             <div id="plus-one-not-allowed" style="display: none;">
-              <p class="text-gray-500 text-sm">As a plus one, you cannot bring additional guests.</p>
+              <p class="text-gray-500 text-sm">{t.rsvpPage.plusOneNotAllowed}</p>
             </div>
           </div>
 
@@ -91,46 +106,46 @@ import Layout from '../../layouts/Layout.astro';
 
           <!-- Dietary Requirements Section -->
           <div class="form-section mb-8 pb-6 border-b border-gray-100" id="dietary-section" style="display: none;">
-            <h2 class="text-xl font-serif mb-2 text-gray-800">Dietary Requirements</h2>
-            <p class="text-sm text-gray-500 mb-4">Select all that apply to you</p>
+            <h2 class="text-xl font-serif mb-2 text-gray-800">{t.rsvpPage.dietary}</h2>
+            <p class="text-sm text-gray-500 mb-4">{t.rsvpPage.dietarySubtext}</p>
             <div class="flex flex-col gap-3">
               <label class="checkbox-label cursor-pointer flex items-center gap-3 p-3 rounded-lg hover:bg-stone-50 transition-colors">
                 <input type="checkbox" name="dietary" value="vegetarian" class="w-5 h-5 accent-[#c9a66b]" />
-                <span class="text-gray-700">Vegetarian</span>
+                <span class="text-gray-700">{t.rsvpPage.vegetarian}</span>
               </label>
               <label class="checkbox-label cursor-pointer flex items-center gap-3 p-3 rounded-lg hover:bg-stone-50 transition-colors">
                 <input type="checkbox" name="dietary" value="vegan" class="w-5 h-5 accent-[#c9a66b]" />
-                <span class="text-gray-700">Vegan</span>
+                <span class="text-gray-700">{t.rsvpPage.vegan}</span>
               </label>
               <label class="checkbox-label cursor-pointer flex items-center gap-3 p-3 rounded-lg hover:bg-stone-50 transition-colors">
                 <input type="checkbox" name="dietary" value="gluten_free" class="w-5 h-5 accent-[#c9a66b]" />
-                <span class="text-gray-700">Gluten Free</span>
+                <span class="text-gray-700">{t.rsvpPage.glutenFree}</span>
               </label>
               <label class="checkbox-label cursor-pointer flex items-center gap-3 p-3 rounded-lg hover:bg-stone-50 transition-colors">
                 <input type="checkbox" name="dietary" value="dairy_free" class="w-5 h-5 accent-[#c9a66b]" />
-                <span class="text-gray-700">Dairy Free</span>
+                <span class="text-gray-700">{t.rsvpPage.dairyFree}</span>
               </label>
               <label class="checkbox-label cursor-pointer flex items-center gap-3 p-3 rounded-lg hover:bg-stone-50 transition-colors">
                 <input type="checkbox" name="dietary" value="halal" class="w-5 h-5 accent-[#c9a66b]" />
-                <span class="text-gray-700">Halal</span>
+                <span class="text-gray-700">{t.rsvpPage.halal}</span>
               </label>
               <label class="checkbox-label cursor-pointer flex items-center gap-3 p-3 rounded-lg hover:bg-stone-50 transition-colors">
                 <input type="checkbox" name="dietary" value="kosher" class="w-5 h-5 accent-[#c9a66b]" />
-                <span class="text-gray-700">Kosher</span>
+                <span class="text-gray-700">{t.rsvpPage.kosher}</span>
               </label>
               <label class="checkbox-label cursor-pointer flex items-center gap-3 p-3 rounded-lg hover:bg-stone-50 transition-colors">
                 <input type="checkbox" name="dietary" value="nut_allergy" class="w-5 h-5 accent-[#c9a66b]" />
-                <span class="text-gray-700">Nut Allergy</span>
+                <span class="text-gray-700">{t.rsvpPage.nutAllergy}</span>
               </label>
               <label class="checkbox-label cursor-pointer flex items-center gap-3 p-3 rounded-lg hover:bg-stone-50 transition-colors">
                 <input type="checkbox" name="dietary" value="other" id="dietary-other" class="w-5 h-5 accent-[#c9a66b]" />
-                <span class="text-gray-700">Other (please specify below)</span>
+                <span class="text-gray-700">{t.rsvpPage.other}</span>
               </label>
               <div id="dietary-notes-section" style="display: none;" class="mt-3 ml-8">
                 <textarea
                   id="dietary_notes"
                   name="dietary_notes"
-                  placeholder="Please describe your dietary requirements..."
+                  placeholder={t.rsvpPage.dietaryNotesPlaceholder}
                   rows="3"
                   class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors"
                 ></textarea>
@@ -140,12 +155,12 @@ import Layout from '../../layouts/Layout.astro';
 
           <!-- Allergies Section -->
           <div class="form-section mb-8 pb-6 border-b border-gray-100" id="allergies-section" style="display: none;">
-            <h2 class="text-xl font-serif mb-2 text-gray-800">Allergies</h2>
-            <p class="text-sm text-gray-500 mb-4">Please list any allergies or food intolerances (optional)</p>
+            <h2 class="text-xl font-serif mb-2 text-gray-800">{t.rsvpPage.allergies}</h2>
+            <p class="text-sm text-gray-500 mb-4">{t.rsvpPage.allergiesSubtext}</p>
             <textarea
               id="allergies"
               name="allergies"
-              placeholder="e.g., Shellfish allergy, lactose intolerance, etc."
+              placeholder={t.rsvpPage.allergiesPlaceholder}
               rows="3"
               class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors"
             ></textarea>
@@ -153,13 +168,13 @@ import Layout from '../../layouts/Layout.astro';
 
           <div class="form-actions text-center mt-8">
             <button type="submit" class="submit-btn bg-[#c9a66b] text-white border-none px-10 py-4 text-lg rounded-lg hover:bg-[#b8945a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
-              Save All Responses
+              {t.rsvpPage.submit}
             </button>
           </div>
         </form>
 
         <div id="success-message" class="success-message text-center p-8 bg-[#606c38] text-white rounded-lg" style="display: none;">
-          <h2 class="text-white mb-2">Thank you for your response!</h2>
+          <h2 class="text-white mb-2">{t.rsvpPage.successTitle}</h2>
           <p id="success-text"></p>
         </div>
 
@@ -171,32 +186,32 @@ import Layout from '../../layouts/Layout.astro';
   </main>
 </Layout>
 
-<script>
-  const form = document.getElementById('rsvp-form') as HTMLFormElement;
-  const attendingInputs = document.getElementsByName('attending') as NodeListOf<HTMLInputElement>;
-  const plusOneSection = document.getElementById('plus-one-section') as HTMLElement;
-  const plusOneAllowed = document.getElementById('plus-one-allowed') as HTMLElement;
-  const plusOneNotAllowed = document.getElementById('plus-one-not-allowed') as HTMLElement;
-  const plusOneCheckbox = document.getElementById('plus-one-checkbox') as HTMLInputElement;
-  const plusOneDetailsSection = document.getElementById('plus-one-details-section') as HTMLElement;
-  const dietarySection = document.getElementById('dietary-section') as HTMLElement;
-  const allergiesSection = document.getElementById('allergies-section') as HTMLElement;
-  const familySection = document.getElementById('family-section') as HTMLElement;
-  const familyMembersContainer = document.getElementById('family-members-container') as HTMLElement;
-  const successMessage = document.getElementById('success-message') as HTMLElement;
-  const errorMessage = document.getElementById('error-message') as HTMLElement;
-  const submitBtn = document.querySelector('.submit-btn') as HTMLButtonElement;
+<script define:vars={{ t: t.rsvpPage }}>
+  const form = document.getElementById('rsvp-form');
+  const attendingInputs = document.getElementsByName('attending');
+  const plusOneSection = document.getElementById('plus-one-section');
+  const plusOneAllowed = document.getElementById('plus-one-allowed');
+  const plusOneNotAllowed = document.getElementById('plus-one-not-allowed');
+  const plusOneCheckbox = document.getElementById('plus-one-checkbox');
+  const plusOneDetailsSection = document.getElementById('plus-one-details-section');
+  const dietarySection = document.getElementById('dietary-section');
+  const allergiesSection = document.getElementById('allergies-section');
+  const familySection = document.getElementById('family-section');
+  const familyMembersContainer = document.getElementById('family-members-container');
+  const successMessage = document.getElementById('success-message');
+  const errorMessage = document.getElementById('error-message');
+  const submitBtn = document.querySelector('.submit-btn');
 
   let guestIsPlusOne = false;
   let guestUuid = '';
-  let familyMembers: Array<{uuid: string; first_name: string; last_name: string; attending: boolean | null; phone: string | null; dietary_requirements: Array<{requirement_type: string}>; allergies: string | null;}> = [];
+  let familyMembers = [];
 
   const token = new URLSearchParams(window.location.search).get('token');
 
   if (!token) {
     form.style.display = 'none';
     errorMessage.style.display = 'block';
-    (document.getElementById('error-text') as HTMLElement).textContent = 'Invalid RSVP link.';
+    document.getElementById('error-text').textContent = t.invalidLink;
   }
 
   async function prefetchGuestInfo() {
@@ -213,22 +228,22 @@ import Layout from '../../layouts/Layout.astro';
     }
   }
 
-  function prefillForm(data: {guest_uuid: string; first_name: string; last_name: string; phone: string | null; attending: boolean | null; is_plus_one: boolean; family_id: string | null; family_members: Array<{uuid: string; first_name: string; last_name: string; attending: boolean | null; phone: string | null; dietary_requirements: Array<{requirement_type: string; notes: string | null}>; allergies: string | null}>; plus_one: {email: string; first_name: string; last_name: string} | null; dietary_requirements: Array<{requirement_type: string; notes: string | null}>; allergies: string | null;}) {
+  function prefillForm(data) {
     guestUuid = data.guest_uuid;
     guestIsPlusOne = data.is_plus_one;
     familyMembers = data.family_members || [];
 
-    const firstNameInput = document.getElementById('first_name') as HTMLInputElement;
-    const lastNameInput = document.getElementById('last_name') as HTMLInputElement;
-    const phoneInput = document.getElementById('phone') as HTMLInputElement;
-    const allergiesInput = document.getElementById('allergies') as HTMLTextAreaElement;
+    const firstNameInput = document.getElementById('first_name');
+    const lastNameInput = document.getElementById('last_name');
+    const phoneInput = document.getElementById('phone');
+    const allergiesInput = document.getElementById('allergies');
     if (firstNameInput) firstNameInput.value = data.first_name || '';
     if (lastNameInput) lastNameInput.value = data.last_name || '';
     if (phoneInput && data.phone) phoneInput.value = data.phone;
     if (allergiesInput && data.allergies) allergiesInput.value = data.allergies;
 
     if (data.attending !== null && data.attending !== undefined) {
-      const attendingInput = document.querySelector(`input[name="attending"][value="${data.attending ? 'yes' : 'no'}"]`) as HTMLInputElement;
+      const attendingInput = document.querySelector(`input[name="attending"][value="${data.attending ? 'yes' : 'no'}"]`);
       if (attendingInput) {
         attendingInput.checked = true;
         attendingInput.dispatchEvent(new Event('change'));
@@ -238,7 +253,7 @@ import Layout from '../../layouts/Layout.astro';
     if (data.plus_one && !guestIsPlusOne) {
       plusOneCheckbox.checked = true;
       plusOneDetailsSection.style.display = 'block';
-      const emailInput = document.getElementById('plus_one_email') as HTMLInputElement;
+      const emailInput = document.getElementById('plus_one_email');
       if (emailInput) emailInput.value = data.plus_one.email;
     }
 
@@ -248,13 +263,13 @@ import Layout from '../../layouts/Layout.astro';
 
     if (data.dietary_requirements) {
       data.dietary_requirements.forEach(req => {
-        const checkbox = document.querySelector(`input[name="dietary"][value="${req.requirement_type}"]`) as HTMLInputElement;
+        const checkbox = document.querySelector(`input[name="dietary"][value="${req.requirement_type}"]`);
         if (checkbox) checkbox.checked = true;
         if (req.requirement_type === 'other') {
-          const notesSection = document.getElementById('dietary-notes-section') as HTMLElement;
+          const notesSection = document.getElementById('dietary-notes-section');
           if (notesSection) notesSection.style.display = 'block';
           if (req.notes) {
-            const notesInput = document.getElementById('dietary_notes') as HTMLTextAreaElement;
+            const notesInput = document.getElementById('dietary_notes');
             if (notesInput) notesInput.value = req.notes;
           }
         }
@@ -262,50 +277,51 @@ import Layout from '../../layouts/Layout.astro';
     }
   }
 
-  function renderFamilyMembers(members: Array<{uuid: string; first_name: string; last_name: string; guest_type?: string; attending: boolean | null; phone: string | null; dietary_requirements: Array<{requirement_type: string; notes: string | null}>; allergies: string | null;}>) {
+  function renderFamilyMembers(members) {
     familySection.style.display = 'block';
     familyMembersContainer.innerHTML = '';
     members.forEach((member, index) => {
       const isChild = member.guest_type === 'child';
-      const childBadge = isChild ? '<span class="badge bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs">Child</span>' : '';
+      const childBadge = isChild ? `<span class="badge bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs">${t.child}</span>` : '';
+      const attendingQuestion = t.familyMemberAttending.replace('{name}', member.first_name);
       const section = document.createElement('div');
       section.className = 'family-member-card bg-stone-50 p-6 rounded-lg mb-6';
       section.innerHTML = `
         <h3 class="text-lg font-serif mb-4 text-gray-800">${member.first_name} ${member.last_name} ${childBadge}</h3>
         <input type="hidden" name="family_member_uuid_${index}" value="${member.uuid}" />
         <div class="mb-6">
-          <h4 class="text-base font-medium mb-3">Will ${member.first_name} be attending?</h4>
+          <h4 class="text-base font-medium mb-3">${attendingQuestion}</h4>
           <div class="flex gap-4">
             <label class="flex items-center gap-2 cursor-pointer p-3 rounded-lg hover:bg-white transition-colors">
               <input type="radio" name="family_attending_${index}" value="yes" ${member.attending === true ? 'checked' : ''} class="w-5 h-5 accent-[#c9a66b]" />
-              <span>Yes</span>
+              <span>${t.yes}</span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer p-3 rounded-lg hover:bg-white transition-colors">
               <input type="radio" name="family_attending_${index}" value="no" ${member.attending === false ? 'checked' : ''} class="w-5 h-5 accent-[#c9a66b]" />
-              <span>No</span>
+              <span>${t.no}</span>
             </label>
           </div>
         </div>
         <div class="grid md:grid-cols-2 gap-4">
           <div class="form-group">
-            <label for="family_first_name_${index}" class="block font-medium text-sm mb-1">First Name</label>
-            <input type="text" id="family_first_name_${index}" name="family_first_name_${index}" value="${member.first_name}" required 
+            <label for="family_first_name_${index}" class="block font-medium text-sm mb-1">${t.firstName}</label>
+            <input type="text" id="family_first_name_${index}" name="family_first_name_${index}" value="${member.first_name}" required
               class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
           </div>
           <div class="form-group">
-            <label for="family_last_name_${index}" class="block font-medium text-sm mb-1">Last Name</label>
-            <input type="text" id="family_last_name_${index}" name="family_last_name_${index}" value="${member.last_name}" required 
+            <label for="family_last_name_${index}" class="block font-medium text-sm mb-1">${t.lastName}</label>
+            <input type="text" id="family_last_name_${index}" name="family_last_name_${index}" value="${member.last_name}" required
               class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
           </div>
         </div>
         <div class="form-group mt-4">
-          <label for="family_phone_${index}" class="block font-medium text-sm mb-1">Phone</label>
-          <input type="tel" id="family_phone_${index}" name="family_phone_${index}" value="${member.phone || ''}" 
+          <label for="family_phone_${index}" class="block font-medium text-sm mb-1">${t.phone}</label>
+          <input type="tel" id="family_phone_${index}" name="family_phone_${index}" value="${member.phone || ''}"
             class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
         </div>
         <div class="form-group mt-4">
-          <label for="family_allergies_${index}" class="block font-medium text-sm mb-1">Allergies</label>
-          <textarea id="family_allergies_${index}" name="family_allergies_${index}" placeholder="Any allergies or food intolerances..." 
+          <label for="family_allergies_${index}" class="block font-medium text-sm mb-1">${t.allergies}</label>
+          <textarea id="family_allergies_${index}" name="family_allergies_${index}" placeholder="${t.allergiesPlaceholder}"
             rows="3" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors">${member.allergies || ''}</textarea>
         </div>
       `;
@@ -317,7 +333,7 @@ import Layout from '../../layouts/Layout.astro';
 
   attendingInputs.forEach(input => {
     input.addEventListener('change', (e) => {
-      const attending = (e.target as HTMLInputElement).value;
+      const attending = e.target.value;
       if (attending === 'yes') {
         plusOneSection.style.display = 'block';
         dietarySection.style.display = 'block';
@@ -340,43 +356,43 @@ import Layout from '../../layouts/Layout.astro';
   });
 
   plusOneCheckbox.addEventListener('change', (e) => {
-    const checked = (e.target as HTMLInputElement).checked;
+    const checked = e.target.checked;
     plusOneDetailsSection.style.display = checked ? 'block' : 'none';
   });
 
   // Show/hide dietary notes when "Other" is checked
-  const dietaryOtherCheckbox = document.getElementById('dietary-other') as HTMLInputElement;
-  const dietaryNotesSection = document.getElementById('dietary-notes-section') as HTMLElement;
+  const dietaryOtherCheckbox = document.getElementById('dietary-other');
+  const dietaryNotesSection = document.getElementById('dietary-notes-section');
 
   dietaryOtherCheckbox.addEventListener('change', (e) => {
-    const checked = (e.target as HTMLInputElement).checked;
+    const checked = e.target.checked;
     dietaryNotesSection.style.display = checked ? 'block' : 'none';
   });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const attending = document.querySelector('input[name="attending"]:checked') as HTMLInputElement;
+    const attending = document.querySelector('input[name="attending"]:checked');
     const attendingValue = attending?.value === 'yes';
     const plusOne = plusOneCheckbox.checked && !guestIsPlusOne;
-    const firstName = (document.getElementById('first_name') as HTMLInputElement)?.value;
-    const lastName = (document.getElementById('last_name') as HTMLInputElement)?.value;
-    const phone = (document.getElementById('phone') as HTMLInputElement)?.value;
+    const firstName = document.getElementById('first_name')?.value;
+    const lastName = document.getElementById('last_name')?.value;
+    const phone = document.getElementById('phone')?.value;
 
     let plusOneDetails = null;
     if (plusOne) {
-      const email = (document.getElementById('plus_one_email') as HTMLInputElement)?.value;
-      const poFirstName = (document.getElementById('plus_one_first_name') as HTMLInputElement)?.value;
-      const poLastName = (document.getElementById('plus_one_last_name') as HTMLInputElement)?.value;
-      const poAllergies = (document.getElementById('plus_one_allergies') as HTMLTextAreaElement)?.value || null;
+      const email = document.getElementById('plus_one_email')?.value;
+      const poFirstName = document.getElementById('plus_one_first_name')?.value;
+      const poLastName = document.getElementById('plus_one_last_name')?.value;
+      const poAllergies = document.getElementById('plus_one_allergies')?.value || null;
       if (email && poFirstName && poLastName) {
         plusOneDetails = {email: email, first_name: poFirstName, last_name: poLastName, allergies: poAllergies};
       }
     }
 
     const dietaryCheckboxes = document.querySelectorAll('input[name="dietary"]:checked');
-    const dietaryNotes = (document.getElementById('dietary_notes') as HTMLTextAreaElement)?.value || null;
+    const dietaryNotes = document.getElementById('dietary_notes')?.value || null;
     const dietaryRequirements = Array.from(dietaryCheckboxes).map(cb => {
-      const value = (cb as HTMLInputElement).value;
+      const value = cb.value;
       return {
         requirement_type: value,
         notes: value === 'other' ? dietaryNotes : null,
@@ -384,22 +400,22 @@ import Layout from '../../layouts/Layout.astro';
     });
 
     // Get main guest allergies
-    const allergies = (document.getElementById('allergies') as HTMLTextAreaElement)?.value || null;
+    const allergies = document.getElementById('allergies')?.value || null;
 
-    const familyMemberUpdates: Record<string, object> = {};
+    const familyMemberUpdates = {};
     familyMembers.forEach((member, index) => {
-      const memberAttending = document.querySelector(`input[name="family_attending_${index}"]:checked`) as HTMLInputElement;
+      const memberAttending = document.querySelector(`input[name="family_attending_${index}"]:checked`);
       const memberAttendingValue = memberAttending?.value === 'yes';
-      const memberFirstName = (document.getElementById(`family_first_name_${index}`) as HTMLInputElement)?.value;
-      const memberLastName = (document.getElementById(`family_last_name_${index}`) as HTMLInputElement)?.value;
-      const memberPhone = (document.getElementById(`family_phone_${index}`) as HTMLInputElement)?.value;
-      const memberAllergies = (document.getElementById(`family_allergies_${index}`) as HTMLTextAreaElement)?.value || null;
-      
+      const memberFirstName = document.getElementById(`family_first_name_${index}`)?.value;
+      const memberLastName = document.getElementById(`family_last_name_${index}`)?.value;
+      const memberPhone = document.getElementById(`family_phone_${index}`)?.value;
+      const memberAllergies = document.getElementById(`family_allergies_${index}`)?.value || null;
+
       const memberDietaryCheckboxes = document.querySelectorAll(`input[name="family_dietary_${index}"]:checked`);
       const memberDietaryRequirements = Array.from(memberDietaryCheckboxes).map(cb => ({
-        requirement_type: (cb as HTMLInputElement).value,
+        requirement_type: cb.value,
       }));
-      
+
       familyMemberUpdates[member.uuid] = {
         attending: memberAttendingValue,
         allergies: memberAllergies,
@@ -409,7 +425,7 @@ import Layout from '../../layouts/Layout.astro';
     });
 
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting...';
+    submitBtn.textContent = t.submitting;
 
     try {
       const apiHost = import.meta.env.PUBLIC_BACKEND_API_URL || '';
@@ -430,17 +446,17 @@ import Layout from '../../layouts/Layout.astro';
       if (response.ok) {
         form.style.display = 'none';
         successMessage.style.display = 'block';
-        (document.getElementById('success-text') as HTMLElement).textContent = data.message;
+        document.getElementById('success-text').textContent = data.message;
       } else {
         errorMessage.style.display = 'block';
-        (document.getElementById('error-text') as HTMLElement).textContent = data.detail || 'Error';
+        document.getElementById('error-text').textContent = data.detail || 'Error';
       }
     } catch (error) {
       errorMessage.style.display = 'block';
-      (document.getElementById('error-text') as HTMLElement).textContent = 'Network error';
+      document.getElementById('error-text').textContent = t.networkError;
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Save All Responses';
+      submitBtn.textContent = t.submit;
     }
   });
 </script>

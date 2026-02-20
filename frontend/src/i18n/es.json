@@ -1,0 +1,103 @@
+{
+  "meta": {
+    "title": "Bastiaan & Gemma - 7 de noviembre de 2026",
+    "description": "Bastiaan & Gemma - Boda 7 de noviembre de 2026"
+  },
+  "hero": {
+    "saveTheDate": "Reserva la Fecha",
+    "names": "Bastiaan & Gemma",
+    "date": "7 de noviembre de 2026",
+    "location": "Malaga, Espana"
+  },
+  "countdown": {
+    "title": "El Gran Dia",
+    "days": "Dias",
+    "hours": "Horas",
+    "minutes": "Minutos",
+    "seconds": "Segundos"
+  },
+  "intro": {
+    "title": "Nos Casamos!",
+    "text": "Estamos encantados de celebrar nuestro dia especial con las personas que mas queremos. Despues de anos de aventuras juntos, estamos deseando decir \"Si, quiero\" en la hermosa ciudad de Barcelona. Unete a nosotros para un dia lleno de amor, risas y recuerdos inolvidables."
+  },
+  "ceremony": {
+    "label": "La Ceremonia",
+    "title": "Di \"Si, Quiero\"",
+    "date": "7 de noviembre de 2026",
+    "time": "12:00",
+    "venue": "Sant Pau Recinte Modernista",
+    "address": "Carrer de Sant Antoni Maria Claret, 167",
+    "city": "08025 Barcelona, Espana"
+  },
+  "reception": {
+    "label": "La Recepcion",
+    "title": "Celebra Con Nosotros",
+    "timing": "Despues de la Ceremonia",
+    "cava": "Cava y Aperitivos",
+    "dinner": "Cena de Boda",
+    "dancing": "Baile y Celebracion",
+    "dressCode": "Codigo de Vestimenta: Formal / Coctel"
+  },
+  "gallery": {
+    "title": "Nuestros Recuerdos"
+  },
+  "rsvpSection": {
+    "title": "RSVP",
+    "text": "Seria un honor que celebraras este dia tan especial con nosotros.",
+    "deadline": "Por favor responde antes del 7 de septiembre de 2026",
+    "button": "Responder a la Invitacion"
+  },
+  "registry": {
+    "title": "Lista de Regalos",
+    "text": "Tu presencia en nuestra boda es el mejor regalo. Sin embargo, si deseas honrarnos con un regalo, estamos registrados en:"
+  },
+  "contact": {
+    "title": "Preguntas?",
+    "text": "Si tienes alguna pregunta sobre la boda, no dudes en contactarnos."
+  },
+  "footer": {
+    "text": "Bastiaan & Gemma — 7 de noviembre de 2026"
+  },
+  "rsvpPage": {
+    "title": "RSVP - Bastiaan & Gemma",
+    "heading": "Estas Invitado!",
+    "subheading": "Por favor, haznos saber si podras asistir a nuestro dia especial.",
+    "yourInfo": "Tu Informacion",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "phone": "Telefono (opcional)",
+    "phonePlaceholder": "+34123456789",
+    "attending": "Asistiras?",
+    "attendingYes": "Si, alli estare!",
+    "attendingNo": "Desafortunadamente, no podre asistir",
+    "plusOne": "Acompanante",
+    "bringingPlusOne": "Traere un acompanante",
+    "plusOneDetails": "Datos del Acompanante",
+    "email": "Correo Electronico",
+    "emailPlaceholder": "correo@ejemplo.com",
+    "plusOneNotAllowed": "Como acompanante, no puedes traer invitados adicionales.",
+    "dietary": "Requisitos Dieteticos",
+    "dietarySubtext": "Selecciona todos los que apliquen",
+    "vegetarian": "Vegetariano",
+    "vegan": "Vegano",
+    "glutenFree": "Sin Gluten",
+    "dairyFree": "Sin Lacteos",
+    "halal": "Halal",
+    "kosher": "Kosher",
+    "nutAllergy": "Alergia a Frutos Secos",
+    "other": "Otro (especifica abajo)",
+    "dietaryNotesPlaceholder": "Por favor describe tus requisitos dieteticos...",
+    "allergies": "Alergias",
+    "allergiesSubtext": "Por favor indica cualquier alergia o intolerancia alimentaria (opcional)",
+    "allergiesPlaceholder": "Ej., Alergia a mariscos, intolerancia a la lactosa, etc.",
+    "submit": "Guardar Todas las Respuestas",
+    "submitting": "Enviando...",
+    "successTitle": "Gracias por tu respuesta!",
+    "invalidLink": "Enlace RSVP invalido.",
+    "networkError": "Error de red",
+    "familyMemberAttending": "Asistira {name}?",
+    "yes": "Si",
+    "no": "No",
+    "child": "Nino/a"
+  }
+}

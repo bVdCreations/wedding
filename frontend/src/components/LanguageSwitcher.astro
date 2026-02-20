@@ -1,0 +1,39 @@
+---
+import { languages, languageNames, type Language } from '../i18n';
+
+interface Props {
+  currentLang: Language;
+  currentPath: string;
+}
+
+const { currentLang, currentPath } = Astro.props;
+
+// Remove the language prefix from the current path to get the base path
+const pathWithoutLang = currentPath.replace(/^\/(en|es|nl)/, '') || '/';
+
+function getLanguagePath(lang: Language): string {
+  return `/${lang}${pathWithoutLang === '/' ? '' : pathWithoutLang}`;
+}
+---
+
+<div class="language-switcher flex items-center gap-1">
+  {languages.map((lang, index) => (
+    <>
+      <a
+        href={getLanguagePath(lang)}
+        class:list={[
+          'px-2 py-1 text-sm uppercase tracking-wider transition-colors',
+          lang === currentLang
+            ? 'text-[#c9a66b] font-medium'
+            : 'text-gray-500 hover:text-gray-800'
+        ]}
+        aria-current={lang === currentLang ? 'page' : undefined}
+      >
+        {lang}
+      </a>
+      {index < languages.length - 1 && (
+        <span class="text-gray-300">|</span>
+      )}
+    </>
+  ))}
+</div>
