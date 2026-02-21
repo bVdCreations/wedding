@@ -52,11 +52,7 @@
     "deadline": "Please respond by September 7, 2026",
     "button": "Respond to Invitation"
   },
-  "registry": {
-    "title": "Gift Registry",
-    "text": "Your presence at our wedding is the greatest gift of all. However, if you wish to honor us with a gift, we have registered at:"
-  },
-  "contact": {
+"contact": {
     "title": "Questions?",
     "text": "If you have any questions about the wedding, please don't hesitate to reach out."
   },
