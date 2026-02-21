@@ -28,9 +28,20 @@ install:
 test:
 	pytest
 
-# Run e2e tests with Playwright
+# Run e2e tests with Playwright (builds frontend, starts preview, runs tests, stops preview)
+E2E_PORT ?= 4400
 test-e2e:
-	pnpm --dir packages/e2e test
+	@if lsof -i :$(E2E_PORT) -sTCP:LISTEN -t >/dev/null 2>&1; then \
+		echo "Error: port $(E2E_PORT) is already in use"; exit 1; \
+	fi
+	pnpm --dir frontend run build
+	pnpm --dir frontend exec astro preview --port $(E2E_PORT) & \
+	E2E_PID=$$!; \
+	npx --yes wait-on http://localhost:$(E2E_PORT) --timeout 15000 && \
+	FRONTEND_URL=http://localhost:$(E2E_PORT) pnpm --dir packages/e2e test; \
+	TEST_EXIT=$$?; \
+	kill $$E2E_PID 2>/dev/null; \
+	exit $$TEST_EXIT
 
 # Run linter
 lint:
