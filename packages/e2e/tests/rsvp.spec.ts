@@ -114,8 +114,8 @@ test.describe('Home Page', () => {
     await page.goto('/en/rsvp');
     await expect(page).toHaveURL(/\/en\/rsvp/);
 
-    // Click Spanish language link
-    await page.locator('.language-switcher a[href="/es/rsvp"]').click();
+    // Click Spanish language link (use prefix match to handle optional trailing slash)
+    await page.locator('.language-switcher a[href^="/es/rsvp"]').click();
     await expect(page).toHaveURL(/\/es\/rsvp/);
   });
 });
