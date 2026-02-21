@@ -18,16 +18,21 @@
   },
   "intro": {
     "title": "We're Getting Married!",
-    "text": "We are thrilled to celebrate our special day with the people we love most. After years of adventures together, we can't wait to say \"I do\" in the beautiful city of Barcelona. Join us for a day filled with love, laughter, and unforgettable memories."
+    "text": "We are thrilled to celebrate our special day with the people we love most. After years of adventures together, we can't wait to say \"I do\" in the beautiful city of Málaga. Join us for a day filled with love, laughter, and unforgettable memories."
   },
   "ceremony": {
     "label": "The Ceremony",
     "title": "Say \"I Do\"",
     "date": "November 7, 2026",
     "time": "12:00",
-    "venue": "Sant Pau Recinte Modernista",
-    "address": "Carrer de Sant Antoni Maria Claret, 167",
-    "city": "08025 Barcelona, Spain"
+    "venue": "Rancho del Ingles",
+    "address": "Camino del Convento, s/n",
+    "city": "29130 Alhaurín de la Torre, Málaga, Spain"
+  },
+  "location": {
+    "label": "Location",
+    "title": "Find Us",
+    "directions": "Get Directions"
   },
   "reception": {
     "label": "The Reception",

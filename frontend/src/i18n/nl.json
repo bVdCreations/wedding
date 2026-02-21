@@ -18,16 +18,21 @@
   },
   "intro": {
     "title": "Wij Gaan Trouwen!",
-    "text": "We zijn ontzettend blij om onze speciale dag te vieren met de mensen van wie we het meest houden. Na jaren van avonturen samen, kunnen we niet wachten om \"ja\" te zeggen in de prachtige stad Barcelona. Vier met ons mee op een dag vol liefde, gelach en onvergetelijke herinneringen."
+    "text": "We zijn ontzettend blij om onze speciale dag te vieren met de mensen van wie we het meest houden. Na jaren van avonturen samen, kunnen we niet wachten om \"ja\" te zeggen in de prachtige stad Málaga. Vier met ons mee op een dag vol liefde, gelach en onvergetelijke herinneringen."
   },
   "ceremony": {
     "label": "De Ceremonie",
     "title": "Zeg \"Ja\"",
     "date": "7 november 2026",
     "time": "12:00",
-    "venue": "Sant Pau Recinte Modernista",
-    "address": "Carrer de Sant Antoni Maria Claret, 167",
-    "city": "08025 Barcelona, Spanje"
+    "venue": "Rancho del Ingles",
+    "address": "Camino del Convento, s/n",
+    "city": "29130 Alhaurín de la Torre, Málaga, Spanje"
+  },
+  "location": {
+    "label": "Locatie",
+    "title": "Routebeschrijving",
+    "directions": "Route plannen"
   },
   "reception": {
     "label": "De Receptie",

@@ -18,16 +18,21 @@
   },
   "intro": {
     "title": "Nos Casamos!",
-    "text": "Estamos encantados de celebrar nuestro dia especial con las personas que mas queremos. Despues de anos de aventuras juntos, estamos deseando decir \"Si, quiero\" en la hermosa ciudad de Barcelona. Unete a nosotros para un dia lleno de amor, risas y recuerdos inolvidables."
+    "text": "Estamos encantados de celebrar nuestro dia especial con las personas que mas queremos. Despues de anos de aventuras juntos, estamos deseando decir \"Si, quiero\" en la hermosa ciudad de Málaga. Unete a nosotros para un dia lleno de amor, risas y recuerdos inolvidables."
   },
   "ceremony": {
     "label": "La Ceremonia",
     "title": "Di \"Si, Quiero\"",
     "date": "7 de noviembre de 2026",
     "time": "12:00",
-    "venue": "Sant Pau Recinte Modernista",
-    "address": "Carrer de Sant Antoni Maria Claret, 167",
-    "city": "08025 Barcelona, Espana"
+    "venue": "Rancho del Ingles",
+    "address": "Camino del Convento, s/n",
+    "city": "29130 Alhaurín de la Torre, Málaga, España"
+  },
+  "location": {
+    "label": "Ubicación",
+    "title": "Cómo Llegar",
+    "directions": "Cómo Llegar"
   },
   "reception": {
     "label": "La Recepcion",
