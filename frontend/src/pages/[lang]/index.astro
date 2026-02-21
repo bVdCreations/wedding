@@ -182,41 +182,41 @@ const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (
   <section class="py-16 md:py-24 bg-stone-50">
     <div class="max-w-6xl mx-auto px-4">
       <h2 class="text-3xl md:text-4xl font-serif text-center mb-12 text-gray-800">{t.gallery.title}</h2>
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div class="gallery-scroll flex overflow-x-auto snap-x snap-mandatory gap-4 md:grid md:grid-cols-3 md:overflow-visible">
         <Image
           src={memory1}
           alt="Couple photo 1"
-          class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+          class="snap-center shrink-0 w-[80%] md:w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
           width={640}
         />
         <Image
           src={memory2}
           alt="Couple photo 2"
-          class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+          class="snap-center shrink-0 w-[80%] md:w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
           width={640}
         />
         <Image
           src={memory3}
           alt="Couple photo 3"
-          class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer hidden md:block"
+          class="snap-center shrink-0 w-[80%] md:w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
           width={640}
         />
         <Image
           src={memory4}
           alt="Couple photo 4"
-          class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer hidden md:block"
+          class="snap-center shrink-0 w-[80%] md:w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
           width={640}
         />
         <Image
           src={memory5}
           alt="Couple photo 5"
-          class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer hidden md:block"
+          class="snap-center shrink-0 w-[80%] md:w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
           width={640}
         />
         <Image
           src={memory6}
           alt="Couple photo 6"
-          class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer hidden md:block"
+          class="snap-center shrink-0 w-[80%] md:w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
           width={640}
         />
       </div>
@@ -286,3 +286,13 @@ const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (
   updateCountdown();
   setInterval(updateCountdown, 1000);
 </script>
+
+<style>
+  .gallery-scroll {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .gallery-scroll::-webkit-scrollbar {
+    display: none;
+  }
+</style>
