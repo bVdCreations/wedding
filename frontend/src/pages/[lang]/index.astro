@@ -1,6 +1,16 @@
 ---
+import { Image } from 'astro:assets';
 import Layout from '../../layouts/Layout.astro';
 import { languages, getTranslations, isValidLanguage, type Language } from '../../i18n';
+import mainHero from '../../assets/main-hero.jpg';
+import iDo from '../../assets/i-do.jpg';
+import party from '../../assets/party.jpg';
+import memory1 from '../../assets/memory-1.jpg';
+import memory2 from '../../assets/memory-2.jpg';
+import memory3 from '../../assets/memory-3.jpg';
+import memory4 from '../../assets/memory-4.jpg';
+import memory5 from '../../assets/memory-5.jpg';
+import memory6 from '../../assets/memory-6.jpg';
 
 export function getStaticPaths() {
   return languages.map((lang) => ({
@@ -26,10 +36,11 @@ const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (
   <section class="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden">
     <!-- Background Image -->
     <div class="absolute inset-0 z-0">
-      <img
-        src="/main-hero.jpg"
+      <Image
+        src={mainHero}
         alt="Wedding background"
         class="w-full h-full object-cover"
+        width={1920}
       />
       <div class="absolute inset-0 bg-black/30"></div>
     </div>
@@ -102,10 +113,11 @@ const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (
           </div>
         </div>
         <div class="relative">
-          <img
-            src="/i-do.jpg"
+          <Image
+            src={iDo}
             alt="Ceremony venue"
             class="w-full h-64 md:h-80 object-cover rounded-lg shadow-lg"
+            width={800}
           />
         </div>
       </div>
@@ -144,10 +156,11 @@ const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (
     <div class="max-w-4xl mx-auto px-4">
       <div class="grid md:grid-cols-2 gap-12 items-center md:flex-row-reverse">
         <div class="relative md:order-2">
-          <img
-            src="/party.jpg"
+          <Image
+            src={party}
             alt="Reception venue"
             class="w-full h-64 md:h-80 object-cover rounded-lg shadow-lg"
+            width={800}
           />
         </div>
         <div class="text-center md:text-left md:order-1">
@@ -170,35 +183,41 @@ const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (
     <div class="max-w-6xl mx-auto px-4">
       <h2 class="text-3xl md:text-4xl font-serif text-center mb-12 text-gray-800">{t.gallery.title}</h2>
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <img
-          src="/memory-1.jpg"
+        <Image
+          src={memory1}
           alt="Couple photo 1"
           class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+          width={640}
         />
-        <img
-          src="/memory-2.jpg"
+        <Image
+          src={memory2}
           alt="Couple photo 2"
           class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+          width={640}
         />
-        <img
-          src="/memory-3.jpg"
+        <Image
+          src={memory3}
           alt="Couple photo 3"
           class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer hidden md:block"
+          width={640}
         />
-        <img
-          src="/memory-4.jpg"
+        <Image
+          src={memory4}
           alt="Couple photo 4"
           class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer hidden md:block"
+          width={640}
         />
-        <img
-          src="/memory-5.jpg"
+        <Image
+          src={memory5}
           alt="Couple photo 5"
           class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer hidden md:block"
+          width={640}
         />
-        <img
-          src="/memory-6.jpg"
+        <Image
+          src={memory6}
           alt="Couple photo 6"
           class="w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer hidden md:block"
+          width={640}
         />
       </div>
     </div>
