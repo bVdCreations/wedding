@@ -186,39 +186,47 @@ const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (
         <Image
           src={memory1}
           alt="Couple photo 1"
-          class="snap-center shrink-0 w-[80%] md:w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+          class="snap-center shrink-0 w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
           width={640}
         />
         <Image
           src={memory2}
           alt="Couple photo 2"
-          class="snap-center shrink-0 w-[80%] md:w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+          class="snap-center shrink-0 w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
           width={640}
         />
         <Image
           src={memory3}
           alt="Couple photo 3"
-          class="snap-center shrink-0 w-[80%] md:w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+          class="snap-center shrink-0 w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
           width={640}
         />
         <Image
           src={memory4}
           alt="Couple photo 4"
-          class="snap-center shrink-0 w-[80%] md:w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+          class="snap-center shrink-0 w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
           width={640}
         />
         <Image
           src={memory5}
           alt="Couple photo 5"
-          class="snap-center shrink-0 w-[80%] md:w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+          class="snap-center shrink-0 w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
           width={640}
         />
         <Image
           src={memory6}
           alt="Couple photo 6"
-          class="snap-center shrink-0 w-[80%] md:w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+          class="snap-center shrink-0 w-full h-48 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
           width={640}
         />
+      </div>
+      <div class="flex justify-center gap-2 mt-4 md:hidden" id="gallery-dots">
+        <button class="w-2 h-2 rounded-full bg-gray-800" data-index="0"></button>
+        <button class="w-2 h-2 rounded-full bg-gray-300" data-index="1"></button>
+        <button class="w-2 h-2 rounded-full bg-gray-300" data-index="2"></button>
+        <button class="w-2 h-2 rounded-full bg-gray-300" data-index="3"></button>
+        <button class="w-2 h-2 rounded-full bg-gray-300" data-index="4"></button>
+        <button class="w-2 h-2 rounded-full bg-gray-300" data-index="5"></button>
       </div>
     </div>
   </section>
@@ -285,6 +293,36 @@ const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (
 
   updateCountdown();
   setInterval(updateCountdown, 1000);
+
+  // Gallery dot indicators
+  const gallery = document.querySelector('.gallery-scroll') as HTMLElement;
+  const dots = document.querySelectorAll('#gallery-dots button');
+
+  if (gallery && dots.length) {
+    function updateDots() {
+      const images = gallery.querySelectorAll('img');
+      if (!images.length) return;
+      const scrollLeft = gallery.scrollLeft;
+      const imageWidth = images[0].offsetWidth + 16; // 16 = gap-4
+      const activeIndex = Math.round(scrollLeft / imageWidth);
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('bg-gray-800', i === activeIndex);
+        dot.classList.toggle('bg-gray-300', i !== activeIndex);
+      });
+    }
+
+    gallery.addEventListener('scroll', updateDots);
+
+    dots.forEach((dot) => {
+      dot.addEventListener('click', () => {
+        const index = Number(dot.getAttribute('data-index'));
+        const images = gallery.querySelectorAll('img');
+        if (!images.length) return;
+        const imageWidth = images[0].offsetWidth + 16;
+        gallery.scrollTo({ left: index * imageWidth, behavior: 'smooth' });
+      });
+    });
+  }
 </script>
 
 <style>
