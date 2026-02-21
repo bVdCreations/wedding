@@ -1,0 +1,17 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.12
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: e2e-tests
+        name: e2e tests
+        entry: make test-e2e
+        language: system
+        always_run: true
+        pass_filenames: false
+        stages: [pre-push]

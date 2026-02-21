@@ -1,4 +1,4 @@
-.PHONY: start stop start-backend start-db start-frontend install test test-e2e lint format fake-guest fake-plus-one
+.PHONY: start stop start-backend start-db start-frontend install pre-commit pre-commit-rm test test-e2e lint format fake-guest fake-plus-one
 
 # Start all services with Docker Compose
 start:
@@ -23,6 +23,14 @@ start-db:
 # Install dependencies
 install:
 	uv sync
+
+# Install pre-commit hooks
+pre-commit:
+	uv run pre-commit install --hook-type pre-commit --hook-type pre-push
+
+# Remove pre-commit hooks
+pre-commit-rm:
+	uv run pre-commit uninstall --hook-type pre-commit --hook-type pre-push
 
 # Run tests
 test:
