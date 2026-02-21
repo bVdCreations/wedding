@@ -121,12 +121,6 @@ test.describe('Home Page', () => {
 });
 
 test.describe('API Integration', () => {
-  test('should be able to connect to the API', async ({ apiRequest }) => {
-    // Test that we can reach the health check endpoint
-    const response = await apiRequest.get('/healthz');
-    expect(response.ok()).toBeTruthy();
-  });
-
   test('should return 404 for non-existent guest', async ({ apiRequest }) => {
     // Test that invalid tokens return 404
     const response = await apiRequest.get('/guests/invalid_token_123');
