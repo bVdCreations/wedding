@@ -561,6 +561,141 @@ test.describe('RSVP Submission - Language Support', () => {
 });
 
 // ============================================================================
+// Tests: Attending Flow - UI Interaction
+// ============================================================================
+
+test.describe('RSVP Attending Flow - UI Interaction', () => {
+  const testToken = 'test-token-attending-flow';
+
+  test('should show dietary and allergies sections when guest is attending', async ({
+    page,
+    language,
+  }) => {
+    // Mock guest info with attending=true so prefill triggers section visibility
+    await mockGuestInfoEndpoint(
+      page,
+      testToken,
+      createMockGuestInfo({ attending: true, first_name: 'John', last_name: 'Doe' })
+    );
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+    await page.waitForLoadState('networkidle');
+
+    // After prefill with attending=true, sections should be visible
+    await expect(page.locator('#dietary-section')).not.toHaveAttribute('style', /display:\s*none/);
+    await expect(page.locator('#allergies-section')).not.toHaveAttribute(
+      'style',
+      /display:\s*none/
+    );
+    await expect(page.locator('#plus-one-section')).not.toHaveAttribute(
+      'style',
+      /display:\s*none/
+    );
+
+    // Attending "yes" radio should be checked
+    await expect(page.locator('input[name="attending"][value="yes"]')).toBeChecked();
+  });
+
+  test('should show "Other" dietary option when attending and reveal notes when checked', async ({
+    page,
+    language,
+  }) => {
+    // Mock guest info with attending=true and "other" dietary requirement
+    await mockGuestInfoEndpoint(
+      page,
+      testToken,
+      createMockGuestInfo({
+        attending: true,
+        first_name: 'John',
+        last_name: 'Doe',
+        dietary_requirements: [{ requirement_type: 'other', notes: 'No spicy food' }],
+      })
+    );
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+    await page.waitForLoadState('networkidle');
+
+    // Dietary section should be visible (attending=true)
+    await expect(page.locator('#dietary-section')).not.toHaveAttribute('style', /display:\s*none/);
+
+    // "Other" checkbox should be visible and checked (from prefill)
+    await expect(page.locator('#dietary-other')).toBeVisible();
+    await expect(page.locator('#dietary-other')).toBeChecked();
+
+    // Dietary notes section should be visible (other is checked)
+    await expect(page.locator('#dietary-notes-section')).not.toHaveAttribute(
+      'style',
+      /display:\s*none/
+    );
+    await expect(page.locator('#dietary_notes')).toBeVisible();
+
+    // Notes should be prefilled
+    await expect(page.locator('#dietary_notes')).toHaveValue('No spicy food');
+  });
+
+  test('should submit attending RSVP with "Other" dietary option and notes', async ({
+    page,
+    language,
+  }) => {
+    let capturedRequest: Record<string, unknown> | null = null;
+
+    await mockGuestInfoEndpoint(page, testToken);
+    await page.route(`${API_BASE_URL}/api/v1/guests/${testToken}/rsvp`, async (route: Route) => {
+      capturedRequest = JSON.parse(route.request().postData() || '{}');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(createMockRSVPResponse(true)),
+      });
+    });
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+    await page.waitForLoadState('networkidle');
+
+    const result = await submitRSVPForm(page, testToken, {
+      attending: true,
+      firstName: 'John',
+      lastName: 'Doe',
+      dietaryRequirements: ['other'],
+      dietaryNotes: 'No spicy food please',
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.data.status).toBe('confirmed');
+
+    // Verify the request payload includes "other" with notes
+    expect(capturedRequest).not.toBeNull();
+    expect(capturedRequest!.attending).toBe(true);
+    expect(capturedRequest!.dietary_requirements).toEqual([
+      { requirement_type: 'other', notes: 'No spicy food please' },
+    ]);
+  });
+
+  test('should not show dietary sections when guest is not attending', async ({
+    page,
+    language,
+  }) => {
+    // Mock guest info with attending=false
+    await mockGuestInfoEndpoint(
+      page,
+      testToken,
+      createMockGuestInfo({ attending: false, first_name: 'John', last_name: 'Doe' })
+    );
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+    await page.waitForLoadState('networkidle');
+
+    // Sections should remain hidden when not attending
+    await expect(page.locator('#dietary-section')).toHaveAttribute('style', /display:\s*none/);
+    await expect(page.locator('#allergies-section')).toHaveAttribute('style', /display:\s*none/);
+    await expect(page.locator('#plus-one-section')).toHaveAttribute('style', /display:\s*none/);
+
+    // Attending "no" radio should be checked
+    await expect(page.locator('input[name="attending"][value="no"]')).toBeChecked();
+  });
+});
+
+// ============================================================================
 // Tests: Edge Cases
 // ============================================================================
 
