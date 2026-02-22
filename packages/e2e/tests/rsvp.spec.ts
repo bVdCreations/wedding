@@ -12,8 +12,9 @@ import { test, expect } from '../src/fixtures';
 
 test.describe('RSVP Page', () => {
   test.beforeEach(async ({ page, language }) => {
-    // Navigate to the RSVP page with language prefix
-    await page.goto(`/${language}/rsvp`);
+    // Navigate to the RSVP page with language prefix and a token
+    // (the form is hidden when no token query param is present)
+    await page.goto(`/${language}/rsvp?token=test-token`);
   });
 
   test('should display the RSVP form', async ({ page }) => {
