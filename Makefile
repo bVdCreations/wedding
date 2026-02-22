@@ -1,4 +1,4 @@
-.PHONY: start stop start-backend start-db start-frontend install pre-commit pre-commit-rm test test-e2e lint format fake-guest fake-plus-one
+.PHONY: start stop start-backend start-db start-frontend install pre-commit pre-commit-rm test test-e2e lint format fake-guest fake-plus-one preview
 
 # Start all services with Docker Compose
 start:
@@ -75,6 +75,11 @@ clean-db:
 	docker volume rm wedding_postgres_volume
 	docker compose up -d
 	alembic upgrade head
+
+# Build frontend and start preview server
+preview:
+	pnpm --dir frontend run build
+	pnpm --dir frontend exec astro preview
 
 down:
 	docker compose down
