@@ -186,7 +186,7 @@ const t = getTranslations(lang as Language);
   </main>
 </Layout>
 
-<script define:vars={{ t: t.rsvpPage }}>
+<script define:vars={{ t: t.rsvpPage, apiHost: import.meta.env.PUBLIC_BACKEND_API_URL || '' }}>
   const form = document.getElementById('rsvp-form');
   const attendingInputs = document.getElementsByName('attending');
   const plusOneSection = document.getElementById('plus-one-section');
@@ -217,7 +217,7 @@ const t = getTranslations(lang as Language);
   async function prefetchGuestInfo() {
     if (!token) return;
     try {
-      const apiHost = import.meta.env.PUBLIC_BACKEND_API_URL || '';
+
       const response = await fetch(`${apiHost}/api/v1/guests/${token}/info`);
       if (response.ok) {
         const data = await response.json();
@@ -428,7 +428,7 @@ const t = getTranslations(lang as Language);
     submitBtn.textContent = t.submitting;
 
     try {
-      const apiHost = import.meta.env.PUBLIC_BACKEND_API_URL || '';
+
       const response = await fetch(`${apiHost}/api/v1/guests/${token}/rsvp`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
