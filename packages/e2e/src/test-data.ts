@@ -69,12 +69,7 @@ export function createDecliningRSVP(overrides?: Partial<RSVPData>): RSVPData {
  */
 export const dietaryOptions = [
   'vegetarian',
-  'vegan',
-  'gluten_free',
-  'dairy_free',
-  'nut_allergy',
-  'halal',
-  'kosher',
+  'other',
 ] as const;
 
 /**

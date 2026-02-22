@@ -267,7 +267,7 @@ test.describe('RSVP Submission - Attending', () => {
       attending: true,
       firstName: 'John',
       lastName: 'Doe',
-      dietaryRequirements: ['vegetarian', 'gluten_free'],
+      dietaryRequirements: ['vegetarian'],
       allergies: 'Shellfish allergy',
     });
 
@@ -278,7 +278,6 @@ test.describe('RSVP Submission - Attending', () => {
     expect(capturedRequest!.dietary_requirements).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ requirement_type: 'vegetarian' }),
-        expect.objectContaining({ requirement_type: 'gluten_free' }),
       ])
     );
   });
@@ -779,12 +778,7 @@ test.describe('RSVP Submission - Edge Cases', () => {
 
     const allDietaryOptions = [
       'vegetarian',
-      'vegan',
-      'gluten_free',
-      'dairy_free',
-      'halal',
-      'kosher',
-      'nut_allergy',
+      'other',
     ];
 
     const result = await submitRSVPForm(page, testToken, {
