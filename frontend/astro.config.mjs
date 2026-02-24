@@ -6,6 +6,7 @@ export default defineConfig({
   integrations: [tailwind()],
   redirects: {
     '/': '/en',
+    "/rsvp": "/en/rsvp",
   },
   server: {
     port: 4321,
