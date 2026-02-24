@@ -48,21 +48,21 @@ services:
       - ./pyproject.toml:/app/pyproject.toml
       - ./cli.py:/app/cli.py
 
-  # Frontend
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: wedding_frontend
-    environment:
-      PUBLIC_BACKEND_API_URL: http://localhost:8000
-    volumes:
-      - ./frontend/src:/app/src
-      - ./frontend/public/:/app/public
-    ports:
-      - "4321:4321"
-    depends_on:
-      - api
+  # # Frontend
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: wedding_frontend
+  #   environment:
+  #     PUBLIC_BACKEND_API_URL: http://localhost:8000
+  #   volumes:
+  #     - ./frontend/src:/app/src
+  #     - ./frontend/public/:/app/public
+  #   ports:
+  #     - "4321:4321"
+  #   depends_on:
+  #     - api
 
   # Mailhog (for development email testing)
   mailhog:

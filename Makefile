@@ -32,6 +32,9 @@ pre-commit:
 pre-commit-rm:
 	uv run pre-commit uninstall --hook-type pre-commit --hook-type pre-push
 
+make frontend-run:
+	pnpm --dir frontend run dev
+
 # Run tests
 test:
 	pytest
