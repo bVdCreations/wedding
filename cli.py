@@ -1,6 +1,7 @@
 """CLI commands for wedding RSVP management."""
 
 import asyncio
+from enum import Enum
 from uuid import UUID
 
 import typer
@@ -13,6 +14,13 @@ from src.guests.features.create_child_guest.write_model import SqlChildGuestCrea
 from src.guests.features.create_guest.write_model import SqlGuestCreateWriteModel
 from src.guests.features.create_plus_one_guest.write_model import SqlPlusOneGuestWriteModel
 from src.guests.repository.orm_models import Family, Guest
+
+
+class EmailType(str, Enum):
+    INVITATION = "invitation"
+    CONFIRMATION = "confirmation"
+    PLUS_ONE = "plus_one"
+
 
 app = typer.Typer(help="CLI commands for wedding RSVP management")
 
@@ -471,6 +479,93 @@ def create_child(
     except ValueError as e:
         typer.secho(str(e), fg=typer.colors.RED)
         raise typer.Exit(1)
+
+
+async def _send_test_email(
+    to_email: str,
+    email_type: EmailType,
+    language: Language,
+):
+    """Async helper to send a test email."""
+    email_service = get_email_service()
+    guest_name = "Test Guest"
+
+    if email_type == EmailType.INVITATION:
+        await email_service.send_invitation(
+            to_address=to_email,
+            guest_name=guest_name,
+            event_date="August 15, 2026",
+            event_location="Castillo de Example, Spain",
+            rsvp_url="https://example.com/rsvp/test-token",
+            response_deadline="July 15, 2026",
+            language=language,
+        )
+    elif email_type == EmailType.CONFIRMATION:
+        await email_service.send_confirmation(
+            to_address=to_email,
+            guest_name=guest_name,
+            attending="yes",
+            dietary="none",
+            language=language,
+        )
+    elif email_type == EmailType.PLUS_ONE:
+        await email_service.send_invite_one_plus_one(
+            to_address=to_email,
+            guest_name=guest_name,
+            plus_one_details={
+                "name": "Test Plus One",
+                "rsvp_url": "https://example.com/rsvp/plus-one-token",
+            },
+            language=language,
+        )
+
+
+@app.command()
+def send_email(
+    to_email: str = typer.Argument(
+        ...,
+        help="Recipient email address",
+    ),
+    email_type: str = typer.Option(
+        "invitation",
+        "--type",
+        "-y",
+        help="Email type: invitation, confirmation, plus_one",
+    ),
+    language: str = typer.Option(
+        "en",
+        "--language",
+        "-l",
+        help="Email language: en, es, nl",
+    ),
+):
+    """Send a test email to the specified address."""
+    # Validate email type
+    try:
+        email_type_enum = EmailType(email_type)
+    except ValueError:
+        typer.secho(
+            f"Invalid email type: {email_type}. Must be one of: invitation, confirmation, plus_one",
+            fg=typer.colors.RED,
+        )
+        raise typer.Exit(1)
+
+    # Validate language
+    try:
+        lang = Language(language)
+    except ValueError:
+        typer.secho(
+            f"Invalid language: {language}. Must be one of: en, es, nl",
+            fg=typer.colors.RED,
+        )
+        raise typer.Exit(1)
+
+    asyncio.run(_send_test_email(to_email, email_type_enum, lang))
+
+    typer.secho("Test email sent successfully!", fg=typer.colors.GREEN)
+    typer.secho(f"  To: {to_email}", fg=typer.colors.BLUE)
+    typer.secho(f"  Type: {email_type}", fg=typer.colors.BLUE)
+    typer.secho(f"  Language: {language}", fg=typer.colors.BLUE)
 
 
 if __name__ == "__main__":
