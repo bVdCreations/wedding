@@ -16,7 +16,7 @@ from datetime import datetime
 class DomainEvent:
     """Base domain event."""
 
-    timestamp: datetime = None
+    timestamp: datetime | None = None
     event_type: str = ""
 
     def __post_init__(self):

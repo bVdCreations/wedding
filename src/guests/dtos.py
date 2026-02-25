@@ -72,7 +72,7 @@ class FamilyMemberDTO:
         cls,
         guest: "Guest",
         rsvp_status: GuestStatus | None = None,
-        dietary_requirements: list[dict] = None,
+        dietary_requirements: list[dict] | None = None,
     ) -> "FamilyMemberDTO":
         """Create FamilyMemberDTO from Guest ORM model."""
         attending = None
