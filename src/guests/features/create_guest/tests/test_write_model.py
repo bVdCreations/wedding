@@ -1,7 +1,7 @@
 """Tests for SqlGuestCreateWriteModel."""
 
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock
+from datetime import datetime
+from unittest.mock import AsyncMock
 
 import pytest
 from sqlalchemy import select
@@ -290,7 +290,7 @@ async def test_create_guest_email_service_is_called():
         write_model = SqlGuestCreateWriteModel(
             session_overwrite=db_session, email_service=mock_email_service
         )
-        result = await write_model.create_guest(
+        await write_model.create_guest(
             email="testcall@example.com",
             first_name="Test",
             last_name="Call",

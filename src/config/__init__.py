@@ -1,5 +1,5 @@
-from .settings import settings
 from .database import async_session_manager, engine
+from .settings import settings
 from .table_names import TableNames
 
 __all__ = [

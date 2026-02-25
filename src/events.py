@@ -10,7 +10,6 @@ This module defines domain events that can be used for:
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
 
 
 @dataclass
@@ -60,7 +59,7 @@ class RSVPResponseEvent(DomainEvent):
     guest_name: str
     attending: bool
     plus_one: bool
-    plus_one_name: Optional[str]
+    plus_one_name: str | None
     dietary_requirements: list[str]
 
     def __post_init__(self):

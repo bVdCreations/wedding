@@ -3,8 +3,8 @@ import abc
 from sqlalchemy import select
 
 from src.config.database import async_session_manager
-from src.guests.dtos import DietaryType, FamilyMemberDTO, GuestStatus, RSVPInfoDTO
-from src.guests.repository.orm_models import DietaryOption, Family, Guest, RSVPInfo
+from src.guests.dtos import FamilyMemberDTO, GuestStatus, RSVPInfoDTO
+from src.guests.repository.orm_models import DietaryOption, Guest, RSVPInfo
 from src.models.user import User
 
 

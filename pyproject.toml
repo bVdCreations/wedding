@@ -60,6 +60,3 @@ ignore = ["E501"]
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
-
-[tool.ty]
-python-version = "3.12"

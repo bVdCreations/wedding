@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from src.guests.dtos import DietaryType, FamilyMemberDTO, GuestStatus
+from src.guests.dtos import DietaryType, GuestStatus
 from src.guests.repository.read_models import RSVPReadModel, SqlRSVPReadModel
 from src.guests.urls import GET_GUEST_INFO_URL
 

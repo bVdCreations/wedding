@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import async_session_manager
-from src.guests.dtos import GuestDTO, GuestStatus, GuestType, Language, RSVPDTO
+from src.guests.dtos import RSVPDTO, GuestDTO, GuestStatus, GuestType, Language
 from src.guests.repository.orm_models import Guest, RSVPInfo
 
 

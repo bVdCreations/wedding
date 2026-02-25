@@ -243,7 +243,7 @@ async def test_submit_rsvp_with_plus_one():
     async with async_session_manager() as session:
         try:
             user = await create_test_user(session)
-            guest = await create_test_guest(session, user)
+            _guest = await create_test_guest(session, user)
 
             write_model = SqlRSVPWriteModel(
                 session_overwrite=session, email_service=MockEmailService()
@@ -507,7 +507,7 @@ async def test_submit_rsvp_sends_confirmation_email_in_spanish():
     async with async_session_manager() as session:
         try:
             user = await create_test_user(session, email="spanish_rsvp@example.com")
-            guest = await create_test_guest_with_language(
+            _guest = await create_test_guest_with_language(
                 session, user, "spanish-token-123", Language.ES
             )
 
@@ -541,7 +541,7 @@ async def test_submit_rsvp_sends_confirmation_email_in_dutch():
     async with async_session_manager() as session:
         try:
             user = await create_test_user(session, email="dutch_rsvp@example.com")
-            guest = await create_test_guest_with_language(
+            _guest = await create_test_guest_with_language(
                 session, user, "dutch-token-123", Language.NL
             )
 
@@ -575,7 +575,7 @@ async def test_submit_rsvp_sends_confirmation_email_in_english_by_default():
     async with async_session_manager() as session:
         try:
             user = await create_test_user(session, email="english_rsvp@example.com")
-            guest = await create_test_guest_with_language(
+            _guest = await create_test_guest_with_language(
                 session, user, "english-token-123", Language.EN
             )
 

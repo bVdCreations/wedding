@@ -1,13 +1,13 @@
 """Tests for child guest creation write model."""
 
-import pytest
 from datetime import datetime
+
+import pytest
 from sqlalchemy import select
 
 from src.config.database import async_session_maker
 from src.guests.dtos import GuestStatus, GuestType
 from src.guests.features.create_child_guest.write_model import (
-    ChildGuestCreateWriteModel,
     SqlChildGuestCreateWriteModel,
 )
 from src.guests.repository.orm_models import Family, Guest, RSVPInfo

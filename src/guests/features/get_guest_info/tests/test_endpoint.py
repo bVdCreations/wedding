@@ -2,7 +2,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.guests.dtos import DietaryType, GuestDTO, GuestStatus, RSVPInfoDTO, RSVPDTO
+from src.guests.dtos import RSVPDTO, GuestDTO, GuestStatus, RSVPInfoDTO
 from src.guests.features.get_guest_info.router import get_rsvp_read_model
 from src.guests.repository.read_models import RSVPReadModel
 from src.guests.urls import GET_GUEST_INFO_URL

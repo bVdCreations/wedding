@@ -1,6 +1,5 @@
 """Tests for SqlPlusOneGuestWriteModel."""
 
-from datetime import datetime, timezone
 from unittest.mock import AsyncMock
 
 import pytest
