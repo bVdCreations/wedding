@@ -7,13 +7,12 @@ import typer
 from sqlalchemy import select
 
 from src.config.database import async_session_manager
-from src.email.service import email_service
+from src.email import get_email_service
 from src.guests.dtos import Language, PlusOneDTO
-from src.guests.features.create_guest.write_model import SqlGuestCreateWriteModel
 from src.guests.features.create_child_guest.write_model import SqlChildGuestCreateWriteModel
+from src.guests.features.create_guest.write_model import SqlGuestCreateWriteModel
 from src.guests.features.create_plus_one_guest.write_model import SqlPlusOneGuestWriteModel
 from src.guests.repository.orm_models import Family, Guest
-from src.models.user import User
 
 app = typer.Typer(help="CLI commands for wedding RSVP management")
 
@@ -35,6 +34,7 @@ async def _create_guest_and_send_email(language: Language = Language.EN):
     )
 
     # Send invitation email
+    email_service = get_email_service()
     await email_service.send_invitation(
         to_address=email,
         guest_name=f"{first_name} {last_name}",
@@ -314,8 +314,8 @@ def link_guests(
             # Check if either guest is already in a family
             if guest1.family_id and guest2.family_id and guest1.family_id != guest2.family_id:
                 raise ValueError(
-                    f"Guests are already in different families. "
-                    f"Remove them from their current families first."
+                    "Guests are already in different families. "
+                    "Remove them from their current families first."
                 )
 
             # Use existing family or create new one

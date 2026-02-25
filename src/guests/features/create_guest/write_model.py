@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import async_session_manager
 from src.config.settings import settings
-from src.email.service import EmailService
+from src.email.base import EmailServiceBase
 from src.guests.dtos import RSVPDTO, GuestAlreadyExistsError, GuestDTO, GuestStatus, Language
 from src.guests.repository.orm_models import Guest, RSVPInfo
 from src.models.user import User
@@ -56,7 +56,7 @@ class SqlGuestCreateWriteModel(GuestCreateWriteModel):
     def __init__(
         self,
         session_overwrite: AsyncSession | None = None,
-        email_service: EmailService | None = None,
+        email_service: EmailServiceBase | None = None,
     ) -> None:
         self.session_overwrite = session_overwrite
         self.email_service = email_service

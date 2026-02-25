@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import async_session_manager
-from src.email.service import EmailService
+from src.email.base import EmailServiceBase
 from src.guests.dtos import (
     GuestStatus,
     Language,
@@ -46,7 +46,7 @@ class SqlRSVPWriteModel:
     def __init__(
         self,
         session_overwrite: AsyncSession | None = None,
-        email_service: EmailService | None = None,
+        email_service: EmailServiceBase | None = None,
         plus_one_guest_write_model: "PlusOneGuestWriteModel | None" = None,
     ):
         self._session_overwrite = session_overwrite
@@ -54,7 +54,7 @@ class SqlRSVPWriteModel:
         self._plus_one_guest_write_model = plus_one_guest_write_model
 
     @property
-    def email_service(self) -> EmailService | None:
+    def email_service(self) -> EmailServiceBase | None:
         """Get the email service instance."""
         return self._email_service
 

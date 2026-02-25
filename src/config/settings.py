@@ -22,12 +22,15 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24 * 7  # 7 days
 
-    # Email
+    # Email (SMTP)
     smtp_host: str = "localhost"
     smtp_port: int = 1025
     smtp_user: str = ""
     smtp_password: str = ""
-    emails_from: str = "wedding@example.com"
+    emails_from: str = "info@send.gemma-bastiaan.wedding"
+
+    # Email (Resend) - if set, use Resend API instead of SMTP
+    resend_api_key: str = ""
 
     SENTRY_DSN: str = ""
     SENTRY_TRACES_SAMPLE_RATE: float = 0.0

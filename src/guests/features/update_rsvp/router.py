@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 
-from src.email.service import email_service
+from src.email import get_email_service
 from src.guests.dtos import DietaryType, GuestStatus
 from src.guests.features.create_plus_one_guest.write_model import (
     SqlPlusOneGuestWriteModel,
@@ -63,7 +63,7 @@ def get_rsvp_write_model() -> RSVPWriteModel:
     """Dependency to get RSVP write model instance."""
     plus_one_write_model = SqlPlusOneGuestWriteModel()
     return SqlRSVPWriteModel(
-        email_service=email_service,
+        email_service=get_email_service(),
         plus_one_guest_write_model=plus_one_write_model,
     )
 

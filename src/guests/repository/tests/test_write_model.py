@@ -1,11 +1,10 @@
 """Tests for SqlRSVPWriteModel."""
 
 import pytest
-import pytest_asyncio
 from sqlalchemy import select
 
 from src.config.database import async_session_manager
-from src.email.service import EmailService
+from src.email.base import EmailServiceBase
 from src.guests.dtos import DietaryType, GuestStatus, Language, RSVPResponseDTO
 from src.guests.features.update_rsvp.router import RSVPResponseSubmit
 from src.guests.repository.orm_models import DietaryOption, Guest, RSVPInfo
@@ -13,7 +12,7 @@ from src.guests.repository.write_models import SqlRSVPWriteModel
 from src.models.user import User
 
 
-class MockEmailService(EmailService):
+class MockEmailService(EmailServiceBase):
     """Mock email service for testing."""
 
     async def send_confirmation(
@@ -25,6 +24,29 @@ class MockEmailService(EmailService):
         language: Language = Language.EN,
     ) -> None:
         """Mock send confirmation - does nothing."""
+        pass
+
+    async def send_invitation(
+        self,
+        to_address: str,
+        guest_name: str,
+        event_date: str,
+        event_location: str,
+        rsvp_url: str,
+        response_deadline: str,
+        language: Language = Language.EN,
+    ) -> None:
+        """Mock send invitation - does nothing."""
+        pass
+
+    async def send_invite_one_plus_one(
+        self,
+        to_address: str,
+        guest_name: str,
+        plus_one_details: dict,
+        language: Language = Language.EN,
+    ) -> None:
+        """Mock send invite one plus one - does nothing."""
         pass
 
 
@@ -383,7 +405,7 @@ async def test_submit_rsvp_declined_clears_plus_one():
 # Language-specific tests
 
 
-class SpyEmailService(EmailService):
+class SpyEmailService(EmailServiceBase):
     """Email service that captures calls for testing."""
 
     def __init__(self):
@@ -398,13 +420,38 @@ class SpyEmailService(EmailService):
         language: Language = Language.EN,
     ) -> None:
         """Capture send confirmation calls."""
-        self.send_confirmation_calls.append({
-            "to_address": to_address,
-            "guest_name": guest_name,
-            "attending": attending,
-            "dietary": dietary,
-            "language": language,
-        })
+        self.send_confirmation_calls.append(
+            {
+                "to_address": to_address,
+                "guest_name": guest_name,
+                "attending": attending,
+                "dietary": dietary,
+                "language": language,
+            }
+        )
+
+    async def send_invitation(
+        self,
+        to_address: str,
+        guest_name: str,
+        event_date: str,
+        event_location: str,
+        rsvp_url: str,
+        response_deadline: str,
+        language: Language = Language.EN,
+    ) -> None:
+        """Mock send invitation - does nothing."""
+        pass
+
+    async def send_invite_one_plus_one(
+        self,
+        to_address: str,
+        guest_name: str,
+        plus_one_details: dict,
+        language: Language = Language.EN,
+    ) -> None:
+        """Mock send invite one plus one - does nothing."""
+        pass
 
 
 async def create_test_guest_with_language(
