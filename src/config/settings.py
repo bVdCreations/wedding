@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     smtp_port: int = 1025
     smtp_user: str = ""
     smtp_password: str = ""
-    emails_from: str = "info@send.gemma-bastiaan.wedding"
+    emails_from: str = "info@gemma-bastiaan.wedding"
 
     # Email (Resend) - if set, use Resend API instead of SMTP
     resend_api_key: str = ""
