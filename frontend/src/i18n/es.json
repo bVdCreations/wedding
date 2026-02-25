@@ -37,11 +37,11 @@
   "reception": {
     "label": "La Recepción",
     "title": "Celebra Con Nosotros",
-    "timing": "Despues de la Ceremonia",
-    "cava": "Cava y Aperitivos",
-    "dinner": "Cena de Boda",
-    "dancing": "Baile y Celebracion",
-    "dressCode": "Codigo de Vestimenta: Formal / Coctel"
+    "timing": "Después de la Ceremonia",
+    "cava": "Bebidas y Aperitivos",
+    "dinner": "Almuerzo de Boda",
+    "dancing": "Baile y Celebración",
+    "dressCode": "Código de Vestimenta: Formal / Coctel"
   },
   "gallery": {
     "title": "Nuestros Recuerdos"
