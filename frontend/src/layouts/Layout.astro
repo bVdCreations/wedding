@@ -10,6 +10,7 @@ interface Props {
 
 const { title, lang = defaultLanguage, description = "Bastiaan & Gemma - Wedding November 7, 2026" } = Astro.props;
 const currentPath = Astro.url.pathname;
+const currentSearch = Astro.url.search;
 ---
 
 <!doctype html>
@@ -28,7 +29,7 @@ const currentPath = Astro.url.pathname;
     <!-- Language Switcher Header -->
     <header class="fixed top-0 right-0 z-50 p-4">
       <div class="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm px-3 py-2">
-        <LanguageSwitcher currentLang={lang} currentPath={currentPath} />
+        <LanguageSwitcher currentLang={lang} currentPath={currentPath} currentSearch={currentSearch} />
       </div>
     </header>
 

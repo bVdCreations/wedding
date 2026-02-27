@@ -4,15 +4,17 @@ import { languages, languageNames, type Language } from '../i18n';
 interface Props {
   currentLang: Language;
   currentPath: string;
+  currentSearch?: string;
 }
 
-const { currentLang, currentPath } = Astro.props;
+const { currentLang, currentPath, currentSearch = '' } = Astro.props;
 
 // Remove the language prefix from the current path to get the base path
 const pathWithoutLang = currentPath.replace(/^\/(en|es|nl)/, '') || '/';
 
 function getLanguagePath(lang: Language): string {
-  return `/${lang}${pathWithoutLang === '/' ? '' : pathWithoutLang}`;
+  const path = pathWithoutLang === '/' ? '' : pathWithoutLang.replace(/\/$/, '');
+  return `/${lang}${path}${currentSearch}`;
 }
 ---
 
@@ -37,3 +39,16 @@ function getLanguagePath(lang: Language): string {
     </>
   ))}
 </div>
+
+<script is:inline>
+  (function () {
+    var search = window.location.search;
+    if (!search) return;
+    var currentPath = window.location.pathname;
+    document.querySelectorAll('.language-switcher a').forEach(function (link) {
+      var targetLang = link.getAttribute('href').match(/^\/([^/]+)/)[1];
+      var newPath = currentPath.replace(/^\/[^/]+/, '/' + targetLang);
+      link.setAttribute('href', newPath + search);
+    });
+  })();
+</script>
