@@ -11,6 +11,9 @@ export default {
         primary: '#c9a66b',
         secondary: '#8b7355',
       },
+      filter: {
+        grayscale: 'grayscale(100%)',
+      },
     },
   },
   plugins: [],

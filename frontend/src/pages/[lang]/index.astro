@@ -5,12 +5,13 @@ import { languages, getTranslations, isValidLanguage, type Language } from '../.
 import mainHero from '../../assets/main-hero.jpg';
 import iDo from '../../assets/i-do.jpg';
 import party from '../../assets/party.jpg';
+import ranchoEntrance from '../../assets/Rancho entrance.webp';
 import memory1 from '../../assets/memory-1.jpg';
-import memory2 from '../../assets/memory-2.jpg';
-import memory3 from '../../assets/memory-3.jpg';
+import playa from '../../assets/playa.jpg';
+import fuente from '../../assets/fuente.jpg';
 import memory4 from '../../assets/memory-4.jpg';
 import memory5 from '../../assets/memory-5.jpg';
-import memory6 from '../../assets/memory-6.jpg';
+import memory6 from '../../assets/primera.JPG';
 
 export function getStaticPaths() {
   return languages.map((lang) => ({
@@ -114,7 +115,7 @@ const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (
         </div>
         <div class="relative">
           <Image
-            src={iDo}
+            src={ranchoEntrance}
             alt="Ceremony venue"
             class="w-full h-80 md:h-80 object-cover rounded-lg shadow-lg"
             width={800}
@@ -184,39 +185,39 @@ const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (
       <h2 class="text-3xl md:text-4xl font-serif text-center mb-12 text-gray-800">{t.gallery.title}</h2>
       <div class="gallery-scroll flex overflow-x-auto snap-x snap-mandatory gap-4 md:grid md:grid-cols-3 md:overflow-visible">
         <Image
-          src={memory1}
+          src={playa}
           alt="Couple photo 1"
-          class="snap-center shrink-0 w-full h-80 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+          class="snap-center shrink-0 w-full h-80 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer transition-all duration-500"
           width={640}
         />
         <Image
-          src={memory2}
+          src={memory1}
           alt="Couple photo 2"
-          class="snap-center shrink-0 w-full h-80 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+          class="snap-center shrink-0 w-full h-80 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer transition-all duration-500"
           width={640}
         />
         <Image
-          src={memory3}
+          src={fuente}
           alt="Couple photo 3"
-          class="snap-center shrink-0 w-full h-80 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+          class="snap-center shrink-0 w-full h-80 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer transition-all duration-500"
           width={640}
         />
         <Image
           src={memory4}
           alt="Couple photo 4"
-          class="snap-center shrink-0 w-full h-80 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+          class="snap-center shrink-0 w-full h-80 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer transition-all duration-500"
           width={640}
         />
         <Image
           src={memory5}
           alt="Couple photo 5"
-          class="snap-center shrink-0 w-full h-80 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+          class="snap-center shrink-0 w-full h-80 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer transition-all duration-500"
           width={640}
         />
         <Image
           src={memory6}
           alt="Couple photo 6"
-          class="snap-center shrink-0 w-full h-80 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+          class="snap-center shrink-0 w-full h-80 md:h-64 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer transition-all duration-500"
           width={640}
         />
       </div>
