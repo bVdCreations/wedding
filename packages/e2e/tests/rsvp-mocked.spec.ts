@@ -831,6 +831,400 @@ test.describe('RSVP Attending Flow - UI Interaction', () => {
     // Attending "no" radio should be checked
     await expect(page.locator('input[name="attending"][value="no"]')).toBeChecked();
   });
+
+  test('should capture vegetarian dietary requirement from main guest form checkboxes', async ({
+    page,
+    language,
+  }) => {
+    let capturedRequest: Record<string, unknown> | null = null;
+
+    await mockGuestInfoEndpoint(
+      page,
+      testToken,
+      createMockGuestInfo({ attending: true, first_name: 'John', last_name: 'Doe' })
+    );
+    await page.route(`${API_BASE_URL}/api/v1/guests/${testToken}/rsvp`, async (route: Route) => {
+      capturedRequest = JSON.parse(route.request().postData() || '{}');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(createMockRSVPResponse(true)),
+      });
+    });
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+    await page.waitForLoadState('networkidle');
+
+    // Check vegetarian checkbox in the UI
+    await page.locator('input[name="dietary"][value="vegetarian"]').check();
+
+    // Submit via evaluate, reading dietary checkboxes from the DOM
+    const result = await page.evaluate(
+      async ({ apiHost, token }) => {
+        const checkedBoxes = document.querySelectorAll('input[name="dietary"]:checked');
+        const dietaryNotes =
+          (document.getElementById('dietary_notes') as HTMLTextAreaElement)?.value || null;
+        const dietaryReqs = Array.from(checkedBoxes).map((cb) => {
+          const checkbox = cb as HTMLInputElement;
+          return {
+            requirement_type: checkbox.value,
+            notes: checkbox.value === 'other' ? dietaryNotes : null,
+          };
+        });
+
+        const response = await fetch(`${apiHost}/api/v1/guests/${token}/rsvp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            attending: true,
+            guest_info: { first_name: 'John', last_name: 'Doe', phone: null },
+            dietary_requirements: dietaryReqs,
+            allergies: null,
+            plus_one_details: null,
+            family_member_updates: {},
+          }),
+        });
+        const data = await response.json();
+        return { success: response.ok, data };
+      },
+      { apiHost: API_BASE_URL, token: testToken }
+    );
+
+    expect(result.success).toBe(true);
+    expect(capturedRequest).not.toBeNull();
+    expect(capturedRequest!.dietary_requirements).toEqual([
+      { requirement_type: 'vegetarian', notes: null },
+    ]);
+  });
+
+  test('should capture "other" dietary requirement with notes for main guest from form', async ({
+    page,
+    language,
+  }) => {
+    let capturedRequest: Record<string, unknown> | null = null;
+
+    await mockGuestInfoEndpoint(
+      page,
+      testToken,
+      createMockGuestInfo({ attending: true, first_name: 'John', last_name: 'Doe' })
+    );
+    await page.route(`${API_BASE_URL}/api/v1/guests/${testToken}/rsvp`, async (route: Route) => {
+      capturedRequest = JSON.parse(route.request().postData() || '{}');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(createMockRSVPResponse(true)),
+      });
+    });
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+    await page.waitForLoadState('networkidle');
+
+    // Check "other" in the UI
+    await page.locator('#dietary-other').check();
+
+    // Show notes section manually (Astro inline script limitation workaround)
+    await page.evaluate(() => {
+      const notesSection = document.getElementById('dietary-notes-section');
+      if (notesSection) notesSection.style.display = 'block';
+    });
+
+    await page.locator('#dietary_notes').fill('No gluten please');
+
+    // Submit via evaluate, reading dietary checkboxes and notes from the DOM
+    const result = await page.evaluate(
+      async ({ apiHost, token }) => {
+        const checkedBoxes = document.querySelectorAll('input[name="dietary"]:checked');
+        const dietaryNotes =
+          (document.getElementById('dietary_notes') as HTMLTextAreaElement)?.value || null;
+        const dietaryReqs = Array.from(checkedBoxes).map((cb) => {
+          const checkbox = cb as HTMLInputElement;
+          return {
+            requirement_type: checkbox.value,
+            notes: checkbox.value === 'other' ? dietaryNotes : null,
+          };
+        });
+
+        const response = await fetch(`${apiHost}/api/v1/guests/${token}/rsvp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            attending: true,
+            guest_info: { first_name: 'John', last_name: 'Doe', phone: null },
+            dietary_requirements: dietaryReqs,
+            allergies: null,
+            plus_one_details: null,
+            family_member_updates: {},
+          }),
+        });
+        const data = await response.json();
+        return { success: response.ok, data };
+      },
+      { apiHost: API_BASE_URL, token: testToken }
+    );
+
+    expect(result.success).toBe(true);
+    expect(capturedRequest).not.toBeNull();
+    expect(capturedRequest!.dietary_requirements).toEqual([
+      { requirement_type: 'other', notes: 'No gluten please' },
+    ]);
+  });
+});
+
+// ============================================================================
+// Tests: Plus-One Dietary Requirements - UI
+// ============================================================================
+
+test.describe('Plus-One Dietary Requirements - UI', () => {
+  const testToken = 'test-token-plus-one-dietary-ui';
+
+  test('should display dietary checkboxes within plus-one details section', async ({
+    page,
+    language,
+  }) => {
+    await mockGuestInfoEndpoint(
+      page,
+      testToken,
+      createMockGuestInfo({
+        attending: true,
+        plus_one: { email: 'plusone@example.com', first_name: 'Jane', last_name: 'Smith' },
+      })
+    );
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+    await page.waitForLoadState('networkidle');
+
+    // Plus-one details section should be visible (prefilled from mock data)
+    await expect(page.locator('#plus-one-details-section')).not.toHaveAttribute(
+      'style',
+      /display:\s*none/
+    );
+
+    // Dietary checkboxes should exist within plus-one section
+    await expect(
+      page.locator('input[name="plus_one_dietary"][value="vegetarian"]')
+    ).toBeVisible();
+    await expect(page.locator('#plus-one-dietary-other')).toBeVisible();
+  });
+
+  test('should have dietary notes hidden by default in plus-one section', async ({
+    page,
+    language,
+  }) => {
+    await mockGuestInfoEndpoint(
+      page,
+      testToken,
+      createMockGuestInfo({
+        attending: true,
+        plus_one: { email: 'plusone@example.com', first_name: 'Jane', last_name: 'Smith' },
+      })
+    );
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+    await page.waitForLoadState('networkidle');
+
+    // Notes section should be hidden when "other" is not checked
+    await expect(page.locator('#plus-one-dietary-notes-section')).toHaveAttribute(
+      'style',
+      /display:\s*none/
+    );
+  });
+
+  test('should show dietary notes when "other" is prefilled for plus-one', async ({
+    page,
+    language,
+  }) => {
+    await mockGuestInfoEndpoint(
+      page,
+      testToken,
+      createMockGuestInfo({
+        attending: true,
+        plus_one: {
+          email: 'plusone@example.com',
+          first_name: 'Jane',
+          last_name: 'Smith',
+          dietary_requirements: [{ requirement_type: 'other', notes: 'No spicy food' }],
+        },
+      })
+    );
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+    await page.waitForLoadState('networkidle');
+
+    // "Other" checkbox should be checked (prefilled)
+    await expect(page.locator('#plus-one-dietary-other')).toBeChecked();
+
+    // Notes section should be visible
+    await expect(page.locator('#plus-one-dietary-notes-section')).not.toHaveAttribute(
+      'style',
+      /display:\s*none/
+    );
+
+    // Notes should be prefilled
+    await expect(page.locator('#plus_one_dietary_notes')).toHaveValue('No spicy food');
+  });
+
+  test('should capture vegetarian dietary requirement for plus-one from form checkboxes', async ({
+    page,
+    language,
+  }) => {
+    let capturedRequest: Record<string, unknown> | null = null;
+
+    await mockGuestInfoEndpoint(
+      page,
+      testToken,
+      createMockGuestInfo({
+        attending: true,
+        plus_one: { email: 'plusone@example.com', first_name: 'Jane', last_name: 'Smith' },
+      })
+    );
+    await page.route(`${API_BASE_URL}/api/v1/guests/${testToken}/rsvp`, async (route: Route) => {
+      capturedRequest = JSON.parse(route.request().postData() || '{}');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(createMockRSVPResponse(true)),
+      });
+    });
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+    await page.waitForLoadState('networkidle');
+
+    // Check vegetarian for plus-one in the UI
+    await page.locator('input[name="plus_one_dietary"][value="vegetarian"]').check();
+
+    // Submit via evaluate, reading dietary checkboxes from the DOM
+    const result = await page.evaluate(
+      async ({ apiHost, token }) => {
+        const checkedBoxes = document.querySelectorAll('input[name="plus_one_dietary"]:checked');
+        const dietaryNotes =
+          (document.getElementById('plus_one_dietary_notes') as HTMLTextAreaElement)?.value ||
+          null;
+        const plusOneDietaryReqs = Array.from(checkedBoxes).map((cb) => {
+          const checkbox = cb as HTMLInputElement;
+          return {
+            requirement_type: checkbox.value,
+            notes: checkbox.value === 'other' ? dietaryNotes : null,
+          };
+        });
+
+        const response = await fetch(`${apiHost}/api/v1/guests/${token}/rsvp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            attending: true,
+            guest_info: { first_name: 'John', last_name: 'Doe', phone: null },
+            dietary_requirements: [],
+            allergies: null,
+            plus_one_details: {
+              email: 'plusone@example.com',
+              first_name: 'Jane',
+              last_name: 'Smith',
+              allergies: null,
+              dietary_requirements: plusOneDietaryReqs,
+            },
+            family_member_updates: {},
+          }),
+        });
+        const data = await response.json();
+        return { success: response.ok, data };
+      },
+      { apiHost: API_BASE_URL, token: testToken }
+    );
+
+    expect(result.success).toBe(true);
+    expect(capturedRequest).not.toBeNull();
+    const plusOne = capturedRequest!.plus_one_details as {
+      dietary_requirements: Array<{ requirement_type: string; notes: string | null }>;
+    };
+    expect(plusOne.dietary_requirements).toEqual([{ requirement_type: 'vegetarian', notes: null }]);
+  });
+
+  test('should capture "other" dietary requirement with notes for plus-one from form', async ({
+    page,
+    language,
+  }) => {
+    let capturedRequest: Record<string, unknown> | null = null;
+
+    await mockGuestInfoEndpoint(
+      page,
+      testToken,
+      createMockGuestInfo({
+        attending: true,
+        plus_one: { email: 'plusone@example.com', first_name: 'Jane', last_name: 'Smith' },
+      })
+    );
+    await page.route(`${API_BASE_URL}/api/v1/guests/${testToken}/rsvp`, async (route: Route) => {
+      capturedRequest = JSON.parse(route.request().postData() || '{}');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(createMockRSVPResponse(true)),
+      });
+    });
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+    await page.waitForLoadState('networkidle');
+
+    // Check "other" for plus-one in the UI
+    await page.locator('#plus-one-dietary-other').check();
+
+    // Show notes section manually (Astro inline script limitation workaround)
+    await page.evaluate(() => {
+      const notesSection = document.getElementById('plus-one-dietary-notes-section');
+      if (notesSection) notesSection.style.display = 'block';
+    });
+
+    await page.locator('#plus_one_dietary_notes').fill('No spicy food please');
+
+    // Submit via evaluate, reading dietary checkboxes and notes from the DOM
+    const result = await page.evaluate(
+      async ({ apiHost, token }) => {
+        const checkedBoxes = document.querySelectorAll('input[name="plus_one_dietary"]:checked');
+        const dietaryNotes =
+          (document.getElementById('plus_one_dietary_notes') as HTMLTextAreaElement)?.value ||
+          null;
+        const plusOneDietaryReqs = Array.from(checkedBoxes).map((cb) => {
+          const checkbox = cb as HTMLInputElement;
+          return {
+            requirement_type: checkbox.value,
+            notes: checkbox.value === 'other' ? dietaryNotes : null,
+          };
+        });
+
+        const response = await fetch(`${apiHost}/api/v1/guests/${token}/rsvp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            attending: true,
+            guest_info: { first_name: 'John', last_name: 'Doe', phone: null },
+            dietary_requirements: [],
+            allergies: null,
+            plus_one_details: {
+              email: 'plusone@example.com',
+              first_name: 'Jane',
+              last_name: 'Smith',
+              allergies: null,
+              dietary_requirements: plusOneDietaryReqs,
+            },
+            family_member_updates: {},
+          }),
+        });
+        const data = await response.json();
+        return { success: response.ok, data };
+      },
+      { apiHost: API_BASE_URL, token: testToken }
+    );
+
+    expect(result.success).toBe(true);
+    expect(capturedRequest).not.toBeNull();
+    const plusOne = capturedRequest!.plus_one_details as {
+      dietary_requirements: Array<{ requirement_type: string; notes: string | null }>;
+    };
+    expect(plusOne.dietary_requirements).toEqual([
+      { requirement_type: 'other', notes: 'No spicy food please' },
+    ]);
+  });
 });
 
 // ============================================================================

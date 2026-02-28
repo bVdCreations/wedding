@@ -92,6 +92,29 @@ const t = getTranslations(lang as Language);
                   <textarea id="plus_one_allergies" name="plus_one_allergies" placeholder={t.rsvpPage.allergiesPlaceholder}
                     rows="3" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors"></textarea>
                 </div>
+                <div class="form-group mt-4">
+                  <p class="block font-medium text-sm mb-2">{t.rsvpPage.dietary}</p>
+                  <p class="text-xs text-gray-500 mb-3">{t.rsvpPage.dietarySubtext}</p>
+                  <div class="flex flex-col gap-2">
+                    <label class="checkbox-label cursor-pointer flex items-center gap-3 p-3 rounded-lg hover:bg-white transition-colors">
+                      <input type="checkbox" name="plus_one_dietary" value="vegetarian" class="w-5 h-5 accent-[#c9a66b]" />
+                      <span class="text-gray-700">{t.rsvpPage.vegetarian}</span>
+                    </label>
+                    <label class="checkbox-label cursor-pointer flex items-center gap-3 p-3 rounded-lg hover:bg-white transition-colors">
+                      <input type="checkbox" name="plus_one_dietary" value="other" id="plus-one-dietary-other" class="w-5 h-5 accent-[#c9a66b]" />
+                      <span class="text-gray-700">{t.rsvpPage.other}</span>
+                    </label>
+                    <div id="plus-one-dietary-notes-section" style="display: none;" class="mt-2 ml-8">
+                      <textarea
+                        id="plus_one_dietary_notes"
+                        name="plus_one_dietary_notes"
+                        placeholder={t.rsvpPage.dietaryNotesPlaceholder}
+                        rows="3"
+                        class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors"
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             <div id="plus-one-not-allowed" style="display: none;">
@@ -231,6 +254,21 @@ const t = getTranslations(lang as Language);
       plusOneDetailsSection.style.display = 'block';
       const emailInput = document.getElementById('plus_one_email');
       if (emailInput) emailInput.value = data.plus_one.email;
+
+      if (data.plus_one.dietary_requirements) {
+        data.plus_one.dietary_requirements.forEach(req => {
+          const checkbox = document.querySelector(`input[name="plus_one_dietary"][value="${req.requirement_type}"]`);
+          if (checkbox) checkbox.checked = true;
+          if (req.requirement_type === 'other') {
+            const notesSection = document.getElementById('plus-one-dietary-notes-section');
+            if (notesSection) notesSection.style.display = 'block';
+            if (req.notes) {
+              const notesInput = document.getElementById('plus_one_dietary_notes');
+              if (notesInput) notesInput.value = req.notes;
+            }
+          }
+        });
+      }
     }
 
     if (data.family_id && data.family_members && data.family_members.length > 0) {
@@ -345,6 +383,15 @@ const t = getTranslations(lang as Language);
     dietaryNotesSection.style.display = checked ? 'block' : 'none';
   });
 
+  // Show/hide plus-one dietary notes when "Other" is checked
+  const plusOneDietaryOtherCheckbox = document.getElementById('plus-one-dietary-other');
+  const plusOneDietaryNotesSection = document.getElementById('plus-one-dietary-notes-section');
+
+  plusOneDietaryOtherCheckbox.addEventListener('change', (e) => {
+    const checked = e.target.checked;
+    plusOneDietaryNotesSection.style.display = checked ? 'block' : 'none';
+  });
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const attending = document.querySelector('input[name="attending"]:checked');
@@ -360,8 +407,14 @@ const t = getTranslations(lang as Language);
       const poFirstName = document.getElementById('plus_one_first_name')?.value;
       const poLastName = document.getElementById('plus_one_last_name')?.value;
       const poAllergies = document.getElementById('plus_one_allergies')?.value || null;
+      const poDietaryCheckboxes = document.querySelectorAll('input[name="plus_one_dietary"]:checked');
+      const poDietaryNotes = document.getElementById('plus_one_dietary_notes')?.value || null;
+      const poDietaryRequirements = Array.from(poDietaryCheckboxes).map(cb => ({
+        requirement_type: cb.value,
+        notes: cb.value === 'other' ? poDietaryNotes : null,
+      }));
       if (email && poFirstName && poLastName) {
-        plusOneDetails = {email: email, first_name: poFirstName, last_name: poLastName, allergies: poAllergies};
+        plusOneDetails = {email: email, first_name: poFirstName, last_name: poLastName, allergies: poAllergies, dietary_requirements: poDietaryRequirements};
       }
     }
 
