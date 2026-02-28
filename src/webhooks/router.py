@@ -166,9 +166,12 @@ async def resend_receiving_webhook(
     - verifier: validates webhook signature
     - forwarder: handles email forwarding
     """
+    logger.info("Received webhook request")
+
     # Get raw body for signature verification
     body = await request.body()
     payload_str = body.decode("utf-8")
+    logger.info(f"Webhook payload size: {len(payload_str)} bytes")
 
     # Extract Svix headers
     headers: dict[str, str] = {}
@@ -179,10 +182,16 @@ async def resend_receiving_webhook(
     if svix_signature := request.headers.get("svix-signature"):
         headers["svix-signature"] = svix_signature
 
+    logger.info(
+        f"Svix headers present: id={bool(svix_id)}, timestamp={bool(svix_timestamp)}, signature={bool(svix_signature)}"
+    )
+
     # Verify signature (injected dependency)
     try:
         verifier(payload_str, headers)
+        logger.info("Webhook signature verified successfully")
     except HTTPException:
+        logger.error("Webhook signature verification failed (HTTPException)")
         raise
     except Exception as e:
         logger.error(f"Webhook verification error: {e}")
@@ -191,9 +200,19 @@ async def resend_receiving_webhook(
     # Parse payload
     payload = json.loads(payload_str)
     event_type = payload.get("type")
+    logger.info(f"Webhook event type: {event_type}")
+    logger.info(f"Webhook payload: {payload}")
 
     if event_type == "email.received":
-        email_id = payload.get("data", {}).get("email_id")
+        email_data = payload.get("data", {})
+        email_id = email_data.get("email_id")
+        from_email = email_data.get("from")
+        to_email = email_data.get("to")
+        subject = email_data.get("subject")
+
+        logger.info(
+            f"Email received - ID: {email_id}, From: {from_email}, To: {to_email}, Subject: {subject}"
+        )
 
         if not email_id:
             logger.warning("Received webhook without email_id")
@@ -201,13 +220,16 @@ async def resend_receiving_webhook(
 
         # Forward using injected dependency
         try:
+            logger.info(f"Starting email forward for {email_id}")
             result = await forwarder(email_id)
-            logger.info(f"Forwarded email {email_id}: {result}")
+            logger.info(f"Successfully forwarded email {email_id}: {result}")
         except Exception as e:
-            logger.error(f"Failed to forward email {email_id}: {e}")
+            logger.error(f"Failed to forward email {email_id}: {e}", exc_info=True)
             raise HTTPException(status_code=500, detail="Forward failed")
     else:
         # Log all other events for monitoring
-        logger.info(f"Received non-email.received event: {event_type} - {payload.get('data', {})}")
+        logger.info(f"Received non-email.received event: {event_type}")
+        logger.info(f"Event data: {payload.get('data', {})}")
 
+    logger.info("Webhook processing completed successfully")
     return {"status": "received"}
