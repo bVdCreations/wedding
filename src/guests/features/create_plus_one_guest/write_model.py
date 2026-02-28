@@ -113,7 +113,7 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
                         plus_one_of_id=existing_guest.plus_one_of_id,
                         email=str(plus_one_data.email),
                         rsvp=RSVPDTO(
-                            status=rsvp_info.status if rsvp_info else GuestStatus.PENDING,
+                            status=GuestStatus(rsvp_info.status) if rsvp_info else GuestStatus.PENDING,
                             token=rsvp_info.rsvp_token if rsvp_info else "",
                             link=rsvp_info.rsvp_link if rsvp_info else "",
                         ),
@@ -191,7 +191,7 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
                 plus_one_of_id=original_guest_id,
                 email=str(plus_one_data.email),
                 rsvp=RSVPDTO(
-                    status=rsvp_info.status,
+                    status=GuestStatus(rsvp_info.status),
                     token=rsvp_token,
                     link=rsvp_info.rsvp_link,
                 ),

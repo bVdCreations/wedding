@@ -36,7 +36,7 @@ class DietaryOption(Base, TimeStamp):
     notes: Mapped[str] = mapped_column(Text, nullable=True)
 
     def __repr__(self) -> str:
-        return f"<DietaryOption {self.requirement_type.value} for guest {self.guest_id}>"
+        return f"<DietaryOption {self.requirement_type} for guest {self.guest_id}>"
 
 
 class Guest(Base, TimeStamp):

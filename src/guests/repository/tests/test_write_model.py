@@ -6,7 +6,7 @@ from sqlalchemy import select
 from src.config.database import async_session_manager
 from src.email_service.base import EmailServiceBase
 from src.guests.dtos import DietaryType, GuestStatus, Language, RSVPResponseDTO
-from src.guests.features.update_rsvp.router import RSVPResponseSubmit
+from src.guests.features.update_rsvp.router import DietaryRequirement, RSVPResponseSubmit
 from src.guests.repository.orm_models import DietaryOption, Guest, RSVPInfo
 from src.guests.repository.write_models import SqlRSVPWriteModel
 from src.models.user import User
@@ -207,8 +207,8 @@ async def test_submit_rsvp_with_dietary_requirements():
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
                 dietary_requirements=[
-                    {"requirement_type": "vegetarian", "notes": "No mushrooms please"},
-                    {"requirement_type": "gluten_free", "notes": None},
+                    DietaryRequirement(requirement_type=DietaryType.VEGETARIAN, notes="No mushrooms please"),
+                    DietaryRequirement(requirement_type=DietaryType.GLUTEN_FREE, notes=None),
                 ],
                 family_member_updates={},
             )
@@ -310,7 +310,7 @@ async def test_submit_rsvp_clears_previous_dietary():
 
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
-                dietary_requirements=[{"requirement_type": "vegan", "notes": "New preference"}],
+                dietary_requirements=[DietaryRequirement(requirement_type=DietaryType.VEGAN, notes="New preference")],
                 family_member_updates={},
             )
 
@@ -368,6 +368,7 @@ async def test_submit_rsvp_declined_clears_plus_one():
 
             # Set initial bring_a_plus_one_id (simulating a guest who previously had a plus-one)
             guest = await session.get(Guest, guest_uuid)
+            assert guest is not None
             # Create a dummy plus-one guest to reference
             plus_one_guest = Guest(
                 user_id=guest.user_id,

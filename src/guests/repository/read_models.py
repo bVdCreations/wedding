@@ -3,7 +3,13 @@ import abc
 from sqlalchemy import select
 
 from src.config.database import async_session_manager
-from src.guests.dtos import FamilyMemberDTO, GuestStatus, RSVPInfoDTO
+from src.guests.dtos import (
+    DietaryRequirementDTO,
+    DietaryType,
+    FamilyMemberDTO,
+    GuestStatus,
+    RSVPInfoDTO,
+)
 from src.guests.repository.orm_models import DietaryOption, Guest, RSVPInfo
 from src.models.user import User
 
@@ -52,11 +58,11 @@ class SqlRSVPReadModel(RSVPReadModel):
             dietary_result = await session.execute(dietary_stmt)
             dietary_options = dietary_result.scalars().all()
 
-            dietary_requirements = [
-                {
-                    "requirement_type": option.requirement_type.value,
-                    "notes": option.notes,
-                }
+            dietary_requirements: list[DietaryRequirementDTO] = [
+                DietaryRequirementDTO(
+                    requirement_type=DietaryType(option.requirement_type),
+                    notes=option.notes,
+                )
                 for option in dietary_options
             ]
 
@@ -90,7 +96,7 @@ class SqlRSVPReadModel(RSVPReadModel):
                     family_rsvp_result = await session.execute(family_rsvp_stmt)
                     family_rsvp_info = family_rsvp_result.scalar_one_or_none()
 
-                    family_rsvp_status = family_rsvp_info.status if family_rsvp_info else None
+                    family_rsvp_status = GuestStatus(family_rsvp_info.status) if family_rsvp_info else None
 
                     # Get dietary requirements for family member
                     family_dietary_stmt = select(DietaryOption).where(
@@ -99,11 +105,11 @@ class SqlRSVPReadModel(RSVPReadModel):
                     family_dietary_result = await session.execute(family_dietary_stmt)
                     family_dietary_options = family_dietary_result.scalars().all()
 
-                    family_dietary_requirements = [
-                        {
-                            "requirement_type": option.requirement_type.value,
-                            "notes": option.notes,
-                        }
+                    family_dietary_requirements: list[DietaryRequirementDTO] = [
+                        DietaryRequirementDTO(
+                            requirement_type=DietaryType(option.requirement_type),
+                            notes=option.notes,
+                        )
                         for option in family_dietary_options
                     ]
 
@@ -139,7 +145,7 @@ class SqlRSVPReadModel(RSVPReadModel):
                 first_name=guest.first_name,
                 last_name=guest.last_name,
                 phone=guest.phone,
-                status=rsvp_info.status,
+                status=GuestStatus(rsvp_info.status),
                 plus_one_of_id=guest.plus_one_of_id,
                 family_id=family_id,
                 family_members=family_members,

@@ -2,7 +2,14 @@ from uuid import uuid4
 
 import pytest
 
-from src.guests.dtos import RSVPDTO, GuestDTO, GuestStatus, RSVPInfoDTO
+from src.guests.dtos import (
+    RSVPDTO,
+    DietaryRequirementDTO,
+    DietaryType,
+    GuestDTO,
+    GuestStatus,
+    RSVPInfoDTO,
+)
 from src.guests.features.get_guest_info.router import get_rsvp_read_model
 from src.guests.repository.read_models import RSVPReadModel
 from src.guests.urls import GET_GUEST_INFO_URL
@@ -11,7 +18,7 @@ from src.guests.urls import GET_GUEST_INFO_URL
 class InMemoryRSVPReadModel(RSVPReadModel):
     """In-memory read model for testing."""
 
-    def __init__(self, guests: list[GuestDTO] = None):
+    def __init__(self, guests: list[GuestDTO] | None = None):
         self._guests: dict[str, GuestDTO] = {}
         if guests:
             for guest in guests:
@@ -54,10 +61,10 @@ class InMemoryRSVPReadModelWithDietary(RSVPReadModel):
 
     def __init__(
         self,
-        guests: list[GuestDTO] = None,
-        plus_one_email: str = None,
-        plus_one_first_name: str = None,
-        plus_one_last_name: str = None,
+        guests: list[GuestDTO] | None = None,
+        plus_one_email: str | None = None,
+        plus_one_first_name: str | None = None,
+        plus_one_last_name: str | None = None,
     ):
         self._guests: dict[str, GuestDTO] = {}
         self._plus_one_email = plus_one_email
@@ -96,8 +103,8 @@ class InMemoryRSVPReadModelWithDietary(RSVPReadModel):
             plus_one_last_name=self._plus_one_last_name,
             attending=attending,
             dietary_requirements=[
-                {"requirement_type": "vegetarian", "notes": None},
-                {"requirement_type": "gluten_free", "notes": "Minor allergy"},
+                DietaryRequirementDTO(requirement_type=DietaryType.VEGETARIAN, notes=None),
+                DietaryRequirementDTO(requirement_type=DietaryType.GLUTEN_FREE, notes="Minor allergy"),
             ],
         )
 

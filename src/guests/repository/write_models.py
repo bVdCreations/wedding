@@ -42,7 +42,7 @@ class RSVPWriteModel(ABC):
         raise NotImplementedError
 
 
-class SqlRSVPWriteModel:
+class SqlRSVPWriteModel(RSVPWriteModel):
     """Write operations for RSVP. Returns DTOs, never ORM models."""
 
     def __init__(
@@ -290,5 +290,5 @@ class SqlRSVPWriteModel:
             return RSVPResponseDTO(
                 message=message,
                 attending=attending,
-                status=rsvp_info.status,
+                status=GuestStatus(rsvp_info.status),
             )
