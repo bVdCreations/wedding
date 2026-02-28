@@ -43,18 +43,6 @@ importers:
         specifier: ^5.3.3
         version: 5.9.3
 
-  packages/e2e-tests:
-    devDependencies:
-      '@playwright/test':
-        specifier: 1.52.0
-        version: 1.52.0
-      '@types/node':
-        specifier: ^20.11.0
-        version: 20.19.33
-      typescript:
-        specifier: ^5.3.3
-        version: 5.9.3
-
 packages:
 
   '@alloc/quick-lru@5.2.0':
