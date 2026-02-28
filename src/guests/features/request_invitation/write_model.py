@@ -129,7 +129,7 @@ class SqlRequestInvitationWriteModel(RequestInvitationWriteModel):
                 status="pending",
                 active=True,
                 rsvp_token=rsvp_token,
-                rsvp_link=f"{settings.frontend_url}/en/rsvp/?token={rsvp_token}",
+                rsvp_link=f"{settings.frontend_url}/{preferred_language.value}/rsvp/?token={rsvp_token}",
                 notes=None,
                 email_sent_on=None,
             )
