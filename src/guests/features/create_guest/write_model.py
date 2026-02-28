@@ -150,7 +150,7 @@ class SqlGuestCreateWriteModel(GuestCreateWriteModel):
             phone=phone,
             email=email,
             rsvp=RSVPDTO(
-                status=rsvp_info.status,
+                status=GuestStatus(rsvp_info.status),
                 token=rsvp_token,
                 link=rsvp_info.rsvp_link,
             ),

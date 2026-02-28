@@ -10,8 +10,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.config.database import async_session_manager
 from src.email_service.base import EmailServiceBase
 from src.guests.dtos import (
+    DietaryRequirementDTO,
     GuestStatus,
     Language,
+    PlusOneDTO,
     RSVPResponseDTO,
 )
 from src.guests.repository.orm_models import DietaryOption, DietaryType, Guest, RSVPInfo
@@ -133,8 +135,8 @@ class SqlRSVPWriteModel:
             for req in update_data.dietary_requirements:
                 dietary = DietaryOption(
                     guest_id=family_member_uuid,
-                    requirement_type=DietaryType(req["requirement_type"]),
-                    notes=req.get("notes"),
+                    requirement_type=DietaryType(req.requirement_type),
+                    notes=req.notes,
                 )
                 session.add(dietary)
 
@@ -170,6 +172,7 @@ class SqlRSVPWriteModel:
             rsvp_info = rsvp_result.scalar_one_or_none()
 
             # Update RSVP status
+            assert rsvp_info is not None
             rsvp_info.status = GuestStatus.CONFIRMED if attending else GuestStatus.DECLINED
 
             # Clear bring_a_plus_one_id if not attending
@@ -212,12 +215,25 @@ class SqlRSVPWriteModel:
 
             # Create plus-one guest if details provided
             if attending and plus_one_details and self._plus_one_guest_write_model:
+                plus_one_dto = PlusOneDTO(
+                    email=plus_one_details.email,
+                    first_name=plus_one_details.first_name,
+                    last_name=plus_one_details.last_name,
+                    allergies=plus_one_details.allergies,
+                    dietary_requirements=[
+                        DietaryRequirementDTO(
+                            requirement_type=req.requirement_type,
+                            notes=req.notes,
+                        )
+                        for req in plus_one_details.dietary_requirements
+                    ],
+                )
                 (
                     _,
                     plus_one_guest_uuid,
                 ) = await self._plus_one_guest_write_model.create_plus_one_guest(
                     original_guest_id=guest.uuid,
-                    plus_one_data=plus_one_details,
+                    plus_one_data=plus_one_dto,
                 )
                 # Set bring_a_plus_one_id to the plus-one guest's UUID
                 guest.bring_a_plus_one_id = plus_one_guest_uuid

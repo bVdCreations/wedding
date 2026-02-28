@@ -74,7 +74,7 @@ class Guest(Base, TimeStamp):
         nullable=True,
     )
     # bring_a_plus_one_id: Points to the plus-one guest that this guest is bringing
-    bring_a_plus_one_id: Mapped[UUID] = mapped_column(
+    bring_a_plus_one_id: Mapped[UUID | None] = mapped_column(
         ForeignKey(f"{TableNames.GUESTS.value}.uuid", ondelete="SET NULL"),
         nullable=True,
     )

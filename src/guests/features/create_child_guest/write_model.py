@@ -99,7 +99,7 @@ class SqlChildGuestCreateWriteModel(ChildGuestCreateWriteModel):
             phone=phone,
             email="",  # Children don't have email
             rsvp=RSVPDTO(
-                status=rsvp_info.status,
+                status=GuestStatus(rsvp_info.status),
                 token=rsvp_info.rsvp_token,
                 link=rsvp_info.rsvp_link,
             ),
