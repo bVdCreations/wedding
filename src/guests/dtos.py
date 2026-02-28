@@ -28,6 +28,14 @@ class DietaryType(str, Enum):
     OTHER = "other"
 
 
+@dataclass(frozen=True)
+class DietaryRequirementDTO:
+    """DTO for dietary requirement with type and optional notes."""
+
+    requirement_type: DietaryType
+    notes: str | None = None
+
+
 class GuestStatus(str, Enum):
     PENDING = "pending"
     CONFIRMED = "confirmed"
@@ -52,6 +60,10 @@ class PlusOneDTO:
     email: EmailStr
     first_name: str
     last_name: str
+    # Dietary requirements for the plus-one guest
+    dietary_requirements: list[DietaryRequirementDTO] = field(default_factory=list)
+    # Allergies (free-text field)
+    allergies: str | None = None
 
 
 @dataclass(frozen=True)
@@ -63,7 +75,7 @@ class FamilyMemberDTO:
     last_name: str
     guest_type: str = "adult"  # "adult" or "child"
     attending: bool | None = None
-    dietary_requirements: list[dict] = field(default_factory=list)
+    dietary_requirements: list[DietaryRequirementDTO] = field(default_factory=list)
     phone: str | None = None
     allergies: str | None = None
 
@@ -72,7 +84,7 @@ class FamilyMemberDTO:
         cls,
         guest: "Guest",
         rsvp_status: GuestStatus | None = None,
-        dietary_requirements: list[dict] | None = None,
+        dietary_requirements: list[DietaryRequirementDTO] | None = None,
     ) -> "FamilyMemberDTO":
         """Create FamilyMemberDTO from Guest ORM model."""
         attending = None
@@ -114,7 +126,7 @@ class RSVPInfoDTO:
     plus_one_last_name: str | None = None
     # Prefill fields
     attending: bool | None = None
-    dietary_requirements: list[dict] = field(default_factory=list)
+    dietary_requirements: list[DietaryRequirementDTO] = field(default_factory=list)
     allergies: str | None = None
 
 

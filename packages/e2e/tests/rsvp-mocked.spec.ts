@@ -136,6 +136,7 @@ async function submitRSVPForm(
       first_name: string;
       last_name: string;
       allergies?: string;
+      dietary_requirements?: Array<{ requirement_type: string; notes: string | null }>;
     };
   }
 ): Promise<{ success: boolean; data: Record<string, unknown> }> {
@@ -145,6 +146,15 @@ async function submitRSVPForm(
         requirement_type: req,
         notes: req === 'other' ? data.dietaryNotes || null : null,
       }));
+
+      // Build plusOneDetails with optional dietary_requirements
+      let plusOneDetailsWithDietary = null;
+      if (data.plusOneDetails) {
+        plusOneDetailsWithDietary = {
+          ...data.plusOneDetails,
+          dietary_requirements: data.plusOneDetails.dietary_requirements || [],
+        };
+      }
 
       const response = await fetch(`${apiHost}/api/v1/guests/${token}/rsvp`, {
         method: 'POST',
@@ -158,7 +168,7 @@ async function submitRSVPForm(
           },
           dietary_requirements: dietaryReqs,
           allergies: data.allergies || null,
-          plus_one_details: data.plusOneDetails || null,
+          plus_one_details: plusOneDetailsWithDietary,
           family_member_updates: {},
         }),
       });
@@ -317,8 +327,137 @@ test.describe('RSVP Submission - Attending', () => {
       first_name: 'Jane',
       last_name: 'Smith',
       allergies: 'Peanuts',
+      dietary_requirements: [],
     });
   });
+
+  test('should submit plus-one with dietary requirements in plus_one_details', async ({ page, language }) => {
+    let capturedRequest: Record<string, unknown> | null = null;
+
+    await mockGuestInfoEndpoint(page, testToken);
+    await page.route(`${API_BASE_URL}/api/v1/guests/${testToken}/rsvp`, async (route: Route) => {
+      capturedRequest = JSON.parse(route.request().postData() || '{}');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(createMockRSVPResponse(true)),
+      });
+    });
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+
+    const result = await submitRSVPForm(page, testToken, {
+      attending: true,
+      firstName: 'John',
+      lastName: 'Doe',
+      plusOneDetails: {
+        email: 'plusone@example.com',
+        first_name: 'Jane',
+        last_name: 'Smith',
+        allergies: 'Peanuts',
+        dietary_requirements: [
+          { requirement_type: 'vegetarian', notes: null },
+          { requirement_type: 'other', notes: 'No spicy food' },
+        ],
+      },
+    });
+
+    expect(result.success).toBe(true);
+    expect(capturedRequest).not.toBeNull();
+    // Verify dietary requirements are in plus_one_details
+    const plusOneDetails1 = capturedRequest!.plus_one_details as { dietary_requirements: Array<{ requirement_type: string; notes: string | null }>; email: string; first_name: string; last_name: string; allergies: string };
+    expect(plusOneDetails1.dietary_requirements).toEqual([
+      { requirement_type: 'vegetarian', notes: null },
+      { requirement_type: 'other', notes: 'No spicy food' },
+    ]);
+    // Verify other plus_one_details fields
+    expect(plusOneDetails1.email).toBe('plusone@example.com');
+    expect(plusOneDetails1.first_name).toBe('Jane');
+    expect(plusOneDetails1.last_name).toBe('Smith');
+    expect(plusOneDetails1.allergies).toBe('Peanuts');
+  });
+
+  test('should submit plus-one with allergies only (no dietary requirements)', async ({ page, language }) => {
+    let capturedRequest: Record<string, unknown> | null = null;
+
+    await mockGuestInfoEndpoint(page, testToken);
+    await page.route(`${API_BASE_URL}/api/v1/guests/${testToken}/rsvp`, async (route: Route) => {
+      capturedRequest = JSON.parse(route.request().postData() || '{}');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(createMockRSVPResponse(true)),
+      });
+    });
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+
+    const result = await submitRSVPForm(page, testToken, {
+      attending: true,
+      firstName: 'John',
+      lastName: 'Doe',
+      plusOneDetails: {
+        email: 'plusone@example.com',
+        first_name: 'Jane',
+        last_name: 'Smith',
+        allergies: 'Shellfish',
+      },
+    });
+
+    expect(result.success).toBe(true);
+    expect(capturedRequest).not.toBeNull();
+    // Verify plus_one_details has empty dietary_requirements when not provided
+    const plusOneDetails2 = capturedRequest!.plus_one_details as { dietary_requirements: Array<{ requirement_type: string }>; allergies: string };
+    expect(plusOneDetails2.dietary_requirements).toEqual([]);
+    expect(plusOneDetails2.allergies).toBe('Shellfish');
+  });
+
+  test('should submit plus-one with multiple dietary requirements', async ({ page, language }) => {
+    let capturedRequest: Record<string, unknown> | null = null;
+
+    await mockGuestInfoEndpoint(page, testToken);
+    await page.route(`${API_BASE_URL}/api/v1/guests/${testToken}/rsvp`, async (route: Route) => {
+      capturedRequest = JSON.parse(route.request().postData() || '{}');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(createMockRSVPResponse(true)),
+      });
+    });
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+
+    const result = await submitRSVPForm(page, testToken, {
+      attending: true,
+      firstName: 'John',
+      lastName: 'Doe',
+      plusOneDetails: {
+        email: 'plusone@example.com',
+        first_name: 'Jane',
+        last_name: 'Smith',
+        allergies: 'Peanuts',
+        dietary_requirements: [
+          { requirement_type: 'vegetarian', notes: null },
+          { requirement_type: 'gluten_free', notes: null },
+        ],
+      },
+    });
+
+    expect(result.success).toBe(true);
+    expect(capturedRequest).not.toBeNull();
+    // Verify dietary requirements are in plus_one_details
+    const captured = capturedRequest as unknown as { plus_one_details: { dietary_requirements: Array<{ requirement_type: string }> } };
+    const plusOneDietary = captured.plus_one_details.dietary_requirements;
+    expect(plusOneDietary).toHaveLength(2);
+    expect(plusOneDietary).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ requirement_type: 'vegetarian' }),
+        expect.objectContaining({ requirement_type: 'gluten_free' }),
+      ])
+    );
+  });
+
+  // Tests for main guest dietary requirements (not plus-one)
 
   test('should submit with dietary notes for "other"', async ({ page, language }) => {
     let capturedRequest: Record<string, unknown> | null = null;

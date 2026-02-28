@@ -1,3 +1,5 @@
+from dataclasses import field
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 
@@ -12,7 +14,7 @@ from src.guests.urls import UPDATE_RSVP_URL
 router = APIRouter()
 
 
-class DietaryRequirementCreate(BaseModel):
+class DietaryRequirement(BaseModel):
     requirement_type: DietaryType
     notes: str | None = None
 
@@ -24,6 +26,7 @@ class PlusOneSubmit(BaseModel):
     first_name: str
     last_name: str
     allergies: str | None = None
+    dietary_requirements: list[DietaryRequirement] = field(default_factory=list)
 
 
 class GuestInfoSubmit(BaseModel):
@@ -39,7 +42,7 @@ class FamilyMemberSubmit(BaseModel):
     """Submit family member updates."""
 
     attending: bool
-    dietary_requirements: list[DietaryRequirementCreate] = []
+    dietary_requirements: list[DietaryRequirement] = field(default_factory=list)
     guest_info: GuestInfoSubmit | None = None
     allergies: str | None = None
 
@@ -47,7 +50,7 @@ class FamilyMemberSubmit(BaseModel):
 class RSVPResponseSubmit(BaseModel):
     attending: bool
     plus_one_details: PlusOneSubmit | None = None
-    dietary_requirements: list[DietaryRequirementCreate] = []
+    dietary_requirements: list[DietaryRequirement] = field(default_factory=list)
     guest_info: GuestInfoSubmit | None = None
     family_member_updates: dict[str, FamilyMemberSubmit] = {}
     allergies: str | None = None

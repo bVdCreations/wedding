@@ -144,4 +144,120 @@ async def test_submit_rsvp_with_plus_one(client_factory):
         "first_name": "John",
         "last_name": "Doe",
         "allergies": None,
+        "dietary_requirements": [],
     }
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_with_plus_one_allergies(client_factory):
+    """Test submitting an RSVP with plus one including allergies."""
+
+    memory = {}
+    token = "test-token-allergies"
+    write_model = InMemoryRSVPWriteModel(memory)
+    rsvp_data = {
+        "attending": True,
+        "plus_one_details": {
+            "email": "plusone@example.com",
+            "first_name": "Jane",
+            "last_name": "Smith",
+            "allergies": "Peanuts and shellfish",
+        },
+        "dietary_requirements": [],
+        "family_member_updates": {},
+    }
+    overrides = {
+        get_rsvp_write_model: lambda: write_model,
+    }
+
+    async with client_factory(overrides) as client:
+        response = await client.post(url=UPDATE_RSVP_URL.format(token=token), json=rsvp_data)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["attending"] is True
+    assert data["status"] == GuestStatus.CONFIRMED.value
+
+    assert memory[token]["plus_one_details"]["allergies"] == "Peanuts and shellfish"
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_with_plus_one_dietary_requirements(client_factory):
+    """Test submitting an RSVP with plus one including dietary requirements."""
+
+    memory = {}
+    token = "test-token-dietary"
+    write_model = InMemoryRSVPWriteModel(memory)
+    rsvp_data = {
+        "attending": True,
+        "plus_one_details": {
+            "email": "plusone@example.com",
+            "first_name": "John",
+            "last_name": "Doe",
+            "dietary_requirements": [
+                {"requirement_type": "vegetarian", "notes": None},
+                {"requirement_type": "other", "notes": "No spicy food"},
+            ],
+        },
+        "dietary_requirements": [],
+        "family_member_updates": {},
+    }
+    overrides = {
+        get_rsvp_write_model: lambda: write_model,
+    }
+
+    async with client_factory(overrides) as client:
+        response = await client.post(url=UPDATE_RSVP_URL.format(token=token), json=rsvp_data)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["attending"] is True
+    assert data["status"] == GuestStatus.CONFIRMED.value
+
+    # Verify dietary requirements are passed through
+    assert "dietary_requirements" in memory[token]["plus_one_details"]
+    dietary_reqs = memory[token]["plus_one_details"]["dietary_requirements"]
+    assert len(dietary_reqs) == 2
+    assert dietary_reqs[0]["requirement_type"] == "vegetarian"
+    assert dietary_reqs[1]["requirement_type"] == "other"
+    assert dietary_reqs[1]["notes"] == "No spicy food"
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_with_plus_one_allergies_and_dietary(client_factory):
+    """Test submitting an RSVP with plus one including both allergies and dietary requirements."""
+
+    memory = {}
+    token = "test-token-both"
+    write_model = InMemoryRSVPWriteModel(memory)
+    rsvp_data = {
+        "attending": True,
+        "plus_one_details": {
+            "email": "plusone@example.com",
+            "first_name": "Maria",
+            "last_name": "Garcia",
+            "allergies": "Gluten",
+            "dietary_requirements": [
+                {"requirement_type": "vegan", "notes": None},
+            ],
+        },
+        "dietary_requirements": [],
+        "family_member_updates": {},
+    }
+    overrides = {
+        get_rsvp_write_model: lambda: write_model,
+    }
+
+    async with client_factory(overrides) as client:
+        response = await client.post(url=UPDATE_RSVP_URL.format(token=token), json=rsvp_data)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["attending"] is True
+    assert data["status"] == GuestStatus.CONFIRMED.value
+
+    # Verify both allergies and dietary requirements are passed through
+    plus_one_details = memory[token]["plus_one_details"]
+    assert plus_one_details["allergies"] == "Gluten"
+    assert len(plus_one_details["dietary_requirements"]) == 1
+    assert plus_one_details["dietary_requirements"][0]["requirement_type"] == "vegan"

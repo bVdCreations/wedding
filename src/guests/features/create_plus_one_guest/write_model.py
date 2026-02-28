@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.config.database import async_session_manager
 from src.config.settings import settings
 from src.guests.dtos import RSVPDTO, GuestDTO, GuestStatus, Language, PlusOneDTO
-from src.guests.repository.orm_models import Guest, RSVPInfo
+from src.guests.repository.orm_models import DietaryOption, Guest, RSVPInfo
 from src.models.user import User
 
 
@@ -137,9 +137,21 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
                 plus_one_of_id=original_guest_id,
                 notes=None,
                 preferred_language=preferred_language,
+                allergies=plus_one_data.allergies,
             )
             session.add(guest)
             await session.flush()
+
+            # 6a. Create DietaryOption records if provided
+            if plus_one_data.dietary_requirements:
+                for req in plus_one_data.dietary_requirements:
+                    dietary_option = DietaryOption(
+                        guest_id=guest.uuid,
+                        requirement_type=req.requirement_type,
+                        notes=req.notes,
+                    )
+                    session.add(dietary_option)
+                await session.flush()
 
             # 7. Create RSVPInfo linked to Guest
             rsvp_token = str(uuid4())

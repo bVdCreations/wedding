@@ -6,14 +6,14 @@ import pytest
 from sqlalchemy import select
 
 from src.config.database import async_session_maker
-from src.guests.dtos import GuestStatus, Language, PlusOneDTO
+from src.guests.dtos import DietaryRequirementDTO, DietaryType, GuestStatus, Language, PlusOneDTO
 from src.guests.features.create_guest.write_model import SqlGuestCreateWriteModel
 from src.guests.features.create_plus_one_guest.write_model import (
     CannotAddPlusOneError,
     CannotChangePlusOneEmailError,
     SqlPlusOneGuestWriteModel,
 )
-from src.guests.repository.orm_models import Guest, RSVPInfo
+from src.guests.repository.orm_models import DietaryOption, Guest, RSVPInfo
 from src.models.user import User
 
 
@@ -583,5 +583,182 @@ async def test_plus_one_inherits_default_english_language():
             )
             plus_one_guest_db = guest_result.scalar_one()
             assert plus_one_guest_db.preferred_language == Language.EN
+        finally:
+            await db_session.rollback()
+
+
+# Dietary options tests
+
+
+async def test_plus_one_guest_with_dietary_requirements():
+    """Test that dietary requirements are saved when creating a plus-one guest."""
+    async with async_session_maker() as db_session:
+        try:
+            # Create original guest
+            guest_write_model = SqlGuestCreateWriteModel(session_overwrite=db_session)
+            original_guest = await guest_write_model.create_guest(
+                email="original_dietary@test.com",
+                first_name="Original",
+                last_name="Guest",
+            )
+
+            # Create plus-one guest with dietary requirements
+            plus_one_write_model = SqlPlusOneGuestWriteModel(session_overwrite=db_session)
+            dietary_requirements = [
+                DietaryRequirementDTO(requirement_type=DietaryType.VEGETARIAN),
+                DietaryRequirementDTO(requirement_type=DietaryType.OTHER, notes="Likes spicy food"),
+            ]
+            plus_one_data = PlusOneDTO(
+                email="plusone_dietary@test.com",
+                first_name="Vegetarian",
+                last_name="Guest",
+                dietary_requirements=dietary_requirements,
+            )
+            result, plus_one_uuid = await plus_one_write_model.create_plus_one_guest(
+                original_guest_id=original_guest.id,
+                plus_one_data=plus_one_data,
+            )
+
+            # Verify dietary options were created in database
+            dietary_result = await db_session.execute(
+                select(DietaryOption).where(DietaryOption.guest_id == plus_one_uuid)
+            )
+            dietary_options = dietary_result.scalars().all()
+
+            assert len(dietary_options) == 2
+            requirement_types = {req.requirement_type for req in dietary_options}
+            assert "vegetarian" in requirement_types
+            assert "other" in requirement_types
+
+            # Verify the "other" notes were saved
+            other_req = next((req for req in dietary_options if req.requirement_type == "other"))
+            assert other_req.notes == "Likes spicy food"
+        finally:
+            await db_session.rollback()
+
+
+async def test_plus_one_guest_with_allergies():
+    """Test that allergies are saved when creating a plus-one guest."""
+    async with async_session_maker() as db_session:
+        try:
+            # Create original guest
+            guest_write_model = SqlGuestCreateWriteModel(session_overwrite=db_session)
+            original_guest = await guest_write_model.create_guest(
+                email="original_allergies@test.com",
+                first_name="Original",
+                last_name="Guest",
+            )
+
+            # Create plus-one guest with allergies
+            plus_one_write_model = SqlPlusOneGuestWriteModel(session_overwrite=db_session)
+            plus_one_data = PlusOneDTO(
+                email="plusone_allergies@test.com",
+                first_name="Allergic",
+                last_name="Guest",
+                allergies="Peanuts and shellfish",
+            )
+            result, plus_one_uuid = await plus_one_write_model.create_plus_one_guest(
+                original_guest_id=original_guest.id,
+                plus_one_data=plus_one_data,
+            )
+
+            # Verify allergies were saved in database
+            guest_result = await db_session.execute(
+                select(Guest).where(Guest.uuid == plus_one_uuid)
+            )
+            plus_one_guest_db = guest_result.scalar_one()
+
+            assert plus_one_guest_db.allergies == "Peanuts and shellfish"
+        finally:
+            await db_session.rollback()
+
+
+async def test_plus_one_guest_with_dietary_and_allergies():
+    """Test that both dietary requirements and allergies are saved when creating a plus-one guest."""
+    async with async_session_maker() as db_session:
+        try:
+            # Create original guest
+            guest_write_model = SqlGuestCreateWriteModel(session_overwrite=db_session)
+            original_guest = await guest_write_model.create_guest(
+                email="original_both@test.com",
+                first_name="Original",
+                last_name="Guest",
+            )
+
+            # Create plus-one guest with both dietary requirements and allergies
+            plus_one_write_model = SqlPlusOneGuestWriteModel(session_overwrite=db_session)
+            dietary_requirements = [
+                DietaryRequirementDTO(requirement_type=DietaryType.VEGAN),
+            ]
+            plus_one_data = PlusOneDTO(
+                email="plusone_both@test.com",
+                first_name="Vegan",
+                last_name="Allergic",
+                dietary_requirements=dietary_requirements,
+                allergies="Gluten",
+            )
+            result, plus_one_uuid = await plus_one_write_model.create_plus_one_guest(
+                original_guest_id=original_guest.id,
+                plus_one_data=plus_one_data,
+            )
+
+            # Verify both dietary requirements and allergies were saved
+            guest_result = await db_session.execute(
+                select(Guest).where(Guest.uuid == plus_one_uuid)
+            )
+            plus_one_guest_db = guest_result.scalar_one()
+
+            assert plus_one_guest_db.allergies == "Gluten"
+
+            dietary_result = await db_session.execute(
+                select(DietaryOption).where(DietaryOption.guest_id == plus_one_uuid)
+            )
+            dietary_options = dietary_result.scalars().all()
+
+            assert len(dietary_options) == 1
+            assert dietary_options[0].requirement_type == "vegan"
+        finally:
+            await db_session.rollback()
+
+
+async def test_plus_one_guest_without_dietary_or_allergies():
+    """Test that a plus-one guest can be created without dietary requirements or allergies."""
+    async with async_session_maker() as db_session:
+        try:
+            # Create original guest
+            guest_write_model = SqlGuestCreateWriteModel(session_overwrite=db_session)
+            original_guest = await guest_write_model.create_guest(
+                email="original_none@test.com",
+                first_name="Original",
+                last_name="Guest",
+            )
+
+            # Create plus-one guest without dietary requirements or allergies
+            plus_one_write_model = SqlPlusOneGuestWriteModel(session_overwrite=db_session)
+            plus_one_data = PlusOneDTO(
+                email="plusone_none@test.com",
+                first_name="No",
+                last_name="Restrictions",
+            )
+            result, plus_one_uuid = await plus_one_write_model.create_plus_one_guest(
+                original_guest_id=original_guest.id,
+                plus_one_data=plus_one_data,
+            )
+
+            # Verify no dietary options were created
+            dietary_result = await db_session.execute(
+                select(DietaryOption).where(DietaryOption.guest_id == plus_one_uuid)
+            )
+            dietary_options = dietary_result.scalars().all()
+
+            assert len(dietary_options) == 0
+
+            # Verify allergies field is None
+            guest_result = await db_session.execute(
+                select(Guest).where(Guest.uuid == plus_one_uuid)
+            )
+            plus_one_guest_db = guest_result.scalar_one()
+
+            assert plus_one_guest_db.allergies is None
         finally:
             await db_session.rollback()
