@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import async_session_manager
 from src.config.settings import settings
-from src.email.base import EmailServiceBase
+from src.email_service.base import EmailServiceBase
 from src.guests.dtos import RSVPDTO, GuestAlreadyExistsError, GuestDTO, GuestStatus, Language
 from src.guests.repository.orm_models import Guest, RSVPInfo
 from src.models.user import User

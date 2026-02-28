@@ -1,8 +1,8 @@
 import httpx
 
 from src.config.settings import settings
-from src.email.base import EmailServiceBase
-from src.email.templates import EmailTemplates
+from src.email_service.base import EmailServiceBase
+from src.email_service.templates import EmailTemplates
 from src.guests.dtos import Language
 
 

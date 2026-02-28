@@ -3,8 +3,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from src.config.settings import settings
-from src.email.base import EmailServiceBase
-from src.email.templates import EmailTemplates
+from src.email_service.base import EmailServiceBase
+from src.email_service.templates import EmailTemplates
 from src.guests.dtos import Language
 
 

@@ -8,7 +8,7 @@ import typer
 from sqlalchemy import select
 
 from src.config.database import async_session_manager
-from src.email import get_email_service
+from src.email_service import get_email_service
 from src.guests.dtos import Language, PlusOneDTO
 from src.guests.features.create_child_guest.write_model import SqlChildGuestCreateWriteModel
 from src.guests.features.create_guest.write_model import SqlGuestCreateWriteModel

@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import async_session_manager
-from src.email.base import EmailServiceBase
+from src.email_service.base import EmailServiceBase
 from src.guests.dtos import (
     GuestStatus,
     Language,

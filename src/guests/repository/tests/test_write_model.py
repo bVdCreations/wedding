@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import select
 
 from src.config.database import async_session_manager
-from src.email.base import EmailServiceBase
+from src.email_service.base import EmailServiceBase
 from src.guests.dtos import DietaryType, GuestStatus, Language, RSVPResponseDTO
 from src.guests.features.update_rsvp.router import RSVPResponseSubmit
 from src.guests.repository.orm_models import DietaryOption, Guest, RSVPInfo

@@ -631,7 +631,7 @@ async def test_plus_one_guest_with_dietary_requirements():
             assert "other" in requirement_types
 
             # Verify the "other" notes were saved
-            other_req = next((req for req in dietary_options if req.requirement_type == "other"))
+            other_req = next(req for req in dietary_options if req.requirement_type == "other")
             assert other_req.notes == "Likes spicy food"
         finally:
             await db_session.rollback()
