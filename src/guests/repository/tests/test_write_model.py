@@ -128,7 +128,6 @@ async def test_submit_rsvp_attending():
 
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
-                dietary_requirements=[],
                 family_member_updates={},
             )
 
@@ -167,7 +166,6 @@ async def test_submit_rsvp_not_attending():
 
             rsvp_data = RSVPResponseSubmit(
                 attending=False,
-                dietary_requirements=[],
                 family_member_updates={},
             )
 
@@ -258,7 +256,6 @@ async def test_submit_rsvp_with_plus_one():
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
                 plus_one_details=None,  # Set to None since we don't test full plus_one creation here
-                dietary_requirements=[],
                 family_member_updates={},
             )
 
@@ -280,7 +277,6 @@ async def test_submit_rsvp_with_invalid_token():
 
     rsvp_data = RSVPResponseSubmit(
         attending=True,
-        dietary_requirements=[],
         family_member_updates={},
     )
 
@@ -352,7 +348,6 @@ async def test_submit_rsvp_without_email_service():
 
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
-                dietary_requirements=[],
                 family_member_updates={},
             )
 
@@ -397,7 +392,6 @@ async def test_submit_rsvp_declined_clears_plus_one():
 
             rsvp_data = RSVPResponseSubmit(
                 attending=False,
-                dietary_requirements=[],
                 family_member_updates={},
             )
 
@@ -529,7 +523,6 @@ async def test_submit_rsvp_sends_confirmation_email_in_spanish():
 
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
-                dietary_requirements=[],
                 family_member_updates={},
             )
 
@@ -563,7 +556,6 @@ async def test_submit_rsvp_sends_confirmation_email_in_dutch():
 
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
-                dietary_requirements=[],
                 family_member_updates={},
             )
 
@@ -597,7 +589,6 @@ async def test_submit_rsvp_sends_confirmation_email_in_english_by_default():
 
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
-                dietary_requirements=[],
                 family_member_updates={},
             )
 

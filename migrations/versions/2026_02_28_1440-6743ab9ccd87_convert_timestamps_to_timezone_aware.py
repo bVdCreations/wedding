@@ -27,7 +27,7 @@ def upgrade() -> None:
             type_=sa.DateTime(timezone=True),
             existing_type=sa.DateTime(timezone=False),
             existing_nullable=False,
-            postgresql_using=f"created_at AT TIME ZONE 'UTC'",
+            postgresql_using="created_at AT TIME ZONE 'UTC'",
         )
         op.alter_column(
             table,
@@ -35,7 +35,7 @@ def upgrade() -> None:
             type_=sa.DateTime(timezone=True),
             existing_type=sa.DateTime(timezone=False),
             existing_nullable=False,
-            postgresql_using=f"updated_at AT TIME ZONE 'UTC'",
+            postgresql_using="updated_at AT TIME ZONE 'UTC'",
         )
 
 

@@ -15,7 +15,6 @@ from src.guests.features.request_invitation.write_model import (
 from src.guests.repository.orm_models import Guest, RSVPInfo
 from src.models.user import User
 
-
 # New Guest Creation Tests
 
 
@@ -380,7 +379,6 @@ async def test_request_invitation_sends_email_on_resend():
             select(RSVPInfo).where(RSVPInfo.guest_id == guest.uuid)
         )
         rsvp = rsvp_result.scalar_one()
-        original_email_sent_on = rsvp.email_sent_on
 
         # Reset mock
         mock_email_service.reset_mock()

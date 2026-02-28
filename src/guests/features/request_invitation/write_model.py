@@ -79,7 +79,7 @@ class SqlRequestInvitationWriteModel(RequestInvitationWriteModel):
         """
         # Default to English if no language provided
         preferred_language = language or Language.EN
-        
+
         async with self.async_session_manager(session_overwrite=self.session_overwrite) as session:
             # 1. Check if User exists
             user = await self._get_user_by_email(session, email)
