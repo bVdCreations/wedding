@@ -1,6 +1,6 @@
 """Tests for child guest creation write model."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 from sqlalchemy import select
@@ -16,13 +16,9 @@ from src.guests.repository.orm_models import Family, Guest, RSVPInfo
 async def test_create_child_guest_success():
     """Test creating a child guest successfully."""
     async with async_session_maker() as session:
-        # Create a family first with timestamps
-        now = datetime.utcnow()
-        family = Family(
-            name="Test Family",
-            created_at=now,
-            updated_at=now,
-        )
+        # Create a family first
+        now = datetime.now(UTC)
+        family = Family(name="Test Family", created_at=now, updated_at=now)
         session.add(family)
         await session.flush()
 
@@ -57,7 +53,7 @@ async def test_create_child_guest_without_phone():
     """Test creating a child guest without phone."""
     async with async_session_maker() as session:
         # Create a family
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         family = Family(name="Test Family", created_at=now, updated_at=now)
         session.add(family)
         await session.flush()
@@ -96,7 +92,7 @@ async def test_create_child_guest_invalid_family():
 async def test_create_child_guest_guest_type_is_child():
     """Test that created guest has guest_type=CHILD."""
     async with async_session_maker() as session:
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         family = Family(name="Test Family", created_at=now, updated_at=now)
         session.add(family)
         await session.flush()
@@ -123,7 +119,7 @@ async def test_create_child_guest_guest_type_is_child():
 async def test_create_child_guest_has_rsvp_info():
     """Test that child guest has RSVPInfo with empty token/link."""
     async with async_session_maker() as session:
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         family = Family(name="Test Family", created_at=now, updated_at=now)
         session.add(family)
         await session.flush()

@@ -333,6 +333,7 @@ async def test_create_guest_email_service_not_called_when_send_email_false():
             select(RSVPInfo).join(Guest).where(Guest.uuid == result.id)
         )
         rsvp_db = result_db.scalar_one_or_none()
+        assert rsvp_db is not None
         assert rsvp_db.email_sent_on is None
 
         await db_session.rollback()
@@ -354,6 +355,7 @@ async def test_create_guest_email_service_not_called_without_service():
             select(RSVPInfo).join(Guest).where(Guest.uuid == result.id)
         )
         rsvp_db = result_db.scalar_one_or_none()
+        assert rsvp_db is not None
         assert rsvp_db.email_sent_on is None
 
         await db_session.rollback()

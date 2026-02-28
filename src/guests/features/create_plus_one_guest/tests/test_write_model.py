@@ -454,6 +454,7 @@ async def test_plus_one_guest_email_service_not_called_by_default():
                 select(RSVPInfo).where(RSVPInfo.guest_id == result.id)
             )
             rsvp_db = rsvp_result.scalar_one_or_none()
+            assert rsvp_db is not None
             assert rsvp_db.email_sent_on is None
         finally:
             await db_session.rollback()
