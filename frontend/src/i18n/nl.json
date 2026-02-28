@@ -108,5 +108,20 @@
     "errorPlusOneFirstNameRequired": "Voornaam is verplicht voor je partner",
     "errorPlusOneLastNameRequired": "Achternaam is verplicht voor je partner",
     "errorPlusOneDietaryNotesRequired": "Beschrijf de dieetwensen van je partner"
+  },
+  "requestInvitation": {
+    "title": "Uitnodiging Aanvragen",
+    "heading": "Vraag Je Uitnodiging Aan",
+    "subheading": "Vul je gegevens in om een RSVP-link te ontvangen",
+    "email": "E-mail",
+    "emailPlaceholder": "jouw@email.nl",
+    "firstName": "Voornaam",
+    "lastName": "Achternaam",
+    "submit": "Uitnodiging Versturen",
+    "submitting": "Versturen...",
+    "successTitle": "Check Je E-mail!",
+    "success": "Check je e-mail voor je uitnodigingslink!",
+    "error": "Er ging iets mis. Probeer het opnieuw.",
+    "validationError": "Vul alle verplichte velden in"
   }
 }

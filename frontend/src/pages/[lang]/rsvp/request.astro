@@ -1,0 +1,136 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { languages, getTranslations, isValidLanguage, type Language } from '../../../i18n';
+
+export function getStaticPaths() {
+  return languages.map((lang) => ({
+    params: { lang },
+  }));
+}
+
+const { lang } = Astro.params;
+
+if (!isValidLanguage(lang)) {
+  return Astro.redirect('/en/rsvp/request');
+}
+
+const t = getTranslations(lang as Language);
+---
+
+<Layout title={t.requestInvitation.title} lang={lang as Language}>
+  <main class="min-h-screen flex items-center justify-center py-16 px-4 bg-stone-50">
+    <div class="w-full max-w-2xl">
+      <div class="rsvp-card bg-white rounded-xl shadow-lg p-8">
+        <h1 class="text-3xl md:text-4xl font-serif text-center text-gray-800 mb-4">{t.requestInvitation.heading}</h1>
+        <p class="text-center text-gray-600 mb-8">{t.requestInvitation.subheading}</p>
+
+        <form id="request-form">
+          <div class="form-section mb-8">
+            <div class="grid md:grid-cols-2 gap-4">
+              <div class="form-group">
+                <label for="first_name" class="block font-medium text-sm mb-1">{t.requestInvitation.firstName}</label>
+                <input type="text" id="first_name" name="first_name" required
+                  class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
+              </div>
+              <div class="form-group">
+                <label for="last_name" class="block font-medium text-sm mb-1">{t.requestInvitation.lastName}</label>
+                <input type="text" id="last_name" name="last_name" required
+                  class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
+              </div>
+            </div>
+            <div class="form-group mt-4">
+              <label for="email" class="block font-medium text-sm mb-1">{t.requestInvitation.email}</label>
+              <input type="email" id="email" name="email" required placeholder={t.requestInvitation.emailPlaceholder}
+                class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
+            </div>
+          </div>
+
+          <div class="form-actions text-center mt-8">
+            <button type="submit" class="submit-btn bg-[#c9a66b] text-white border-none px-10 py-4 text-lg rounded-lg hover:bg-[#b8945a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+              {t.requestInvitation.submit}
+            </button>
+          </div>
+        </form>
+
+        <div id="success-message" class="success-message text-center p-8 bg-[#606c38] text-white rounded-lg" style="display: none;">
+          <h2 class="text-white mb-2">{t.requestInvitation.successTitle}</h2>
+          <p id="success-text"></p>
+        </div>
+
+        <div id="error-message" class="error-message text-center p-4 bg-[#c1121f] text-white rounded-lg mt-4" style="display: none;">
+          <p id="error-text"></p>
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<script define:vars={{ t: t.requestInvitation, apiHost: import.meta.env.PUBLIC_BACKEND_API_URL || '' }}>
+  const form = document.getElementById('request-form');
+  const successMessage = document.getElementById('success-message');
+  const errorMessage = document.getElementById('error-message');
+  const submitBtn = document.querySelector('.submit-btn');
+
+  function validateForm() {
+    const firstName = document.getElementById('first_name')?.value?.trim();
+    const lastName = document.getElementById('last_name')?.value?.trim();
+    const email = document.getElementById('email')?.value?.trim();
+
+    const isValid = firstName && lastName && email && email.includes('@');
+    submitBtn.disabled = !isValid;
+    return isValid;
+  }
+
+  // Initial validation
+  validateForm();
+
+  // Validate on input
+  form.addEventListener('input', validateForm);
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const firstName = document.getElementById('first_name')?.value?.trim();
+    const lastName = document.getElementById('last_name')?.value?.trim();
+    const email = document.getElementById('email')?.value?.trim();
+
+    if (!firstName || !lastName || !email) {
+      errorMessage.style.display = 'block';
+      document.getElementById('error-text').textContent = t.validationError;
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = t.submitting;
+
+    try {
+      const currentLang = window.location.pathname.split('/')[1] || 'en';
+      const response = await fetch(`${apiHost}/api/v1/guests/request-invitation`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          email: email,
+          first_name: firstName,
+          last_name: lastName,
+          language: currentLang,
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        form.style.display = 'none';
+        successMessage.style.display = 'block';
+        document.getElementById('success-text').textContent = data.message || t.success;
+      } else {
+        errorMessage.style.display = 'block';
+        document.getElementById('error-text').textContent = data.detail || t.error;
+      }
+    } catch (error) {
+      errorMessage.style.display = 'block';
+      document.getElementById('error-text').textContent = t.error;
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = t.submit;
+    }
+  });
+</script>

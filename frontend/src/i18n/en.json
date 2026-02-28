@@ -108,5 +108,20 @@
     "errorPlusOneFirstNameRequired": "First name is required for your plus one",
     "errorPlusOneLastNameRequired": "Last name is required for your plus one",
     "errorPlusOneDietaryNotesRequired": "Please describe your plus one's dietary requirements"
+  },
+  "requestInvitation": {
+    "title": "Request Invitation",
+    "heading": "Request Your Invitation",
+    "subheading": "Enter your details to receive an RSVP link",
+    "email": "Email",
+    "emailPlaceholder": "your@email.com",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "submit": "Send Invitation",
+    "submitting": "Sending...",
+    "successTitle": "Check Your Email!",
+    "success": "Check your email for your invitation link!",
+    "error": "Something went wrong. Please try again.",
+    "validationError": "Please fill in all required fields"
   }
 }

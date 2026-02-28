@@ -108,5 +108,20 @@
     "errorPlusOneFirstNameRequired": "El nombre es obligatorio para tu acompañante",
     "errorPlusOneLastNameRequired": "El apellido es obligatorio para tu acompañante",
     "errorPlusOneDietaryNotesRequired": "Describe los requisitos dietéticos de tu acompañante"
+  },
+  "requestInvitation": {
+    "title": "Solicitar Invitación",
+    "heading": "Solicita Tu Invitación",
+    "subheading": "Ingresa tus datos para recibir un enlace RSVP",
+    "email": "Correo Electrónico",
+    "emailPlaceholder": "tu@email.com",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "submit": "Enviar Invitación",
+    "submitting": "Enviando...",
+    "successTitle": "¡Revisa Tu Correo!",
+    "success": "¡Revisa tu correo electrónico para tu enlace de invitación!",
+    "error": "Algo salió mal. Por favor, inténtalo de nuevo.",
+    "validationError": "Por favor, completa todos los campos requeridos"
   }
 }

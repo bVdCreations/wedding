@@ -228,9 +228,9 @@ input.invalid, textarea.invalid {
   const token = new URLSearchParams(window.location.search).get('token');
 
   if (!token) {
-    form.style.display = 'none';
-    errorMessage.style.display = 'block';
-    document.getElementById('error-text').textContent = t.invalidLink;
+    // Redirect to request invitation page
+    window.location.href = window.location.pathname.replace('/rsvp', '/rsvp/request');
+    return;
   }
 
   async function prefetchGuestInfo() {

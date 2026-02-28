@@ -3,7 +3,8 @@ from enum import Enum
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from pydantic import EmailStr
+from pydantic import BaseModel, EmailStr
+
 
 if TYPE_CHECKING:
     from src.guests.repository.orm_models import Guest
