@@ -99,6 +99,14 @@
     "familyMemberAttending": "Asistira {name}?",
     "yes": "Si",
     "no": "No",
-    "child": "Nino/a"
+    "child": "Nino/a",
+    "errorFirstNameRequired": "El nombre es obligatorio",
+    "errorLastNameRequired": "El apellido es obligatorio",
+    "errorAttendingRequired": "Indica si asistirás",
+    "errorDietaryNotesRequired": "Describe tus requisitos dietéticos",
+    "errorPlusOneEmailRequired": "El correo electrónico es obligatorio para tu acompañante",
+    "errorPlusOneFirstNameRequired": "El nombre es obligatorio para tu acompañante",
+    "errorPlusOneLastNameRequired": "El apellido es obligatorio para tu acompañante",
+    "errorPlusOneDietaryNotesRequired": "Describe los requisitos dietéticos de tu acompañante"
   }
 }

@@ -1,7 +1,7 @@
 from dataclasses import field
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator, model_validator
 
 from src.email_service import get_email_service
 from src.guests.dtos import DietaryType, GuestStatus
@@ -18,6 +18,12 @@ class DietaryRequirement(BaseModel):
     requirement_type: DietaryType
     notes: str | None = None
 
+    @model_validator(mode='after')
+    def notes_required_for_other(self) -> 'DietaryRequirement':
+        if self.requirement_type == DietaryType.OTHER and not (self.notes or '').strip():
+            raise ValueError('notes are required when dietary type is "other"')
+        return self
+
 
 class PlusOneSubmit(BaseModel):
     """Submit plus one details."""
@@ -28,6 +34,13 @@ class PlusOneSubmit(BaseModel):
     allergies: str | None = None
     dietary_requirements: list[DietaryRequirement] = field(default_factory=list)
 
+    @field_validator('first_name', 'last_name')
+    @classmethod
+    def name_must_not_be_empty(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError('must not be empty')
+        return v.strip()
+
 
 class GuestInfoSubmit(BaseModel):
     """Submit guest info updates."""
@@ -37,6 +50,13 @@ class GuestInfoSubmit(BaseModel):
     phone: str | None = None
     allergies: str | None = None
     dietary_requirements: list[DietaryRequirement] = field(default_factory=list)
+
+    @field_validator('first_name', 'last_name')
+    @classmethod
+    def name_must_not_be_empty(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError('must not be empty')
+        return v.strip()
 
 
 class FamilyMemberSubmit(BaseModel):
@@ -51,6 +71,12 @@ class RSVPResponseSubmit(BaseModel):
     plus_one_details: PlusOneSubmit | None = None
     guest_info: GuestInfoSubmit | None = None
     family_member_updates: dict[str, FamilyMemberSubmit] = {}
+
+    @model_validator(mode='after')
+    def clear_plus_one_when_not_attending(self) -> 'RSVPResponseSubmit':
+        if not self.attending:
+            self.plus_one_details = None
+        return self
 
 
 class RSVPResponse(BaseModel):

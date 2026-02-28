@@ -33,11 +33,13 @@ const t = getTranslations(lang as Language);
                 <label for="first_name" class="block font-medium text-sm mb-1">{t.rsvpPage.firstName}</label>
                 <input type="text" id="first_name" name="first_name" required
                   class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
+                <span id="error-first_name" class="field-error" aria-live="polite"></span>
               </div>
               <div class="form-group">
                 <label for="last_name" class="block font-medium text-sm mb-1">{t.rsvpPage.lastName}</label>
                 <input type="text" id="last_name" name="last_name" required
                   class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
+                <span id="error-last_name" class="field-error" aria-live="polite"></span>
               </div>
             </div>
             <div class="form-group mt-4">
@@ -59,6 +61,7 @@ const t = getTranslations(lang as Language);
                 <span class="text-gray-700">{t.rsvpPage.attendingNo}</span>
               </label>
             </div>
+            <span id="error-attending" class="field-error" aria-live="polite"></span>
           </div>
 
           <!-- Family Members Section -->
@@ -87,6 +90,7 @@ const t = getTranslations(lang as Language);
                   rows="3"
                   class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors"
                 ></textarea>
+                <span id="error-dietary_notes" class="field-error" aria-live="polite"></span>
               </div>
             </div>
           </div>
@@ -119,16 +123,19 @@ const t = getTranslations(lang as Language);
                   <label for="plus_one_email" class="block font-medium text-sm mb-1">{t.rsvpPage.email}</label>
                   <input type="email" id="plus_one_email" name="plus_one_email" placeholder={t.rsvpPage.emailPlaceholder}
                     class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
+                  <span id="error-plus_one_email" class="field-error" aria-live="polite"></span>
                 </div>
                 <div class="form-group mt-4">
                   <label for="plus_one_first_name" class="block font-medium text-sm mb-1">{t.rsvpPage.firstName}</label>
                   <input type="text" id="plus_one_first_name" name="plus_one_first_name" placeholder={t.rsvpPage.firstName}
                     class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
+                  <span id="error-plus_one_first_name" class="field-error" aria-live="polite"></span>
                 </div>
                 <div class="form-group mt-4">
                   <label for="plus_one_last_name" class="block font-medium text-sm mb-1">{t.rsvpPage.lastName}</label>
                   <input type="text" id="plus_one_last_name" name="plus_one_last_name" placeholder={t.rsvpPage.lastName}
                     class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
+                  <span id="error-plus_one_last_name" class="field-error" aria-live="polite"></span>
                 </div>
                 <div class="form-group mt-4">
                   <label for="plus_one_allergies" class="block font-medium text-sm mb-1">{t.rsvpPage.allergies}</label>
@@ -155,6 +162,7 @@ const t = getTranslations(lang as Language);
                         rows="3"
                         class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors"
                       ></textarea>
+                      <span id="error-plus_one_dietary_notes" class="field-error" aria-live="polite"></span>
                     </div>
                   </div>
                 </div>
@@ -184,6 +192,18 @@ const t = getTranslations(lang as Language);
     </div>
   </main>
 </Layout>
+
+<style is:global>
+.field-error {
+  color: #c0392b;
+  font-size: 0.85rem;
+  display: block;
+  margin-top: 0.25rem;
+}
+input.invalid, textarea.invalid {
+  border-color: #c0392b;
+}
+</style>
 
 <script define:vars={{ t: t.rsvpPage, apiHost: import.meta.env.PUBLIC_BACKEND_API_URL || '' }}>
   const form = document.getElementById('rsvp-form');
@@ -392,8 +412,62 @@ const t = getTranslations(lang as Language);
     plusOneDietaryNotesSection.style.display = checked ? 'block' : 'none';
   });
 
+  function clearErrors() {
+    document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+    document.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
+  }
+
+  function displayErrors(errors) {
+    for (const [field, message] of Object.entries(errors)) {
+      const span = document.getElementById(`error-${field}`);
+      if (span) span.textContent = message;
+      const input = document.getElementById(field) ?? document.querySelector(`[name="${field}"]`);
+      if (input) input.classList.add('invalid');
+    }
+  }
+
+  function validateForm() {
+    const errors = {};
+    const firstNameVal = document.getElementById('first_name')?.value ?? '';
+    const lastNameVal = document.getElementById('last_name')?.value ?? '';
+    if (!firstNameVal.trim()) errors['first_name'] = t.errorFirstNameRequired;
+    if (!lastNameVal.trim()) errors['last_name'] = t.errorLastNameRequired;
+
+    const attendingChecked = document.querySelector('input[name="attending"]:checked');
+    if (!attendingChecked) {
+      errors['attending'] = t.errorAttendingRequired;
+    } else if (attendingChecked.value === 'yes') {
+      const dietaryOther = document.querySelector('input[name="dietary"][value="other"]');
+      if (dietaryOther?.checked) {
+        const notes = document.getElementById('dietary_notes')?.value ?? '';
+        if (!notes.trim()) errors['dietary_notes'] = t.errorDietaryNotesRequired;
+      }
+      if (plusOneCheckbox.checked && !guestIsPlusOne) {
+        const email = document.getElementById('plus_one_email')?.value ?? '';
+        const poFirst = document.getElementById('plus_one_first_name')?.value ?? '';
+        const poLast = document.getElementById('plus_one_last_name')?.value ?? '';
+        if (!email.trim()) errors['plus_one_email'] = t.errorPlusOneEmailRequired;
+        if (!poFirst.trim()) errors['plus_one_first_name'] = t.errorPlusOneFirstNameRequired;
+        if (!poLast.trim()) errors['plus_one_last_name'] = t.errorPlusOneLastNameRequired;
+        const poDietaryOther = document.querySelector('input[name="plus_one_dietary"][value="other"]');
+        if (poDietaryOther?.checked) {
+          const poNotes = document.getElementById('plus_one_dietary_notes')?.value ?? '';
+          if (!poNotes.trim()) errors['plus_one_dietary_notes'] = t.errorPlusOneDietaryNotesRequired;
+        }
+      }
+    }
+    return errors;
+  }
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    clearErrors();
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      displayErrors(validationErrors);
+      document.querySelector('.field-error:not(:empty)')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
     const attending = document.querySelector('input[name="attending"]:checked');
     const attendingValue = attending?.value === 'yes';
     const plusOne = plusOneCheckbox.checked && !guestIsPlusOne;

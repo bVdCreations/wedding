@@ -99,6 +99,14 @@
     "familyMemberAttending": "Will {name} be attending?",
     "yes": "Yes",
     "no": "No",
-    "child": "Child"
+    "child": "Child",
+    "errorFirstNameRequired": "First name is required",
+    "errorLastNameRequired": "Last name is required",
+    "errorAttendingRequired": "Please indicate if you will attend",
+    "errorDietaryNotesRequired": "Please describe your dietary requirements",
+    "errorPlusOneEmailRequired": "Email is required for your plus one",
+    "errorPlusOneFirstNameRequired": "First name is required for your plus one",
+    "errorPlusOneLastNameRequired": "Last name is required for your plus one",
+    "errorPlusOneDietaryNotesRequired": "Please describe your plus one's dietary requirements"
   }
 }

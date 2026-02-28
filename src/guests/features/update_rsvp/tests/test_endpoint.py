@@ -325,3 +325,157 @@ async def test_submit_rsvp_with_plus_one_allergies_and_dietary(client_factory):
     assert plus_one_details["allergies"] == "Gluten"
     assert len(plus_one_details["dietary_requirements"]) == 1
     assert plus_one_details["dietary_requirements"][0]["requirement_type"] == "vegan"
+
+
+# =============================================================================
+# Validation Tests
+# =============================================================================
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("first_name", ""),
+        ("first_name", "   "),
+        ("last_name", ""),
+        ("last_name", "   "),
+    ],
+)
+@pytest.mark.asyncio
+async def test_guest_info_name_validation(client_factory, field, value):
+    """Test that empty or whitespace-only names are rejected with 422."""
+    token = "test-token-name-validation"
+    guest_info = {"first_name": "Jan", "last_name": "Smit"}
+    guest_info[field] = value
+    rsvp_data = {
+        "attending": True,
+        "guest_info": guest_info,
+        "family_member_updates": {},
+    }
+
+    async with client_factory({}) as client:
+        response = await client.post(url=UPDATE_RSVP_URL.format(token=token), json=rsvp_data)
+
+    assert response.status_code == 422
+
+
+@pytest.mark.parametrize("notes", [None, "", "   "])
+@pytest.mark.asyncio
+async def test_dietary_other_requires_notes(client_factory, notes):
+    """Test that dietary type 'other' requires non-empty notes."""
+    token = "test-token-dietary-notes"
+    rsvp_data = {
+        "attending": True,
+        "guest_info": {
+            "first_name": "Jan",
+            "last_name": "Smit",
+            "dietary_requirements": [{"requirement_type": "other", "notes": notes}],
+        },
+        "family_member_updates": {},
+    }
+
+    async with client_factory({}) as client:
+        response = await client.post(url=UPDATE_RSVP_URL.format(token=token), json=rsvp_data)
+
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_dietary_other_with_notes_accepted(client_factory):
+    """Test that dietary type 'other' with notes is accepted."""
+    memory = {}
+    token = "test-token-dietary-notes-ok"
+    write_model = InMemoryRSVPWriteModel(memory)
+    rsvp_data = {
+        "attending": True,
+        "guest_info": {
+            "first_name": "Jan",
+            "last_name": "Smit",
+            "dietary_requirements": [{"requirement_type": "other", "notes": "no onions"}],
+        },
+        "family_member_updates": {},
+    }
+
+    async with client_factory({get_rsvp_write_model: lambda: write_model}) as client:
+        response = await client.post(url=UPDATE_RSVP_URL.format(token=token), json=rsvp_data)
+
+    assert response.status_code == 200
+
+
+@pytest.mark.parametrize("notes", [None, "", "   "])
+@pytest.mark.asyncio
+async def test_plus_one_dietary_other_requires_notes(client_factory, notes):
+    """Test that plus-one dietary type 'other' requires non-empty notes."""
+    token = "test-token-plus-one-dietary"
+    rsvp_data = {
+        "attending": True,
+        "plus_one_details": {
+            "email": "plusone@example.com",
+            "first_name": "Jane",
+            "last_name": "Doe",
+            "dietary_requirements": [{"requirement_type": "other", "notes": notes}],
+        },
+        "family_member_updates": {},
+    }
+
+    async with client_factory({}) as client:
+        response = await client.post(url=UPDATE_RSVP_URL.format(token=token), json=rsvp_data)
+
+    assert response.status_code == 422
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("email", "not-an-email"),
+        ("email", ""),
+        ("first_name", ""),
+        ("first_name", "   "),
+        ("last_name", ""),
+        ("last_name", "   "),
+    ],
+)
+@pytest.mark.asyncio
+async def test_plus_one_field_validation(client_factory, field, value):
+    """Test that invalid plus-one fields are rejected with 422."""
+    token = "test-token-plus-one-validation"
+    plus_one = {
+        "email": "plusone@example.com",
+        "first_name": "Jane",
+        "last_name": "Doe",
+    }
+    plus_one[field] = value
+    rsvp_data = {
+        "attending": True,
+        "plus_one_details": plus_one,
+        "family_member_updates": {},
+    }
+
+    async with client_factory({}) as client:
+        response = await client.post(url=UPDATE_RSVP_URL.format(token=token), json=rsvp_data)
+
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_not_attending_strips_plus_one(client_factory):
+    """Test that plus_one_details is stripped when not attending."""
+    memory = {}
+    token = "test-token-not-attending-strip"
+    write_model = InMemoryRSVPWriteModel(memory)
+    rsvp_data = {
+        "attending": False,
+        "plus_one_details": {
+            "email": "plusone@example.com",
+            "first_name": "Jane",
+            "last_name": "Doe",
+        },
+        "family_member_updates": {},
+    }
+
+    async with client_factory({get_rsvp_write_model: lambda: write_model}) as client:
+        response = await client.post(url=UPDATE_RSVP_URL.format(token=token), json=rsvp_data)
+
+    assert response.status_code == 200
+    assert response.json()["attending"] is False
+    assert memory[token]["plus_one_details"] is None

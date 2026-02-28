@@ -99,6 +99,14 @@
     "familyMemberAttending": "Komt {name}?",
     "yes": "Ja",
     "no": "Nee",
-    "child": "Kind"
+    "child": "Kind",
+    "errorFirstNameRequired": "Voornaam is verplicht",
+    "errorLastNameRequired": "Achternaam is verplicht",
+    "errorAttendingRequired": "Geef aan of je aanwezig zult zijn",
+    "errorDietaryNotesRequired": "Beschrijf je dieetwensen",
+    "errorPlusOneEmailRequired": "E-mailadres is verplicht voor je partner",
+    "errorPlusOneFirstNameRequired": "Voornaam is verplicht voor je partner",
+    "errorPlusOneLastNameRequired": "Achternaam is verplicht voor je partner",
+    "errorPlusOneDietaryNotesRequired": "Beschrijf de dieetwensen van je partner"
   }
 }
