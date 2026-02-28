@@ -22,12 +22,12 @@ class TimeStamp(BaseModel):
     __abstract__ = True
 
     created_at: Mapped[datetime] = mapped_column(
-        sa.DateTime,
+        sa.DateTime(timezone=True),
         server_default=sa.func.current_timestamp(),
         nullable=False,
     )
     updated_at: Mapped[datetime] = mapped_column(
-        sa.DateTime,
+        sa.DateTime(timezone=True),
         server_default=sa.func.current_timestamp(),
         onupdate=sa.func.current_timestamp(),
         nullable=False,
