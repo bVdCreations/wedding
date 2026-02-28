@@ -27,6 +27,8 @@ dependencies = [
     "sqlalchemy-utils==0.42.1",
     "typer==0.20.1",
     "sentry-sdk[fastapi]==2.51.0",
+    "svix==1.86.0",
+    "resend==2.23.0",
 ]
 
 [dependency-groups]

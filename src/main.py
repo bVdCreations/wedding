@@ -12,6 +12,7 @@ from sentry_sdk.integrations.starlette import StarletteIntegration
 from src.config.settings import settings
 from src.guests.routers import router as guests_router
 from src.routers.healthz.router import router as healthz_router
+from src.webhooks.router import router as webhooks_router
 
 
 async def run_migrations():
@@ -58,6 +59,7 @@ app.add_middleware(
 # Include routers
 app.include_router(healthz_router, prefix="/healthz", tags=["Healthz"])
 app.include_router(guests_router, tags=["Guests"])
+app.include_router(webhooks_router, tags=["Webhooks"])
 
 
 @app.get("/", tags=["Root"])

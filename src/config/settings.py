@@ -33,6 +33,17 @@ class Settings(BaseSettings):
     # Email (Resend) - if set, use Resend API instead of SMTP
     resend_api_key: str = ""
 
+    # Resend email forwarding
+    forward_to_emails: str = ""  # Comma-separated list of destination emails
+    # Resend webhooks
+    resend_webhook_secret: str = ""  # Resend webhook signing secret (whsec_...)
+
+    def get_forward_to_emails(self) -> list[str]:
+        """Parse and validate forward_to_emails from comma-separated string."""
+        if not self.forward_to_emails:
+            return []
+        return [email.strip() for email in self.forward_to_emails.split(",") if email.strip()]
+
     SENTRY_DSN: str = ""
     SENTRY_TRACES_SAMPLE_RATE: float = 0.0
     SENTRY_PROFILES_SAMPLE_RATE: float = 0.0
