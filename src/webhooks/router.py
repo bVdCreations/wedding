@@ -1,11 +1,14 @@
+import base64
 import json
 import logging
 from typing import Any, Protocol
 
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from src.config.settings import settings
 from src.webhooks import urls
+from src.webhooks.schema import ReceivedEmail
 
 logger = logging.getLogger(__name__)
 
@@ -56,29 +59,78 @@ class SvixWebhookVerifier:
             raise HTTPException(status_code=401, detail=f"Invalid signature: {e}")
 
 
+class ForwardConfig(Protocol):
+    resend_api_key: str
+    emails_from: str
+
+    def get_forward_to_emails(self) -> list[str]: ...
+
+
 class ResendEmailForwarder:
-    """Default email forwarder using Resend SDK."""
+    """Default email forwarder using Resend HTTP API."""
+
+    def __init__(
+        self,
+        http_client_class: type[httpx.AsyncClient] = httpx.AsyncClient,
+        config: ForwardConfig = settings,
+    ):
+        self._http_client_class = http_client_class
+        self._config = config
 
     async def __call__(self, email_id: str) -> dict:
-        from resend import Resend
-
-        resend = Resend(api_key=settings.resend_api_key)
-
-        recipients = settings.get_forward_to_emails()
+        recipients = self._config.get_forward_to_emails()
         if not recipients:
             logger.warning("No forward recipients configured")
             return {"skipped": "no recipients"}
 
-        result = await resend.emails.receiving.forward(
-            email_id=email_id,
-            to=recipients,
-            from_=settings.emails_from,
-            passthrough=False,
-            text="See attached forwarded message.",
-            html="<p>See attached forwarded message.</p>",
-        )
+        async with self._http_client_class() as client:
+            # Step 1: Get email metadata
+            email_response = await client.get(
+                f"https://api.resend.com/emails/receiving/{email_id}",
+                headers={
+                    "Authorization": f"Bearer {self._config.resend_api_key}",
+                },
+            )
+            email_response.raise_for_status()
+            email_data = ReceivedEmail.model_validate(email_response.json())
 
-        return result
+            # Step 2: Download raw email content
+            raw_download_url = email_data.raw.download_url
+            raw_response = await client.get(raw_download_url)
+            raw_response.raise_for_status()
+            raw_email_content = raw_response.text
+
+            # Step 3: Forward email (passthrough=False style)
+            # Attach the raw email as .eml file with custom text/html
+            subject = email_data.subject
+            if not subject.startswith("Fwd:"):
+                subject = f"Fwd: {subject}"
+
+            forward_response = await client.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {self._config.resend_api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from": self._config.emails_from,
+                    "to": recipients,
+                    "subject": subject,
+                    "text": "See attached forwarded message.",
+                    "html": "<p>See attached forwarded message.</p>",
+                    "attachments": [
+                        {
+                            "filename": "forwarded_message.eml",
+                            "content": base64.b64encode(raw_email_content.encode("utf-8")).decode(
+                                "utf-8"
+                            ),
+                            "content_type": "message/rfc822",
+                        }
+                    ],
+                },
+            )
+            forward_response.raise_for_status()
+            return forward_response.json()
 
 
 # =============================================================================
@@ -93,7 +145,7 @@ def get_webhook_verifier() -> WebhookVerifier:
 
 def get_email_forwarder() -> EmailForwarder:
     """Factory for email forwarder. Override in tests."""
-    return ResendEmailForwarder()
+    return ResendEmailForwarder(http_client_class=httpx.AsyncClient, config=settings)
 
 
 # =============================================================================
@@ -119,11 +171,13 @@ async def resend_receiving_webhook(
     payload_str = body.decode("utf-8")
 
     # Extract Svix headers
-    headers = {
-        "svix-id": request.headers.get("svix-id"),
-        "svix-timestamp": request.headers.get("svix-timestamp"),
-        "svix-signature": request.headers.get("svix-signature"),
-    }
+    headers: dict[str, str] = {}
+    if svix_id := request.headers.get("svix-id"):
+        headers["svix-id"] = svix_id
+    if svix_timestamp := request.headers.get("svix-timestamp"):
+        headers["svix-timestamp"] = svix_timestamp
+    if svix_signature := request.headers.get("svix-signature"):
+        headers["svix-signature"] = svix_signature
 
     # Verify signature (injected dependency)
     try:
