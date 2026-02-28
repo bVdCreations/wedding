@@ -204,12 +204,17 @@ async def test_submit_rsvp_with_dietary_requirements():
                 session_overwrite=session, email_service=MockEmailService()
             )
 
+            from src.guests.features.update_rsvp.router import GuestInfoSubmit
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
-                dietary_requirements=[
-                    DietaryRequirement(requirement_type=DietaryType.VEGETARIAN, notes="No mushrooms please"),
-                    DietaryRequirement(requirement_type=DietaryType.GLUTEN_FREE, notes=None),
-                ],
+                guest_info=GuestInfoSubmit(
+                    first_name="John",
+                    last_name="Doe",
+                    dietary_requirements=[
+                        DietaryRequirement(requirement_type=DietaryType.VEGETARIAN, notes="No mushrooms please"),
+                        DietaryRequirement(requirement_type=DietaryType.GLUTEN_FREE, notes=None),
+                    ],
+                ),
                 family_member_updates={},
             )
 
@@ -308,9 +313,14 @@ async def test_submit_rsvp_clears_previous_dietary():
                 session_overwrite=session, email_service=MockEmailService()
             )
 
+            from src.guests.features.update_rsvp.router import GuestInfoSubmit
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
-                dietary_requirements=[DietaryRequirement(requirement_type=DietaryType.VEGAN, notes="New preference")],
+                guest_info=GuestInfoSubmit(
+                    first_name="John",
+                    last_name="Doe",
+                    dietary_requirements=[DietaryRequirement(requirement_type=DietaryType.VEGAN, notes="New preference")],
+                ),
                 family_member_updates={},
             )
 

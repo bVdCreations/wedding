@@ -36,21 +36,19 @@ class GuestInfoSubmit(BaseModel):
     last_name: str
     phone: str | None = None
     allergies: str | None = None
+    dietary_requirements: list[DietaryRequirement] = field(default_factory=list)
 
 
 class FamilyMemberSubmit(BaseModel):
     """Submit family member updates."""
 
     attending: bool
-    dietary_requirements: list[DietaryRequirement] = field(default_factory=list)
-    guest_info: GuestInfoSubmit | None = None
-    allergies: str | None = None
+    guest_info: GuestInfoSubmit
 
 
 class RSVPResponseSubmit(BaseModel):
     attending: bool
     plus_one_details: PlusOneSubmit | None = None
-    dietary_requirements: list[DietaryRequirement] = field(default_factory=list)
     guest_info: GuestInfoSubmit | None = None
     family_member_updates: dict[str, FamilyMemberSubmit] = {}
 

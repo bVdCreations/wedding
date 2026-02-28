@@ -446,9 +446,7 @@ const t = getTranslations(lang as Language);
 
       familyMemberUpdates[member.uuid] = {
         attending: memberAttendingValue,
-        allergies: memberAllergies,
-        dietary_requirements: memberDietaryRequirements,
-        guest_info: {first_name: memberFirstName, last_name: memberLastName, phone: memberPhone || null},
+        guest_info: {first_name: memberFirstName, last_name: memberLastName, phone: memberPhone || null, allergies: memberAllergies, dietary_requirements: memberDietaryRequirements},
       };
     });
 
@@ -463,8 +461,7 @@ const t = getTranslations(lang as Language);
         body: JSON.stringify({
           attending: attendingValue,
           plus_one_details: plusOneDetails,
-          dietary_requirements: dietaryRequirements,
-          guest_info: {first_name: firstName, last_name: lastName, phone: phone || null, allergies: allergies},
+          guest_info: {first_name: firstName, last_name: lastName, phone: phone || null, allergies: allergies, dietary_requirements: dietaryRequirements},
           family_member_updates: familyMemberUpdates,
         })
       });

@@ -47,7 +47,7 @@ async def test_submit_rsvp_attending(client_factory):
     token = "test-token-12345"
     write_model = InMemoryRSVPWriteModel(memory)
     """Test submitting an RSVP with attending=true."""
-    rsvp_data = {"attending": True, "dietary_requirements": [], "family_member_updates": {}}
+    rsvp_data = {"attending": True, "family_member_updates": {}}
     overrides = {
         get_rsvp_write_model: lambda: write_model,
     }
@@ -67,7 +67,7 @@ async def test_submit_rsvp_not_attending(client_factory):
     memory = {}
     token = "test-token-12345"
     write_model = InMemoryRSVPWriteModel(memory)
-    rsvp_data = {"attending": False, "dietary_requirements": [], "family_member_updates": {}}
+    rsvp_data = {"attending": False, "family_member_updates": {}}
     overrides = {
         get_rsvp_write_model: lambda: write_model,
     }
@@ -91,10 +91,14 @@ async def test_submit_rsvp_with_dietary_requirements(client_factory):
     write_model = InMemoryRSVPWriteModel(memory)
     rsvp_data = {
         "attending": True,
-        "dietary_requirements": [
-            {"requirement_type": "vegetarian", "notes": "No mushrooms please"},
-            {"requirement_type": "gluten_free", "notes": None},
-        ],
+        "guest_info": {
+            "first_name": "Test",
+            "last_name": "Guest",
+            "dietary_requirements": [
+                {"requirement_type": "vegetarian", "notes": "No mushrooms please"},
+                {"requirement_type": "gluten_free", "notes": None},
+            ],
+        },
         "family_member_updates": {},
     }
     overrides = {
@@ -119,7 +123,6 @@ async def test_submit_rsvp_with_guest_info_allergies(client_factory):
     write_model = InMemoryRSVPWriteModel(memory)
     rsvp_data = {
         "attending": True,
-        "dietary_requirements": [],
         "family_member_updates": {},
         "guest_info": {
             "first_name": "Alice",
@@ -153,7 +156,6 @@ async def test_submit_rsvp_with_plus_one(client_factory):
             "first_name": "John",
             "last_name": "Doe",
         },
-        "dietary_requirements": [],
         "family_member_updates": {},
     }
     overrides = {
@@ -192,7 +194,6 @@ async def test_submit_rsvp_with_plus_one_allergies(client_factory):
             "last_name": "Smith",
             "allergies": "Peanuts and shellfish",
         },
-        "dietary_requirements": [],
         "family_member_updates": {},
     }
     overrides = {
@@ -228,7 +229,6 @@ async def test_submit_rsvp_with_plus_one_dietary_requirements(client_factory):
                 {"requirement_type": "other", "notes": "No spicy food"},
             ],
         },
-        "dietary_requirements": [],
         "family_member_updates": {},
     }
     overrides = {
@@ -253,6 +253,42 @@ async def test_submit_rsvp_with_plus_one_dietary_requirements(client_factory):
 
 
 @pytest.mark.asyncio
+async def test_submit_rsvp_family_member_allergies_in_guest_info(client_factory):
+    """Test that family member allergies and dietary requirements are passed through guest_info."""
+
+    memory = {}
+    token = "test-token-family-allergies"
+    write_model = InMemoryRSVPWriteModel(memory)
+    family_uuid = "11111111-1111-1111-1111-111111111111"
+    rsvp_data = {
+        "attending": True,
+        "family_member_updates": {
+            family_uuid: {
+                "attending": True,
+                "guest_info": {
+                    "first_name": "Bob",
+                    "last_name": "Jones",
+                    "phone": None,
+                    "allergies": "Sesame",
+                    "dietary_requirements": [{"requirement_type": "vegetarian", "notes": None}],
+                },
+            }
+        },
+    }
+    overrides = {
+        get_rsvp_write_model: lambda: write_model,
+    }
+
+    async with client_factory(overrides) as client:
+        response = await client.post(url=UPDATE_RSVP_URL.format(token=token), json=rsvp_data)
+
+    assert response.status_code == 200
+    family_update = memory[token]["family_member_updates"][family_uuid]
+    assert family_update["guest_info"]["allergies"] == "Sesame"
+    assert family_update["guest_info"]["dietary_requirements"][0]["requirement_type"] == "vegetarian"
+
+
+@pytest.mark.asyncio
 async def test_submit_rsvp_with_plus_one_allergies_and_dietary(client_factory):
     """Test submitting an RSVP with plus one including both allergies and dietary requirements."""
 
@@ -270,7 +306,6 @@ async def test_submit_rsvp_with_plus_one_allergies_and_dietary(client_factory):
                 {"requirement_type": "vegan", "notes": None},
             ],
         },
-        "dietary_requirements": [],
         "family_member_updates": {},
     }
     overrides = {

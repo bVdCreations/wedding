@@ -118,12 +118,9 @@ class SqlRSVPWriteModel(RSVPWriteModel):
         if update_data.guest_info:
             await self._update_guest_info(session, family_member, update_data.guest_info)
 
-        # Update allergies if provided
-        if update_data.allergies is not None:
-            family_member.allergies = update_data.allergies
-
-        # Update dietary requirements
-        if update_data.dietary_requirements:
+        # Update dietary requirements from guest_info
+        dietary_requirements = update_data.guest_info.dietary_requirements if update_data.guest_info else []
+        if dietary_requirements:
             # Clear existing dietary requirements
             existing_dietary = await session.execute(
                 select(DietaryOption).where(DietaryOption.guest_id == family_member_uuid)
@@ -132,7 +129,7 @@ class SqlRSVPWriteModel(RSVPWriteModel):
                 await session.delete(dietary)
 
             # Add new dietary requirements
-            for req in update_data.dietary_requirements:
+            for req in dietary_requirements:
                 dietary = DietaryOption(
                     guest_id=family_member_uuid,
                     requirement_type=DietaryType(req.requirement_type),
@@ -154,8 +151,8 @@ class SqlRSVPWriteModel(RSVPWriteModel):
         """
         attending = rsvp_data.attending
         plus_one_details = rsvp_data.plus_one_details
-        dietary_requirements = rsvp_data.dietary_requirements
         guest_info = rsvp_data.guest_info
+        dietary_requirements = guest_info.dietary_requirements if guest_info else []
         family_member_updates = rsvp_data.family_member_updates
 
         async with async_session_manager(session_overwrite=self._session_overwrite) as session:
