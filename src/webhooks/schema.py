@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class ReceivedEmailAttachment(BaseModel):
@@ -34,3 +34,10 @@ class ReceivedEmail(BaseModel):
     message_id: str
     raw: ReceivedEmailRaw
     attachments: list[ReceivedEmailAttachment] = []
+
+    @field_validator("created_at", mode="before")
+    @classmethod
+    def normalize_timezone(cls, v: str) -> str:
+        if isinstance(v, str) and v.endswith("+00"):
+            return v + ":00"
+        return v
