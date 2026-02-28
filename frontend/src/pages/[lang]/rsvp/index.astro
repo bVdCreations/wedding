@@ -428,7 +428,6 @@ const t = getTranslations(lang as Language);
       };
     });
 
-    // Get main guest allergies
     const allergies = document.getElementById('allergies')?.value || null;
 
     const familyMemberUpdates = {};
@@ -465,8 +464,7 @@ const t = getTranslations(lang as Language);
           attending: attendingValue,
           plus_one_details: plusOneDetails,
           dietary_requirements: dietaryRequirements,
-          allergies: allergies,
-          guest_info: {first_name: firstName, last_name: lastName, phone: phone || null},
+          guest_info: {first_name: firstName, last_name: lastName, phone: phone || null, allergies: allergies},
           family_member_updates: familyMemberUpdates,
         })
       });

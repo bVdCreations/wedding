@@ -207,10 +207,6 @@ class SqlRSVPWriteModel(RSVPWriteModel):
             if guest_info:
                 await self._update_guest_info(session, guest, guest_info)
 
-            # Update main guest allergies if provided
-            if rsvp_data.allergies is not None:
-                guest.allergies = rsvp_data.allergies
-
             await session.refresh(guest)
 
             # Create plus-one guest if details provided

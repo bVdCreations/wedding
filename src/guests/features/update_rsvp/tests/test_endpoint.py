@@ -111,6 +111,35 @@ async def test_submit_rsvp_with_dietary_requirements(client_factory):
 
 
 @pytest.mark.asyncio
+async def test_submit_rsvp_with_guest_info_allergies(client_factory):
+    """Test that allergies are passed through guest_info."""
+
+    memory = {}
+    token = "test-token-guest-allergies"
+    write_model = InMemoryRSVPWriteModel(memory)
+    rsvp_data = {
+        "attending": True,
+        "dietary_requirements": [],
+        "family_member_updates": {},
+        "guest_info": {
+            "first_name": "Alice",
+            "last_name": "Smith",
+            "phone": None,
+            "allergies": "Nuts and dairy",
+        },
+    }
+    overrides = {
+        get_rsvp_write_model: lambda: write_model,
+    }
+
+    async with client_factory(overrides) as client:
+        response = await client.post(url=UPDATE_RSVP_URL.format(token=token), json=rsvp_data)
+
+    assert response.status_code == 200
+    assert memory[token]["guest_info"]["allergies"] == "Nuts and dairy"
+
+
+@pytest.mark.asyncio
 async def test_submit_rsvp_with_plus_one(client_factory):
     """Test submitting an RSVP with plus one."""
 

@@ -53,7 +53,6 @@ class RSVPResponseSubmit(BaseModel):
     dietary_requirements: list[DietaryRequirement] = field(default_factory=list)
     guest_info: GuestInfoSubmit | None = None
     family_member_updates: dict[str, FamilyMemberSubmit] = {}
-    allergies: str | None = None
 
 
 class RSVPResponse(BaseModel):
