@@ -121,6 +121,44 @@ test.describe('Home Page', () => {
   });
 });
 
+test.describe('RSVP Redirect', () => {
+  test('should redirect to request page when no token is present', async ({ page, language }) => {
+    // Navigate to RSVP page without a token
+    await page.goto(`/${language}/rsvp`);
+    
+    // Wait for the redirect to complete
+    await page.waitForURL(`**/${language}/rsvp/request**`);
+    
+    // Verify we're on the request page
+    await expect(page).toHaveURL(new RegExp(`/${language}/rsvp/request/?$`));
+  });
+
+  test('should redirect to request page when token is empty', async ({ page, language }) => {
+    // Navigate to RSVP page with empty token
+    await page.goto(`/${language}/rsvp?token=`);
+    
+    // Wait for the redirect to complete
+    await page.waitForURL(`**/${language}/rsvp/request**`);
+    
+    // Verify we're on the request page
+    await expect(page).toHaveURL(new RegExp(`/${language}/rsvp/request/?$`));
+  });
+
+  test('should not redirect when valid token is present', async ({ page, language }) => {
+    // Navigate to RSVP page with a token
+    await page.goto(`/${language}/rsvp?token=test-token`);
+    
+    // Wait for page to load
+    await page.waitForLoadState('networkidle');
+    
+    // Verify we're still on the RSVP page (not redirected)
+    await expect(page).toHaveURL(new RegExp(`/${language}/rsvp\\?token=test-token`));
+    
+    // Verify the form is visible
+    await expect(page.locator('#rsvp-form')).toBeVisible();
+  });
+});
+
 test.describe('API Integration', () => {
   test('should return 404 for non-existent guest', async ({ apiRequest }) => {
     // Test that invalid tokens return 404
