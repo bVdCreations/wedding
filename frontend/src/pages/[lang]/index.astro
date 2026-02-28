@@ -51,7 +51,7 @@ const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (
       <h1 class="text-5xl md:text-7xl lg:text-8xl font-serif font-light mb-6 leading-tight">
         {t.hero.names}
       </h1>
-      <p class="text-2xl md:text-3xl font-serif mb-4">{t.hero.date}</p>
+      <p class="text-2xl md:text-3xl font-serif mb-4 font-bold">{t.hero.date}</p>
       <p class="text-lg md:text-xl opacity-90 font-light">{t.hero.location}</p>
     </div>
 
@@ -64,7 +64,7 @@ const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (
   </section>
 
   <!-- Countdown Section -->
-  <section class="py-16 md:py-24 bg-stone-50">
+  <section class="py-16 md:py-24 bg-[#f6f4f0]">
     <div class="max-w-4xl mx-auto px-4 text-center">
       <h2 class="text-3xl md:text-4xl font-serif mb-8 text-gray-800">{t.countdown.title}</h2>
       <div class="flex flex-wrap justify-center gap-6 md:gap-12" id="countdown">
@@ -99,7 +99,7 @@ const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (
   </section>
 
   <!-- Ceremony Section -->
-  <section class="py-16 md:py-24 bg-stone-100">
+  <section class="py-16 md:py-24 bg-[#f6f4f0]">
     <div class="max-w-4xl mx-auto px-4">
       <div class="grid md:grid-cols-2 gap-12 items-center">
         <div class="text-center md:text-left">
@@ -152,7 +152,7 @@ const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (
   </section>
 
   <!-- Reception Section -->
-  <section class="py-16 md:py-24 bg-white">
+  <section class="py-16 md:py-24 bg-[#f6f4f0]">
     <div class="max-w-4xl mx-auto px-4">
       <div class="grid md:grid-cols-2 gap-12 items-center md:flex-row-reverse">
         <div class="relative md:order-2">
@@ -179,7 +179,7 @@ const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (
   </section>
 
   <!-- Photo Gallery -->
-  <section class="py-16 md:py-24 bg-stone-50">
+  <section class="py-16 md:py-24 bg-white">
     <div class="max-w-6xl mx-auto px-4">
       <h2 class="text-3xl md:text-4xl font-serif text-center mb-12 text-gray-800">{t.gallery.title}</h2>
       <div class="gallery-scroll flex overflow-x-auto snap-x snap-mandatory gap-4 md:grid md:grid-cols-3 md:overflow-visible">
@@ -233,7 +233,7 @@ const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (
 
   <!-- RSVP Section (hidden) -->
   <!--
-  <section class="py-16 md:py-24 bg-gray-800 text-white">
+  <section class="py-16 md:py-24 bg-[#2c372a] text-white">
     <div class="max-w-3xl mx-auto px-4 text-center">
       <h2 class="text-3xl md:text-4xl font-serif mb-6">{t.rsvpSection.title}</h2>
       <p class="text-lg opacity-90 mb-8 font-light">
@@ -251,7 +251,7 @@ const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (
   -->
 
   <!-- Contact Section -->
-  <section class="py-16 md:py-24 bg-stone-100">
+  <section class="py-16 md:py-24 bg-[#f6f4f0]">
     <div class="max-w-2xl mx-auto px-4 text-center">
       <h2 class="text-3xl md:text-4xl font-serif mb-6 text-gray-800">{t.contact.title}</h2>
       <p class="text-lg text-gray-600 mb-8 font-light">
@@ -267,7 +267,7 @@ const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (
   </section>
 
   <!-- Footer -->
-  <footer class="py-8 bg-gray-800 text-white text-center">
+  <footer class="py-8 bg-[#2c372a] text-white text-center">
     <p class="text-sm opacity-70 font-light">{t.footer.text}</p>
   </footer>
 </Layout>
