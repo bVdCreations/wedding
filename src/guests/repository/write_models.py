@@ -120,7 +120,9 @@ class SqlRSVPWriteModel(RSVPWriteModel):
             await self._update_guest_info(session, family_member, update_data.guest_info)
 
         # Update dietary requirements from guest_info
-        dietary_requirements = update_data.guest_info.dietary_requirements if update_data.guest_info else []
+        dietary_requirements = (
+            update_data.guest_info.dietary_requirements if update_data.guest_info else []
+        )
         if dietary_requirements:
             # Clear existing dietary requirements
             existing_dietary = await session.execute(
@@ -283,6 +285,29 @@ class SqlRSVPWriteModel(RSVPWriteModel):
                     guest_id=guest.uuid,
                     user_id=guest.user_id,
                 )
+            # Send plus-one invitation email if email_service is available
+            if attending and plus_one_details and plus_one_details.email and self._email_service:
+                # Get plus-one's RSVP info for the link
+                rsvp_stmt = select(RSVPInfo).where(RSVPInfo.guest_id == plus_one_guest_uuid)
+                rsvp_result = await session.execute(rsvp_stmt)
+                rsvp_info = rsvp_result.scalar_one_or_none()
+
+                if rsvp_info:
+                    inviter_name = f"{guest.first_name} {guest.last_name}"
+                    preferred_language = getattr(guest, "preferred_language", Language.EN)
+
+                    await self._email_service.send_invite_one_plus_one(
+                        to_address=plus_one_details.email,
+                        guest_name=f"{plus_one_details.first_name} {plus_one_details.last_name}",
+                        inviter_name=inviter_name,
+                        event_date="August 15, 2026",
+                        event_location="Castillo de Example, Spain",
+                        rsvp_url=rsvp_info.rsvp_link,
+                        response_deadline="July 15, 2026",
+                        language=preferred_language,
+                        guest_id=plus_one_guest_uuid,
+                        user_id=guest.user_id,
+                    )
 
             # Return DTO instead of ORM model
             return RSVPResponseDTO(

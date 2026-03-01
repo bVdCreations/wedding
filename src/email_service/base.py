@@ -38,7 +38,13 @@ class EmailServiceBase(ABC):
         self,
         to_address: str,
         guest_name: str,
-        plus_one_details: dict,
+        inviter_name: str,
+        event_date: str,
+        event_location: str,
+        rsvp_url: str,
+        response_deadline: str,
         language: Language = Language.EN,
+        guest_id: UUID | None = None,
+        user_id: UUID | None = None,
     ) -> None:
         pass

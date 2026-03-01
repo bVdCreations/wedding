@@ -49,8 +49,14 @@ class MockEmailService(EmailServiceBase):
         self,
         to_address: str,
         guest_name: str,
-        plus_one_details: dict,
+        inviter_name: str,
+        event_date: str,
+        event_location: str,
+        rsvp_url: str,
+        response_deadline: str,
         language: Language = Language.EN,
+        guest_id: UUID | None = None,
+        user_id: UUID | None = None,
     ) -> None:
         """Mock send invite one plus one - does nothing."""
         pass
@@ -209,13 +215,16 @@ async def test_submit_rsvp_with_dietary_requirements():
             )
 
             from src.guests.features.update_rsvp.router import GuestInfoSubmit
+
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
                 guest_info=GuestInfoSubmit(
                     first_name="John",
                     last_name="Doe",
                     dietary_requirements=[
-                        DietaryRequirement(requirement_type=DietaryType.VEGETARIAN, notes="No mushrooms please"),
+                        DietaryRequirement(
+                            requirement_type=DietaryType.VEGETARIAN, notes="No mushrooms please"
+                        ),
                         DietaryRequirement(requirement_type=DietaryType.GLUTEN_FREE, notes=None),
                     ],
                 ),
@@ -316,12 +325,17 @@ async def test_submit_rsvp_clears_previous_dietary():
             )
 
             from src.guests.features.update_rsvp.router import GuestInfoSubmit
+
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
                 guest_info=GuestInfoSubmit(
                     first_name="John",
                     last_name="Doe",
-                    dietary_requirements=[DietaryRequirement(requirement_type=DietaryType.VEGAN, notes="New preference")],
+                    dietary_requirements=[
+                        DietaryRequirement(
+                            requirement_type=DietaryType.VEGAN, notes="New preference"
+                        )
+                    ],
                 ),
                 family_member_updates={},
             )
@@ -421,6 +435,7 @@ class SpyEmailService(EmailServiceBase):
 
     def __init__(self):
         self.send_confirmation_calls = []
+        self.send_invite_one_plus_one_calls = []
 
     async def send_confirmation(
         self,
@@ -429,8 +444,8 @@ class SpyEmailService(EmailServiceBase):
         attending: str,
         dietary: str,
         language: Language = Language.EN,
-        guest_id: UUID | None = None,
-        user_id: UUID | None = None,
+        guest_id=None,
+        user_id=None,
     ) -> None:
         """Capture send confirmation calls."""
         self.send_confirmation_calls.append(
@@ -452,8 +467,8 @@ class SpyEmailService(EmailServiceBase):
         rsvp_url: str,
         response_deadline: str,
         language: Language = Language.EN,
-        guest_id: UUID | None = None,
-        user_id: UUID | None = None,
+        guest_id=None,
+        user_id=None,
     ) -> None:
         """Mock send invitation - does nothing."""
         pass
@@ -462,11 +477,30 @@ class SpyEmailService(EmailServiceBase):
         self,
         to_address: str,
         guest_name: str,
-        plus_one_details: dict,
+        inviter_name: str,
+        event_date: str,
+        event_location: str,
+        rsvp_url: str,
+        response_deadline: str,
         language: Language = Language.EN,
+        guest_id=None,
+        user_id=None,
     ) -> None:
-        """Mock send invite one plus one - does nothing."""
-        pass
+        """Capture send invite one plus one calls."""
+        self.send_invite_one_plus_one_calls.append(
+            {
+                "to_address": to_address,
+                "guest_name": guest_name,
+                "inviter_name": inviter_name,
+                "event_date": event_date,
+                "event_location": event_location,
+                "rsvp_url": rsvp_url,
+                "response_deadline": response_deadline,
+                "language": language,
+                "guest_id": guest_id,
+                "user_id": user_id,
+            }
+        )
 
 
 async def create_test_guest_with_language(
@@ -632,6 +666,7 @@ async def test_submit_rsvp_saves_guest_allergies():
             )
 
             from src.guests.features.update_rsvp.router import GuestInfoSubmit
+
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
                 guest_info=GuestInfoSubmit(
@@ -651,9 +686,7 @@ async def test_submit_rsvp_saves_guest_allergies():
             assert result.attending is True
 
             # Verify allergies were saved
-            guest_result = await session.execute(
-                select(Guest).where(Guest.uuid == guest_uuid)
-            )
+            guest_result = await session.execute(select(Guest).where(Guest.uuid == guest_uuid))
             updated_guest = guest_result.scalar_one()
             assert updated_guest.allergies == "Peanuts, shellfish, dairy"
         finally:
@@ -678,6 +711,7 @@ async def test_submit_rsvp_updates_existing_allergies():
             )
 
             from src.guests.features.update_rsvp.router import GuestInfoSubmit
+
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
                 guest_info=GuestInfoSubmit(
@@ -694,9 +728,7 @@ async def test_submit_rsvp_updates_existing_allergies():
             )
 
             # Verify allergies were replaced, not appended
-            guest_result = await session.execute(
-                select(Guest).where(Guest.uuid == guest_uuid)
-            )
+            guest_result = await session.execute(select(Guest).where(Guest.uuid == guest_uuid))
             updated_guest = guest_result.scalar_one()
             assert updated_guest.allergies == "New allergies: peanuts, soy"
             assert "Old allergies" not in updated_guest.allergies
@@ -718,6 +750,7 @@ async def test_submit_rsvp_saves_allergies_with_dietary():
             )
 
             from src.guests.features.update_rsvp.router import GuestInfoSubmit
+
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
                 guest_info=GuestInfoSubmit(
@@ -725,7 +758,9 @@ async def test_submit_rsvp_saves_allergies_with_dietary():
                     last_name="Doe",
                     allergies="Severe peanut allergy",
                     dietary_requirements=[
-                        DietaryRequirement(requirement_type=DietaryType.VEGETARIAN, notes="No eggs"),
+                        DietaryRequirement(
+                            requirement_type=DietaryType.VEGETARIAN, notes="No eggs"
+                        ),
                         DietaryRequirement(requirement_type=DietaryType.GLUTEN_FREE, notes=None),
                     ],
                 ),
@@ -741,9 +776,7 @@ async def test_submit_rsvp_saves_allergies_with_dietary():
             assert result.attending is True
 
             # Verify allergies were saved
-            guest_result = await session.execute(
-                select(Guest).where(Guest.uuid == guest_uuid)
-            )
+            guest_result = await session.execute(select(Guest).where(Guest.uuid == guest_uuid))
             updated_guest = guest_result.scalar_one()
             assert updated_guest.allergies == "Severe peanut allergy"
 
@@ -765,13 +798,16 @@ async def test_submit_rsvp_saves_plus_one_allergies():
     async with async_session_manager() as session:
         try:
             user = await create_test_user(session, email="plus_one_allergies@example.com")
-            guest = await create_test_guest(session, user, rsvp_token="plus-one-allergies-token-123")
+            guest = await create_test_guest(
+                session, user, rsvp_token="plus-one-allergies-token-123"
+            )
             guest_uuid = guest.uuid
 
             # Import and setup plus-one write model
             from src.guests.features.create_plus_one_guest.write_model import (
                 SqlPlusOneGuestWriteModel,
             )
+
             plus_one_write_model = SqlPlusOneGuestWriteModel()
 
             write_model = SqlRSVPWriteModel(
@@ -781,6 +817,7 @@ async def test_submit_rsvp_saves_plus_one_allergies():
             )
 
             from src.guests.features.update_rsvp.router import PlusOneSubmit
+
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
                 plus_one_details=PlusOneSubmit(
@@ -802,9 +839,7 @@ async def test_submit_rsvp_saves_plus_one_allergies():
             assert result.attending is True
 
             # Verify primary guest has plus-one reference
-            guest_result = await session.execute(
-                select(Guest).where(Guest.uuid == guest_uuid)
-            )
+            guest_result = await session.execute(select(Guest).where(Guest.uuid == guest_uuid))
             updated_guest = guest_result.scalar_one()
             assert updated_guest.bring_a_plus_one_id is not None
 
@@ -855,6 +890,7 @@ async def test_submit_rsvp_saves_family_member_allergies():
             )
 
             from src.guests.features.update_rsvp.router import FamilyMemberSubmit, GuestInfoSubmit
+
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
                 family_member_updates={
@@ -903,6 +939,7 @@ async def test_submit_rsvp_clears_allergies_with_empty_string():
             )
 
             from src.guests.features.update_rsvp.router import GuestInfoSubmit
+
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
                 guest_info=GuestInfoSubmit(
@@ -919,9 +956,7 @@ async def test_submit_rsvp_clears_allergies_with_empty_string():
             )
 
             # Verify allergies were cleared
-            guest_result = await session.execute(
-                select(Guest).where(Guest.uuid == guest_uuid)
-            )
+            guest_result = await session.execute(select(Guest).where(Guest.uuid == guest_uuid))
             updated_guest = guest_result.scalar_one()
             assert updated_guest.allergies == ""
         finally:
@@ -946,6 +981,7 @@ async def test_submit_rsvp_allergies_persist_when_not_provided():
             )
 
             from src.guests.features.update_rsvp.router import GuestInfoSubmit
+
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
                 guest_info=GuestInfoSubmit(
@@ -962,9 +998,7 @@ async def test_submit_rsvp_allergies_persist_when_not_provided():
             )
 
             # Verify allergies persisted
-            guest_result = await session.execute(
-                select(Guest).where(Guest.uuid == guest_uuid)
-            )
+            guest_result = await session.execute(select(Guest).where(Guest.uuid == guest_uuid))
             updated_guest = guest_result.scalar_one()
             assert updated_guest.allergies == "Existing allergies"
         finally:
@@ -992,6 +1026,7 @@ async def test_submit_rsvp_long_allergies_text():
             )
 
             from src.guests.features.update_rsvp.router import GuestInfoSubmit
+
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
                 guest_info=GuestInfoSubmit(
@@ -1011,9 +1046,7 @@ async def test_submit_rsvp_long_allergies_text():
             assert result.attending is True
 
             # Verify long allergies were saved
-            guest_result = await session.execute(
-                select(Guest).where(Guest.uuid == guest_uuid)
-            )
+            guest_result = await session.execute(select(Guest).where(Guest.uuid == guest_uuid))
             updated_guest = guest_result.scalar_one()
             assert updated_guest.allergies == long_allergies
         finally:
@@ -1037,6 +1070,7 @@ async def test_submit_rsvp_special_characters_in_allergies():
             )
 
             from src.guests.features.update_rsvp.router import GuestInfoSubmit
+
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
                 guest_info=GuestInfoSubmit(
@@ -1056,9 +1090,7 @@ async def test_submit_rsvp_special_characters_in_allergies():
             assert result.attending is True
 
             # Verify special characters in allergies were saved correctly
-            guest_result = await session.execute(
-                select(Guest).where(Guest.uuid == guest_uuid)
-            )
+            guest_result = await session.execute(select(Guest).where(Guest.uuid == guest_uuid))
             updated_guest = guest_result.scalar_one()
             assert updated_guest.allergies == special_allergies
         finally:
@@ -1084,6 +1116,7 @@ async def test_submit_rsvp_updates_phone_and_allergies():
             )
 
             from src.guests.features.update_rsvp.router import GuestInfoSubmit
+
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
                 guest_info=GuestInfoSubmit(
@@ -1101,11 +1134,64 @@ async def test_submit_rsvp_updates_phone_and_allergies():
             )
 
             # Verify both phone and allergies were updated
-            guest_result = await session.execute(
-                select(Guest).where(Guest.uuid == guest_uuid)
-            )
+            guest_result = await session.execute(select(Guest).where(Guest.uuid == guest_uuid))
             updated_guest = guest_result.scalar_one()
             assert updated_guest.phone == "+9876543210"
             assert updated_guest.allergies == "New allergies: shellfish"
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_sends_plus_one_invitation_email():
+    """Test that plus-one invitation email is sent when creating a plus-one guest."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="plus_one_email_test@example.com")
+            await create_test_guest(session, user, rsvp_token="plus-one-email-token-123")
+
+            from src.guests.features.create_plus_one_guest.write_model import (
+                SqlPlusOneGuestWriteModel,
+            )
+
+            plus_one_write_model = SqlPlusOneGuestWriteModel()
+            spy_email_service = SpyEmailService()
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session,
+                email_service=spy_email_service,
+                plus_one_guest_write_model=plus_one_write_model,
+            )
+
+            from src.guests.features.update_rsvp.router import PlusOneSubmit
+
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                plus_one_details=PlusOneSubmit(
+                    email="plusone@example.com",
+                    first_name="Jane",
+                    last_name="Smith",
+                    allergies=None,
+                    dietary_requirements=[],
+                ),
+                family_member_updates={},
+            )
+
+            result = await write_model.submit_rsvp(
+                token="plus-one-email-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            assert result.attending is True
+
+            assert len(spy_email_service.send_invite_one_plus_one_calls) == 1
+            call = spy_email_service.send_invite_one_plus_one_calls[0]
+            assert call["to_address"] == "plusone@example.com"
+            assert call["guest_name"] == "Jane Smith"
+            assert call["inviter_name"] == "John Doe"
+            assert call["event_date"] == "August 15, 2026"
+            assert call["event_location"] == "Castillo de Example, Spain"
+            assert "rsvp_url" in call
+            assert call["response_deadline"] == "July 15, 2026"
         finally:
             await session.rollback()

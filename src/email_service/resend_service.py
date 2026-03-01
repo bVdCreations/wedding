@@ -169,10 +169,45 @@ class ResendEmailService(EmailServiceBase):
         self,
         to_address: str,
         guest_name: str,
-        plus_one_details: dict,
+        inviter_name: str,
+        event_date: str,
+        event_location: str,
+        rsvp_url: str,
+        response_deadline: str,
         language: Language = Language.EN,
         guest_id: UUID | None = None,
         user_id: UUID | None = None,
     ) -> None:
-        pass
+        subject, html_template, text_template = EmailTemplates.get_plus_one_invitation_templates(
+            language
+        )
 
+        html_body = html_template.format(
+            guest_name=guest_name,
+            inviter_name=inviter_name,
+            event_date=event_date,
+            event_location=event_location,
+            rsvp_url=rsvp_url,
+            response_deadline=response_deadline,
+            couple_names="Bastiaan & Gemma",
+        )
+        text_body = text_template.format(
+            guest_name=guest_name,
+            inviter_name=inviter_name,
+            event_date=event_date,
+            event_location=event_location,
+            rsvp_url=rsvp_url,
+            response_deadline=response_deadline,
+            couple_names="Bastiaan & Gemma",
+        )
+
+        await self._send(
+            to_address=to_address,
+            subject=subject,
+            html_body=html_body,
+            text_body=text_body,
+            email_type="plus_one_invitation",
+            guest_id=guest_id,
+            user_id=user_id,
+            language=language,
+        )
