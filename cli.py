@@ -9,6 +9,7 @@ from sqlalchemy import select
 
 from src.config.database import async_session_manager
 from src.email_service import get_email_service
+from src.email_service.smtp_service import SMTPEmailService
 from src.guests.dtos import Language, PlusOneDTO
 from src.guests.features.create_child_guest.write_model import SqlChildGuestCreateWriteModel
 from src.guests.features.create_guest.write_model import SqlGuestCreateWriteModel
@@ -568,5 +569,109 @@ def send_email(
     typer.secho(f"  Language: {language}", fg=typer.colors.BLUE)
 
 
-if __name__ == "__main__":
-    app()
+async def _send_all_test_emails(
+    language: Language | None,
+    email_type: EmailType | None,
+    to_email: str = "test@guest.example",
+):
+    """Send test emails based on language and type filters."""
+    email_service = SMTPEmailService()
+    guest_name = "Test Guest"
+    inviter_name = "Test Inviter"
+    event_date = "August 15, 2026"
+    event_location = "Castillo de Example, Spain"
+    rsvp_url = "https://example.com/rsvp/test-token"
+    response_deadline = "July 15, 2026"
+    attending = "yes"
+    dietary = "none"
+
+    languages = [language] if language else list(Language)
+    email_types = [email_type] if email_type else list(EmailType)
+
+    sent_count = 0
+
+    for lang in languages:
+        for etype in email_types:
+            if etype == EmailType.INVITATION:
+                await email_service.send_invitation(
+                    to_address=to_email,
+                    guest_name=guest_name,
+                    event_date=event_date,
+                    event_location=event_location,
+                    rsvp_url=rsvp_url,
+                    response_deadline=response_deadline,
+                    language=lang,
+                )
+            elif etype == EmailType.CONFIRMATION:
+                await email_service.send_confirmation(
+                    to_address=to_email,
+                    guest_name=guest_name,
+                    attending=attending,
+                    dietary=dietary,
+                    language=lang,
+                )
+            elif etype == EmailType.PLUS_ONE:
+                await email_service.send_invite_one_plus_one(
+                    to_address=to_email,
+                    guest_name=guest_name,
+                    inviter_name=inviter_name,
+                    event_date=event_date,
+                    event_location=event_location,
+                    rsvp_url=rsvp_url,
+                    response_deadline=response_deadline,
+                    language=lang,
+                )
+            sent_count += 1
+            typer.echo(f"  Sent: {etype.value} ({lang.value})")
+
+    return sent_count
+
+
+@app.command()
+def send_test_emails(
+    language: str | None = typer.Option(
+        None,
+        "--language",
+        "-l",
+        help="Language: en, es, nl. If not set, sends all languages",
+    ),
+    email_type: str | None = typer.Option(
+        None,
+        "--type",
+        "-y",
+        help="Email type: invitation, confirmation, plus_one. If not set, sends all types",
+    ),
+):
+    """Send test emails to Mailhog for inspection.
+
+    Examples:
+        python cli.py send-test-emails                     # Send all 9 emails
+        python cli.py send-test-emails --language en       # Send all types in English
+        python cli.py send-test-emails --type invitation   # Send invitation in all languages
+        python cli.py send-test-emails -l es -y confirmation  # Send Spanish confirmation
+    """
+    lang = None
+    if language:
+        try:
+            lang = Language(language)
+        except ValueError:
+            typer.secho(
+                f"Invalid language: {language}. Must be one of: en, es, nl",
+                fg=typer.colors.RED,
+            )
+            raise typer.Exit(1)
+
+    etype = None
+    if email_type:
+        try:
+            etype = EmailType(email_type)
+        except ValueError:
+            typer.secho(
+                f"Invalid email type: {email_type}. Must be one of: invitation, confirmation, plus_one",
+                fg=typer.colors.RED,
+            )
+            raise typer.Exit(1)
+
+    sent_count = asyncio.run(_send_all_test_emails(lang, etype))
+
+    typer.secho(f"\nSuccessfully sent {sent_count} email(s) to Mailhog!", fg=typer.colors.GREEN)
