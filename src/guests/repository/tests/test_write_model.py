@@ -1195,3 +1195,473 @@ async def test_submit_rsvp_sends_plus_one_invitation_email():
             assert call["response_deadline"] == "July 15, 2026"
         finally:
             await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_not_attending_does_not_send_plus_one_email():
+    """Test that plus-one invitation email is NOT sent when guest RSVPs not attending."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="not_attending@test.com")
+            await create_test_guest(session, user, rsvp_token="not-attending-token-123")
+
+            from src.guests.features.create_plus_one_guest.write_model import (
+                SqlPlusOneGuestWriteModel,
+            )
+
+            plus_one_write_model = SqlPlusOneGuestWriteModel()
+            spy_email_service = SpyEmailService()
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session,
+                email_service=spy_email_service,
+                plus_one_guest_write_model=plus_one_write_model,
+            )
+
+            from src.guests.features.update_rsvp.router import PlusOneSubmit
+
+            rsvp_data = RSVPResponseSubmit(
+                attending=False,
+                plus_one_details=PlusOneSubmit(
+                    email="plusone@example.com",
+                    first_name="Jane",
+                    last_name="Smith",
+                    allergies=None,
+                    dietary_requirements=[],
+                ),
+                family_member_updates={},
+            )
+
+            result = await write_model.submit_rsvp(
+                token="not-attending-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            assert result.attending is False
+
+            assert len(spy_email_service.send_invite_one_plus_one_calls) == 0
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_attending_without_plus_one_does_not_send_plus_one_email():
+    """Test that plus-one invitation email is NOT sent when guest RSVPs attending without plus-one."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="no_plus_one@test.com")
+            await create_test_guest(session, user, rsvp_token="attending-no-plus-one-token-123")
+
+            spy_email_service = SpyEmailService()
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session,
+                email_service=spy_email_service,
+            )
+
+            from src.guests.features.update_rsvp.router import GuestInfoSubmit
+
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                guest_info=GuestInfoSubmit(
+                    first_name="John",
+                    last_name="Doe",
+                    phone=None,
+                    allergies=None,
+                    dietary_requirements=[],
+                ),
+                family_member_updates={},
+            )
+
+            result = await write_model.submit_rsvp(
+                token="attending-no-plus-one-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            assert result.attending is True
+
+            assert len(spy_email_service.send_invite_one_plus_one_calls) == 0
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_plus_one_email_uses_inviter_spanish_language():
+    """Test that plus-one invitation email uses inviter's Spanish language preference."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="spanish_inviter@test.com")
+            await create_test_guest_with_language(
+                session, user, rsvp_token="spanish-token-123", language=Language.ES
+            )
+
+            from src.guests.features.create_plus_one_guest.write_model import (
+                SqlPlusOneGuestWriteModel,
+            )
+
+            plus_one_write_model = SqlPlusOneGuestWriteModel()
+            spy_email_service = SpyEmailService()
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session,
+                email_service=spy_email_service,
+                plus_one_guest_write_model=plus_one_write_model,
+            )
+
+            from src.guests.features.update_rsvp.router import PlusOneSubmit
+
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                plus_one_details=PlusOneSubmit(
+                    email="plusone_spanish@example.com",
+                    first_name="Maria",
+                    last_name="Garcia",
+                    allergies=None,
+                    dietary_requirements=[],
+                ),
+                family_member_updates={},
+            )
+
+            await write_model.submit_rsvp(
+                token="spanish-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            assert len(spy_email_service.send_invite_one_plus_one_calls) == 1
+            call = spy_email_service.send_invite_one_plus_one_calls[0]
+            assert call["language"] == Language.ES
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_plus_one_email_uses_inviter_dutch_language():
+    """Test that plus-one invitation email uses inviter's Dutch language preference."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="dutch_inviter@test.com")
+            await create_test_guest_with_language(
+                session, user, rsvp_token="dutch-token-123", language=Language.NL
+            )
+
+            from src.guests.features.create_plus_one_guest.write_model import (
+                SqlPlusOneGuestWriteModel,
+            )
+
+            plus_one_write_model = SqlPlusOneGuestWriteModel()
+            spy_email_service = SpyEmailService()
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session,
+                email_service=spy_email_service,
+                plus_one_guest_write_model=plus_one_write_model,
+            )
+
+            from src.guests.features.update_rsvp.router import PlusOneSubmit
+
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                plus_one_details=PlusOneSubmit(
+                    email="plusone_dutch@example.com",
+                    first_name="Jan",
+                    last_name="Jansen",
+                    allergies=None,
+                    dietary_requirements=[],
+                ),
+                family_member_updates={},
+            )
+
+            await write_model.submit_rsvp(
+                token="dutch-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            assert len(spy_email_service.send_invite_one_plus_one_calls) == 1
+            call = spy_email_service.send_invite_one_plus_one_calls[0]
+            assert call["language"] == Language.NL
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_without_email_service_does_not_crash():
+    """Test that RSVP with plus-one works without email_service (graceful handling)."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="no_email_service@test.com")
+            await create_test_guest(session, user, rsvp_token="no-email-token-123")
+
+            from src.guests.features.create_plus_one_guest.write_model import (
+                SqlPlusOneGuestWriteModel,
+            )
+
+            plus_one_write_model = SqlPlusOneGuestWriteModel()
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session,
+                email_service=None,
+                plus_one_guest_write_model=plus_one_write_model,
+            )
+
+            from src.guests.features.update_rsvp.router import PlusOneSubmit
+
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                plus_one_details=PlusOneSubmit(
+                    email="plusone@example.com",
+                    first_name="Jane",
+                    last_name="Smith",
+                    allergies=None,
+                    dietary_requirements=[],
+                ),
+                family_member_updates={},
+            )
+
+            result = await write_model.submit_rsvp(
+                token="no-email-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            assert result.attending is True
+            assert result.status == GuestStatus.CONFIRMED
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_update_with_plus_one_resends_email():
+    """Test that updating RSVP with plus-one re-sends the invitation email."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="update_plus_one@test.com")
+            await create_test_guest(session, user, rsvp_token="update-plus-one-token-123")
+
+            from src.guests.features.create_plus_one_guest.write_model import (
+                SqlPlusOneGuestWriteModel,
+            )
+
+            plus_one_write_model = SqlPlusOneGuestWriteModel()
+            spy_email_service = SpyEmailService()
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session,
+                email_service=spy_email_service,
+                plus_one_guest_write_model=plus_one_write_model,
+            )
+
+            from src.guests.features.update_rsvp.router import PlusOneSubmit
+
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                plus_one_details=PlusOneSubmit(
+                    email="plusone_update@example.com",
+                    first_name="John",
+                    last_name="Updated",
+                    allergies=None,
+                    dietary_requirements=[],
+                ),
+                family_member_updates={},
+            )
+
+            await write_model.submit_rsvp(
+                token="update-plus-one-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            assert len(spy_email_service.send_invite_one_plus_one_calls) == 1
+
+            rsvp_data_2 = RSVPResponseSubmit(
+                attending=True,
+                plus_one_details=PlusOneSubmit(
+                    email="plusone_update@example.com",
+                    first_name="John",
+                    last_name="Updated",
+                    allergies="New allergies",
+                    dietary_requirements=[],
+                ),
+                family_member_updates={},
+            )
+
+            await write_model.submit_rsvp(
+                token="update-plus-one-token-123",
+                rsvp_data=rsvp_data_2,
+            )
+
+            assert len(spy_email_service.send_invite_one_plus_one_calls) == 2
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_update_to_declined_does_not_send_plus_one_email():
+    """Test that changing RSVP to not attending doesn't send plus-one email."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="update_to_declined@test.com")
+            await create_test_guest(session, user, rsvp_token="update-declined-token-123")
+
+            from src.guests.features.create_plus_one_guest.write_model import (
+                SqlPlusOneGuestWriteModel,
+            )
+
+            plus_one_write_model = SqlPlusOneGuestWriteModel()
+            spy_email_service = SpyEmailService()
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session,
+                email_service=spy_email_service,
+                plus_one_guest_write_model=plus_one_write_model,
+            )
+
+            from src.guests.features.update_rsvp.router import GuestInfoSubmit
+
+            rsvp_data_attending = RSVPResponseSubmit(
+                attending=True,
+                guest_info=GuestInfoSubmit(
+                    first_name="John",
+                    last_name="Doe",
+                    phone=None,
+                    allergies=None,
+                    dietary_requirements=[],
+                ),
+                family_member_updates={},
+            )
+
+            await write_model.submit_rsvp(
+                token="update-declined-token-123",
+                rsvp_data=rsvp_data_attending,
+            )
+
+            rsvp_data_declined = RSVPResponseSubmit(
+                attending=False,
+                family_member_updates={},
+            )
+
+            await write_model.submit_rsvp(
+                token="update-declined-token-123",
+                rsvp_data=rsvp_data_declined,
+            )
+
+            assert len(spy_email_service.send_invite_one_plus_one_calls) == 0
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_plus_one_email_contains_correct_rsvp_link():
+    """Test that plus-one invitation email contains the correct RSVP link with plus_one=true."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="rsvp_link_test@test.com")
+            await create_test_guest(session, user, rsvp_token="rsvp-link-token-123")
+
+            from src.guests.features.create_plus_one_guest.write_model import (
+                SqlPlusOneGuestWriteModel,
+            )
+
+            plus_one_write_model = SqlPlusOneGuestWriteModel()
+            spy_email_service = SpyEmailService()
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session,
+                email_service=spy_email_service,
+                plus_one_guest_write_model=plus_one_write_model,
+            )
+
+            from src.guests.features.update_rsvp.router import PlusOneSubmit
+
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                plus_one_details=PlusOneSubmit(
+                    email="plusone_link@test.com",
+                    first_name="Link",
+                    last_name="Test",
+                    allergies=None,
+                    dietary_requirements=[],
+                ),
+                family_member_updates={},
+            )
+
+            await write_model.submit_rsvp(
+                token="rsvp-link-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            assert len(spy_email_service.send_invite_one_plus_one_calls) == 1
+            call = spy_email_service.send_invite_one_plus_one_calls[0]
+            assert "plus_one=true" in call["rsvp_url"]
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_with_plus_one_handles_missing_rsvp_info():
+    """Test that missing RSVP info for plus-one doesn't cause crash (email skipped)."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="missing_rsvp@test.com")
+            guest = await create_test_guest(session, user, rsvp_token="missing-rsvp-token-123")
+
+            from src.guests.features.create_plus_one_guest.write_model import (
+                SqlPlusOneGuestWriteModel,
+            )
+
+            plus_one_write_model = SqlPlusOneGuestWriteModel()
+            spy_email_service = SpyEmailService()
+
+            from uuid import uuid4
+
+            from src.guests.repository.orm_models import Guest
+
+            plus_one_user = User(
+                uuid=uuid4(),
+                email="plusone_norsvp@test.com",
+                hashed_password=None,
+                is_active=True,
+                is_superuser=False,
+            )
+            session.add(plus_one_user)
+            await session.flush()
+
+            plus_one_guest = Guest(
+                user_id=plus_one_user.uuid,
+                first_name="No",
+                last_name="RSVP",
+                plus_one_of_id=guest.uuid,
+                preferred_language=Language.EN,
+            )
+            session.add(plus_one_guest)
+            await session.flush()
+
+            guest.bring_a_plus_one_id = plus_one_guest.uuid
+            await session.flush()
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session,
+                email_service=spy_email_service,
+                plus_one_guest_write_model=plus_one_write_model,
+            )
+
+            from src.guests.features.update_rsvp.router import GuestInfoSubmit
+
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                guest_info=GuestInfoSubmit(
+                    first_name="John",
+                    last_name="Doe",
+                    phone=None,
+                    allergies=None,
+                    dietary_requirements=[],
+                ),
+                family_member_updates={},
+            )
+
+            result = await write_model.submit_rsvp(
+                token="missing-rsvp-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            assert result.attending is True
+            assert len(spy_email_service.send_invite_one_plus_one_calls) == 0
+        finally:
+            await session.rollback()
