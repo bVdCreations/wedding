@@ -185,8 +185,12 @@ const t = getTranslations(lang as Language);
           </div>
 
           <div class="form-actions text-center mt-8">
-            <button type="submit" class="submit-btn bg-[#c9a66b] text-white border-none px-10 py-4 text-lg rounded-lg hover:bg-[#b8945a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
-              {t.rsvpPage.submit}
+            <button type="submit" class="submit-btn bg-[#c9a66b] text-white border-none px-10 py-4 text-lg rounded-lg hover:bg-[#b8945a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3 mx-auto">
+              <span class="btn-text">{t.rsvpPage.submit}</span>
+              <svg class="spinner w-5 h-5 animate-spin" style="display: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
             </button>
           </div>
         </form>
@@ -214,6 +218,12 @@ const t = getTranslations(lang as Language);
 input.invalid, textarea.invalid {
   border-color: #c0392b;
 }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
 </style>
 
 <script define:vars={{ t: t.rsvpPage, apiHost: import.meta.env.PUBLIC_BACKEND_API_URL || '' }}>
@@ -231,7 +241,9 @@ input.invalid, textarea.invalid {
   const familyMembersContainer = document.getElementById('family-members-container');
   const successMessage = document.getElementById('success-message');
   const errorMessage = document.getElementById('error-message');
-  const submitBtn = document.querySelector('.submit-btn');
+    const submitBtn = document.querySelector('.submit-btn');
+  const btnText = submitBtn.querySelector('.btn-text');
+  const spinner = submitBtn.querySelector('.spinner');
 
   let guestIsPlusOne = false;
   let guestUuid = '';
@@ -545,7 +557,8 @@ input.invalid, textarea.invalid {
     });
 
     submitBtn.disabled = true;
-    submitBtn.textContent = t.submitting;
+    btnText.textContent = t.submitting;
+    spinner.style.display = 'block';
 
     try {
 
@@ -575,7 +588,8 @@ input.invalid, textarea.invalid {
       document.getElementById('error-text').textContent = t.networkError;
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = t.submit;
+      btnText.textContent = t.submit;
+      spinner.style.display = 'none';
     }
   });
 </script>
