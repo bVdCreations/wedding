@@ -176,6 +176,9 @@ class SqlRSVPWriteModel(RSVPWriteModel):
             assert rsvp_info is not None
             rsvp_info.status = GuestStatus.CONFIRMED if attending else GuestStatus.DECLINED
 
+            # Handle transport preference
+            rsvp_info.needs_transport = attending and getattr(rsvp_data, "needs_transport", False)
+
             # Clear bring_a_plus_one_id if not attending
             if not attending:
                 guest.bring_a_plus_one_id = None
@@ -226,12 +229,15 @@ class SqlRSVPWriteModel(RSVPWriteModel):
                         for req in plus_one_details.dietary_requirements
                     ],
                 )
+                # Copy main guest's transport preference to plus-one
+                needs_transport_value = getattr(rsvp_data, "needs_transport", False)
                 (
                     _,
                     plus_one_guest_uuid,
                 ) = await self._plus_one_guest_write_model.create_plus_one_guest(
                     original_guest_id=guest.uuid,
                     plus_one_data=plus_one_dto,
+                    needs_transport=needs_transport_value,
                 )
                 # Set bring_a_plus_one_id to the plus-one guest's UUID
                 guest.bring_a_plus_one_id = plus_one_guest_uuid

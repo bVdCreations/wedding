@@ -116,6 +116,8 @@ class RSVPInfo(Base, TimeStamp):
     email_sent_on: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, default=None
     )
+    # Transport preference - whether guest needs bus transport from Malaga Center
+    needs_transport: Mapped[bool] = mapped_column(Boolean, default=False)
 
     def __repr__(self) -> str:
         return f"<RSVPInfo {self.rsvp_token}>"
@@ -126,7 +128,9 @@ class EmailLog(Base, TimeStamp):
 
     # Core identification
     uuid: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    resend_email_id: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True, unique=True)
+    resend_email_id: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, index=True, unique=True
+    )
 
     # Email parameters
     to_address: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
@@ -139,9 +143,16 @@ class EmailLog(Base, TimeStamp):
 
     # Email type and context
     email_type: Mapped[str] = mapped_column(
-        Enum("invitation", "confirmation", "reminder", "plus_one_invite", "forwarded", name="email_type_enum"),
+        Enum(
+            "invitation",
+            "confirmation",
+            "reminder",
+            "plus_one_invite",
+            "forwarded",
+            name="email_type_enum",
+        ),
         nullable=False,
-        index=True
+        index=True,
     )
 
     # Foreign keys for context
@@ -158,7 +169,15 @@ class EmailLog(Base, TimeStamp):
 
     # Delivery tracking
     status: Mapped[str] = mapped_column(
-        Enum("pending", "sent", "delivered", "bounced", "failed", "complained", name="email_status_enum"),
+        Enum(
+            "pending",
+            "sent",
+            "delivered",
+            "bounced",
+            "failed",
+            "complained",
+            name="email_status_enum",
+        ),
         default="pending",
         nullable=False,
         index=True,

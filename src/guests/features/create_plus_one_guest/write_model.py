@@ -38,10 +38,12 @@ class PlusOneGuestWriteModel(ABC):
         self,
         original_guest_id: UUID,
         plus_one_data: PlusOneDTO,
+        needs_transport: bool = False,
     ) -> tuple[GuestDTO, UUID]:
         """
         Create a new plus-one guest with user, guest, and RSVPInfo.
         Returns tuple of (GuestDTO with RSVP token and link, plus-one guest UUID).
+        needs_transport: copies the main guest's transport preference to the plus-one.
         """
         raise NotImplementedError
 
@@ -79,6 +81,7 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
         self,
         original_guest_id: UUID,
         plus_one_data: PlusOneDTO,
+        needs_transport: bool = False,
     ) -> tuple[GuestDTO, UUID]:
         """
         Create a new plus-one guest with user, guest, and RSVPInfo.
@@ -113,7 +116,9 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
                         plus_one_of_id=existing_guest.plus_one_of_id,
                         email=str(plus_one_data.email),
                         rsvp=RSVPDTO(
-                            status=GuestStatus(rsvp_info.status) if rsvp_info else GuestStatus.PENDING,
+                            status=GuestStatus(rsvp_info.status)
+                            if rsvp_info
+                            else GuestStatus.PENDING,
                             token=rsvp_info.rsvp_token if rsvp_info else "",
                             link=rsvp_info.rsvp_link if rsvp_info else "",
                         ),
@@ -168,6 +173,7 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
                 rsvp_link=f"{settings.frontend_url}/{lang_prefix}/rsvp/?token={rsvp_token}&plus_one=true",
                 notes=None,
                 email_sent_on=None,  # Default to None, plus-one gets invite via original guest
+                needs_transport=needs_transport,
             )
             session.add(rsvp_info)
 

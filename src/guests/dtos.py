@@ -128,6 +128,7 @@ class RSVPInfoDTO:
     attending: bool | None = None
     dietary_requirements: list[DietaryRequirementDTO] = field(default_factory=list)
     allergies: str | None = None
+    needs_transport: bool = False
 
 
 @dataclass(frozen=True)

@@ -107,7 +107,10 @@
     "errorPlusOneEmailRequired": "Email is required for your plus one",
     "errorPlusOneFirstNameRequired": "First name is required for your plus one",
     "errorPlusOneLastNameRequired": "Last name is required for your plus one",
-    "errorPlusOneDietaryNotesRequired": "Please describe your plus one's dietary requirements"
+    "errorPlusOneDietaryNotesRequired": "Please describe your plus one's dietary requirements",
+    "transportTitle": "Transport",
+    "transportCheckbox": "I need transport from Malaga Center to the venue and back",
+    "transportVenueAddress": "Camino del Convento, s/n, 29130 Alhaurín de la Torre, Málaga, Spain"
   },
   "requestInvitation": {
     "title": "Request Invitation",

@@ -107,7 +107,10 @@
     "errorPlusOneEmailRequired": "El correo electrónico es obligatorio para tu acompañante",
     "errorPlusOneFirstNameRequired": "El nombre es obligatorio para tu acompañante",
     "errorPlusOneLastNameRequired": "El apellido es obligatorio para tu acompañante",
-    "errorPlusOneDietaryNotesRequired": "Describe los requisitos dietéticos de tu acompañante"
+    "errorPlusOneDietaryNotesRequired": "Describe los requisitos dietéticos de tu acompañante",
+    "transportTitle": "Transporte",
+    "transportCheckbox": "Necesito transporte desde el centro de Málaga al lugar de la boda y viceversa",
+    "transportVenueAddress": "Camino del Convento, s/n, 29130 Alhaurín de la Torre, Málaga, España"
   },
   "requestInvitation": {
     "title": "Solicitar Invitación",

@@ -1331,3 +1331,174 @@ test.describe('RSVP Submission - Edge Cases', () => {
     });
   });
 });
+
+// ============================================================================
+// Tests: Transport Section
+// ============================================================================
+
+test.describe('RSVP Transport Section', () => {
+  const testToken = 'test-token-transport';
+
+  test('should show transport section when guest is attending', async ({ page, language }) => {
+    await mockGuestInfoEndpoint(
+      page,
+      testToken,
+      createMockGuestInfo({ attending: true, first_name: 'John', last_name: 'Doe' })
+    );
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+    await page.waitForLoadState('networkidle');
+
+    // Transport section should be visible when attending
+    await expect(page.locator('#transport-section')).not.toHaveAttribute(
+      'style',
+      /display:\s*none/
+    );
+
+    // Transport checkbox should be visible
+    await expect(page.locator('#needs-transport')).toBeVisible();
+  });
+
+  test('should hide transport section when guest is not attending', async ({ page, language }) => {
+    await mockGuestInfoEndpoint(
+      page,
+      testToken,
+      createMockGuestInfo({ attending: false, first_name: 'John', last_name: 'Doe' })
+    );
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+    await page.waitForLoadState('networkidle');
+
+    // Transport section should be hidden when not attending
+    await expect(page.locator('#transport-section')).toHaveAttribute('style', /display:\s*none/);
+  });
+
+  test('should submit RSVP with needs_transport=true when checkbox is checked', async ({
+    page,
+    language,
+  }) => {
+    let capturedRequest: Record<string, unknown> | null = null;
+
+    await mockGuestInfoEndpoint(
+      page,
+      testToken,
+      createMockGuestInfo({ attending: true, first_name: 'John', last_name: 'Doe' })
+    );
+    await page.route(`${API_BASE_URL}/api/v1/guests/${testToken}/rsvp`, async (route: Route) => {
+      capturedRequest = JSON.parse(route.request().postData() || '{}');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(createMockRSVPResponse(true)),
+      });
+    });
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+    await page.waitForLoadState('networkidle');
+
+    // Check the transport checkbox
+    await page.locator('#needs-transport').check();
+
+    // Submit via evaluate, reading the checkbox from the DOM
+    const result = await page.evaluate(
+      async ({ apiHost, token }) => {
+        const needsTransport = (document.getElementById('needs-transport') as HTMLInputElement)
+          ?.checked || false;
+
+        const response = await fetch(`${apiHost}/api/v1/guests/${token}/rsvp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            attending: true,
+            guest_info: { first_name: 'John', last_name: 'Doe', phone: null },
+            dietary_requirements: [],
+            allergies: null,
+            plus_one_details: null,
+            family_member_updates: {},
+            needs_transport: needsTransport,
+          }),
+        });
+        const data = await response.json();
+        return { success: response.ok, data };
+      },
+      { apiHost: API_BASE_URL, token: testToken }
+    );
+
+    expect(result.success).toBe(true);
+    expect(capturedRequest).not.toBeNull();
+    expect(capturedRequest!.needs_transport).toBe(true);
+  });
+
+  test('should submit RSVP with needs_transport=false when checkbox is not checked', async ({
+    page,
+    language,
+  }) => {
+    let capturedRequest: Record<string, unknown> | null = null;
+
+    await mockGuestInfoEndpoint(
+      page,
+      testToken,
+      createMockGuestInfo({ attending: true, first_name: 'John', last_name: 'Doe' })
+    );
+    await page.route(`${API_BASE_URL}/api/v1/guests/${testToken}/rsvp`, async (route: Route) => {
+      capturedRequest = JSON.parse(route.request().postData() || '{}');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(createMockRSVPResponse(true)),
+      });
+    });
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+    await page.waitForLoadState('networkidle');
+
+    // Ensure transport checkbox is NOT checked
+    await expect(page.locator('#needs-transport')).not.toBeChecked();
+
+    // Submit via evaluate
+    const result = await page.evaluate(
+      async ({ apiHost, token }) => {
+        const needsTransport = (document.getElementById('needs-transport') as HTMLInputElement)
+          ?.checked || false;
+
+        const response = await fetch(`${apiHost}/api/v1/guests/${token}/rsvp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            attending: true,
+            guest_info: { first_name: 'John', last_name: 'Doe', phone: null },
+            dietary_requirements: [],
+            allergies: null,
+            plus_one_details: null,
+            family_member_updates: {},
+            needs_transport: needsTransport,
+          }),
+        });
+        const data = await response.json();
+        return { success: response.ok, data };
+      },
+      { apiHost: API_BASE_URL, token: testToken }
+    );
+
+    expect(result.success).toBe(true);
+    expect(capturedRequest).not.toBeNull();
+    expect(capturedRequest!.needs_transport).toBe(false);
+  });
+
+  test('should display venue address in transport section', async ({ page, language }) => {
+    await mockGuestInfoEndpoint(
+      page,
+      testToken,
+      createMockGuestInfo({ attending: true, first_name: 'John', last_name: 'Doe' })
+    );
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+    await page.waitForLoadState('networkidle');
+
+    // Transport section should be visible
+    await expect(page.locator('#transport-section')).toBeVisible();
+
+    // Should contain "Address:" label
+    await expect(page.locator('#transport-section')).toContainText('Address:');
+  });
+});

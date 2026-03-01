@@ -96,7 +96,9 @@ class SqlRSVPReadModel(RSVPReadModel):
                     family_rsvp_result = await session.execute(family_rsvp_stmt)
                     family_rsvp_info = family_rsvp_result.scalar_one_or_none()
 
-                    family_rsvp_status = GuestStatus(family_rsvp_info.status) if family_rsvp_info else None
+                    family_rsvp_status = (
+                        GuestStatus(family_rsvp_info.status) if family_rsvp_info else None
+                    )
 
                     # Get dietary requirements for family member
                     family_dietary_stmt = select(DietaryOption).where(
@@ -155,4 +157,5 @@ class SqlRSVPReadModel(RSVPReadModel):
                 attending=attending,
                 dietary_requirements=dietary_requirements,
                 allergies=guest.allergies,
+                needs_transport=rsvp_info.needs_transport,
             )

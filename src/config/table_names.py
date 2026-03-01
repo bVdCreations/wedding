@@ -7,3 +7,4 @@ class TableNames(str, Enum):
     FAMILIES = "families"
     DIETARY_OPTIONS = "dietary_options"
     RSVP_INFO = "rsvp_info"
+    TRANSPORT = "transport"

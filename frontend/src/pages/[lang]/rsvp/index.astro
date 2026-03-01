@@ -108,6 +108,17 @@ const t = getTranslations(lang as Language);
             ></textarea>
           </div>
 
+          <!-- Transport Section -->
+          <div class="form-section mb-8 pb-6 border-b border-gray-100" id="transport-section" style="display: none;">
+            <h2 class="text-xl font-serif mb-2 text-gray-800">{t.rsvpPage.transportTitle}</h2>
+            <p class="text-sm text-gray-500 mb-1">Address:</p>
+            <p class="text-sm text-gray-500 mb-4">{t.rsvpPage.transportVenueAddress}</p>
+            <label class="checkbox-label cursor-pointer flex items-center gap-3 p-4 rounded-lg hover:bg-stone-50 transition-colors">
+              <input type="checkbox" name="needs_transport" id="needs-transport" class="w-5 h-5 accent-[#c9a66b]" />
+              <span class="text-gray-700">{t.rsvpPage.transportCheckbox}</span>
+            </label>
+          </div>
+
           <!-- Plus One Section -->
           <div class="form-section mb-8 pb-6 border-b border-gray-100" id="plus-one-section" style="display: none;">
             <h2 class="text-xl font-serif mb-4 text-gray-800">{t.rsvpPage.plusOne}</h2>
@@ -215,6 +226,7 @@ input.invalid, textarea.invalid {
   const plusOneDetailsSection = document.getElementById('plus-one-details-section');
   const dietarySection = document.getElementById('dietary-section');
   const allergiesSection = document.getElementById('allergies-section');
+  const transportSection = document.getElementById('transport-section');
   const familySection = document.getElementById('family-section');
   const familyMembersContainer = document.getElementById('family-members-container');
   const successMessage = document.getElementById('success-message');
@@ -309,6 +321,11 @@ input.invalid, textarea.invalid {
         }
       });
     }
+
+    if (data.needs_transport === true) {
+      const transportCheckbox = document.getElementById('needs-transport');
+      if (transportCheckbox) transportCheckbox.checked = true;
+    }
   }
 
   function renderFamilyMembers(members) {
@@ -372,6 +389,7 @@ input.invalid, textarea.invalid {
         plusOneSection.style.display = 'block';
         dietarySection.style.display = 'block';
         allergiesSection.style.display = 'block';
+        transportSection.style.display = 'block';
         if (guestIsPlusOne) {
           plusOneAllowed.style.display = 'none';
           plusOneNotAllowed.style.display = 'block';
@@ -383,6 +401,7 @@ input.invalid, textarea.invalid {
         plusOneSection.style.display = 'none';
         dietarySection.style.display = 'none';
         allergiesSection.style.display = 'none';
+        transportSection.style.display = 'none';
         plusOneCheckbox.checked = false;
         plusOneDetailsSection.style.display = 'none';
       }
@@ -503,6 +522,7 @@ input.invalid, textarea.invalid {
     });
 
     const allergies = document.getElementById('allergies')?.value || null;
+    const needsTransport = document.getElementById('needs-transport')?.checked || false;
 
     const familyMemberUpdates = {};
     familyMembers.forEach((member, index) => {
@@ -537,6 +557,7 @@ input.invalid, textarea.invalid {
           plus_one_details: plusOneDetails,
           guest_info: {first_name: firstName, last_name: lastName, phone: phone || null, allergies: allergies, dietary_requirements: dietaryRequirements},
           family_member_updates: familyMemberUpdates,
+          needs_transport: needsTransport,
         })
       });
 
