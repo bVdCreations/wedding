@@ -1,6 +1,5 @@
 """Unit tests for ReceivedEmail schema validation."""
 
-from datetime import timezone
 
 import pytest
 
@@ -27,14 +26,18 @@ def make_email(created_at: str) -> ReceivedEmail:
 def test_created_at_accepts_standard_iso_offset():
     email = make_email("2026-02-28 21:28:27.482506+00:00")
     assert email.created_at.tzinfo is not None
-    assert email.created_at.utcoffset().total_seconds() == 0
+    utcoffset = email.created_at.utcoffset()
+    assert utcoffset is not None
+    assert utcoffset.total_seconds() == 0
 
 
 def test_created_at_accepts_short_utc_offset():
     """Resend sends +00 instead of +00:00 — should be normalised without error."""
     email = make_email("2026-02-28 21:28:27.482506+00")
     assert email.created_at.tzinfo is not None
-    assert email.created_at.utcoffset().total_seconds() == 0
+    utcoffset = email.created_at.utcoffset()
+    assert utcoffset is not None
+    assert utcoffset.total_seconds() == 0
 
 
 def test_created_at_short_and_standard_parse_to_same_value():

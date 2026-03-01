@@ -1,6 +1,7 @@
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from uuid import UUID
 
 from src.config.settings import settings
 from src.email_service.base import EmailServiceBase
@@ -54,6 +55,8 @@ class SMTPEmailService(EmailServiceBase):
         rsvp_url: str,
         response_deadline: str,
         language: Language = Language.EN,
+        guest_id: UUID | None = None,
+        user_id: UUID | None = None,
     ) -> None:
         subject, html_template, text_template = EmailTemplates.get_invitation_templates(language)
 
@@ -90,6 +93,8 @@ class SMTPEmailService(EmailServiceBase):
         attending: str,
         dietary: str,
         language: Language = Language.EN,
+        guest_id: UUID | None = None,
+        user_id: UUID | None = None,
     ) -> None:
         subject, html_template, text_template = EmailTemplates.get_confirmation_templates(language)
 

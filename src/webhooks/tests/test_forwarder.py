@@ -1,6 +1,7 @@
 """Unit tests for ResendEmailForwarder, mocking the HTTP client."""
 
 import base64
+from typing import cast
 
 import httpx
 import pytest
@@ -189,7 +190,7 @@ async def test_forward_does_not_double_prefix_fwd(mock_config):
     )
     client.add_get(RAW_DOWNLOAD_URL, MockResponse(text=RAW_EMAIL_CONTENT))
 
-    forwarder = ResendEmailForwarder(config=mock_config, http_client_class=client)
+    forwarder = ResendEmailForwarder(config=mock_config, http_client_class=cast(type[httpx.AsyncClient], client))
     await forwarder(EMAIL_ID)
 
     assert client.post_calls[0]["json"]["subject"] == "Fwd: Hello"
@@ -218,7 +219,7 @@ async def test_no_recipients_skips_all_http_calls():
             return []
 
     client = MockHttpClient()
-    forwarder = ResendEmailForwarder(config=NoRecipientsConfig(), http_client_class=client)
+    forwarder = ResendEmailForwarder(config=NoRecipientsConfig(), http_client_class=cast(type[httpx.AsyncClient], client))
     result = await forwarder(EMAIL_ID)
 
     assert result == {"skipped": "no recipients"}
@@ -234,7 +235,7 @@ async def test_email_fetch_error_propagates(mock_config):
         MockResponse(status_code=404),
     )
 
-    forwarder = ResendEmailForwarder(config=mock_config, http_client_class=client)
+    forwarder = ResendEmailForwarder(config=mock_config, http_client_class=cast(type[httpx.AsyncClient], client))
     with pytest.raises(httpx.HTTPStatusError):
         await forwarder(EMAIL_ID)
 
@@ -248,7 +249,7 @@ async def test_raw_download_error_propagates(mock_config):
     )
     client.add_get(RAW_DOWNLOAD_URL, MockResponse(status_code=500))
 
-    forwarder = ResendEmailForwarder(config=mock_config, http_client_class=client)
+    forwarder = ResendEmailForwarder(config=mock_config, http_client_class=cast(type[httpx.AsyncClient], client))
     with pytest.raises(httpx.HTTPStatusError):
         await forwarder(EMAIL_ID)
 

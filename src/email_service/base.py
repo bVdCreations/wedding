@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from uuid import UUID
 
 from src.guests.dtos import Language
 
@@ -14,6 +15,8 @@ class EmailServiceBase(ABC):
         rsvp_url: str,
         response_deadline: str,
         language: Language = Language.EN,
+        guest_id: UUID | None = None,
+        user_id: UUID | None = None,
     ) -> None:
         pass
 
@@ -25,6 +28,8 @@ class EmailServiceBase(ABC):
         attending: str,
         dietary: str,
         language: Language = Language.EN,
+        guest_id: UUID | None = None,
+        user_id: UUID | None = None,
     ) -> None:
         pass
 

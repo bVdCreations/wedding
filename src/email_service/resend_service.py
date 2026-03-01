@@ -16,7 +16,7 @@ class ResendEmailConfig(Protocol):
 
 class ResendEmailService(EmailServiceBase):
     def __init__(
-        self, 
+        self,
         config: ResendEmailConfig,
         email_logger: EmailLogger | None = None,
     ):
@@ -35,7 +35,7 @@ class ResendEmailService(EmailServiceBase):
         language: Language | None = None,
     ) -> str:
         """Send email via Resend and log via injected logger."""
-        
+
         # Log attempt before sending
         log_uuid = await self.email_logger.log_email_attempt(
             to_address=to_address,
@@ -48,7 +48,7 @@ class ResendEmailService(EmailServiceBase):
             user_id=user_id,
             language=language,
         )
-        
+
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
@@ -66,19 +66,19 @@ class ResendEmailService(EmailServiceBase):
                     },
                 )
                 response.raise_for_status()
-                
+
                 # Extract Resend email ID from response
                 response_data = response.json()
                 resend_email_id = response_data.get("id")
-                
+
                 # Log success
                 await self.email_logger.log_email_success(
                     log_uuid=log_uuid,
                     resend_email_id=resend_email_id,
                 )
-                
+
                 return resend_email_id
-                
+
         except httpx.HTTPStatusError as e:
             # Log failure
             await self.email_logger.log_email_failure(

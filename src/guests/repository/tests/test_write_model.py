@@ -1,5 +1,7 @@
 """Tests for SqlRSVPWriteModel."""
 
+from uuid import UUID
+
 import pytest
 from sqlalchemy import select
 
@@ -22,8 +24,8 @@ class MockEmailService(EmailServiceBase):
         attending: str,
         dietary: str,
         language: Language = Language.EN,
-        guest_id=None,
-        user_id=None,
+        guest_id: UUID | None = None,
+        user_id: UUID | None = None,
     ) -> None:
         """Mock send confirmation - does nothing."""
         pass
@@ -37,8 +39,8 @@ class MockEmailService(EmailServiceBase):
         rsvp_url: str,
         response_deadline: str,
         language: Language = Language.EN,
-        guest_id=None,
-        user_id=None,
+        guest_id: UUID | None = None,
+        user_id: UUID | None = None,
     ) -> None:
         """Mock send invitation - does nothing."""
         pass
@@ -49,8 +51,6 @@ class MockEmailService(EmailServiceBase):
         guest_name: str,
         plus_one_details: dict,
         language: Language = Language.EN,
-        guest_id=None,
-        user_id=None,
     ) -> None:
         """Mock send invite one plus one - does nothing."""
         pass
@@ -429,8 +429,8 @@ class SpyEmailService(EmailServiceBase):
         attending: str,
         dietary: str,
         language: Language = Language.EN,
-        guest_id=None,
-        user_id=None,
+        guest_id: UUID | None = None,
+        user_id: UUID | None = None,
     ) -> None:
         """Capture send confirmation calls."""
         self.send_confirmation_calls.append(
@@ -452,8 +452,8 @@ class SpyEmailService(EmailServiceBase):
         rsvp_url: str,
         response_deadline: str,
         language: Language = Language.EN,
-        guest_id=None,
-        user_id=None,
+        guest_id: UUID | None = None,
+        user_id: UUID | None = None,
     ) -> None:
         """Mock send invitation - does nothing."""
         pass
@@ -464,8 +464,6 @@ class SpyEmailService(EmailServiceBase):
         guest_name: str,
         plus_one_details: dict,
         language: Language = Language.EN,
-        guest_id=None,
-        user_id=None,
     ) -> None:
         """Mock send invite one plus one - does nothing."""
         pass
@@ -771,7 +769,9 @@ async def test_submit_rsvp_saves_plus_one_allergies():
             guest_uuid = guest.uuid
 
             # Import and setup plus-one write model
-            from src.guests.features.create_plus_one_guest.write_model import SqlPlusOneGuestWriteModel
+            from src.guests.features.create_plus_one_guest.write_model import (
+                SqlPlusOneGuestWriteModel,
+            )
             plus_one_write_model = SqlPlusOneGuestWriteModel()
 
             write_model = SqlRSVPWriteModel(
@@ -828,7 +828,7 @@ async def test_submit_rsvp_saves_family_member_allergies():
     async with async_session_manager() as session:
         try:
             user = await create_test_user(session, email="family_allergies@example.com")
-            guest = await create_test_guest(session, user, rsvp_token="family-allergies-token-123")
+            _guest = await create_test_guest(session, user, rsvp_token="family-allergies-token-123")
 
             # Create a family member (without Family model to avoid test setup complexity)
             family_member = Guest(

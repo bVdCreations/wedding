@@ -39,7 +39,7 @@ class EmailForwarder(Protocol):
 class EmailStatusUpdater(Protocol):
     """Protocol for email status updates."""
 
-    async def __call__(
+    async def update_status(
         self,
         resend_email_id: str,
         event_type: str,
