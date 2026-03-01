@@ -615,3 +615,497 @@ async def test_submit_rsvp_sends_confirmation_email_in_english_by_default():
             assert call["language"] == Language.EN
         finally:
             await session.rollback()
+
+
+# Allergies tests - High Priority
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_saves_guest_allergies():
+    """Test that guest allergies are saved when submitting RSVP with guest_info."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="allergies@example.com")
+            guest = await create_test_guest(session, user, rsvp_token="allergies-token-123")
+            guest_uuid = guest.uuid
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session, email_service=MockEmailService()
+            )
+
+            from src.guests.features.update_rsvp.router import GuestInfoSubmit
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                guest_info=GuestInfoSubmit(
+                    first_name="John",
+                    last_name="Doe",
+                    allergies="Peanuts, shellfish, dairy",
+                ),
+                family_member_updates={},
+            )
+
+            result = await write_model.submit_rsvp(
+                token="allergies-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            # Verify RSVP was successful
+            assert result.attending is True
+
+            # Verify allergies were saved
+            guest_result = await session.execute(
+                select(Guest).where(Guest.uuid == guest_uuid)
+            )
+            updated_guest = guest_result.scalar_one()
+            assert updated_guest.allergies == "Peanuts, shellfish, dairy"
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_updates_existing_allergies():
+    """Test that existing allergies are updated (not appended) when re-submitting RSVP."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="update_allergies@example.com")
+            guest = await create_test_guest(session, user, rsvp_token="update-allergies-token-123")
+            guest_uuid = guest.uuid
+
+            # Set initial allergies
+            guest.allergies = "Old allergies: gluten"
+            await session.flush()
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session, email_service=MockEmailService()
+            )
+
+            from src.guests.features.update_rsvp.router import GuestInfoSubmit
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                guest_info=GuestInfoSubmit(
+                    first_name="John",
+                    last_name="Doe",
+                    allergies="New allergies: peanuts, soy",
+                ),
+                family_member_updates={},
+            )
+
+            await write_model.submit_rsvp(
+                token="update-allergies-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            # Verify allergies were replaced, not appended
+            guest_result = await session.execute(
+                select(Guest).where(Guest.uuid == guest_uuid)
+            )
+            updated_guest = guest_result.scalar_one()
+            assert updated_guest.allergies == "New allergies: peanuts, soy"
+            assert "Old allergies" not in updated_guest.allergies
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_saves_allergies_with_dietary():
+    """Test that both allergies and dietary requirements are saved correctly."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="allergies_dietary@example.com")
+            guest = await create_test_guest(session, user, rsvp_token="allergies-dietary-token-123")
+            guest_uuid = guest.uuid
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session, email_service=MockEmailService()
+            )
+
+            from src.guests.features.update_rsvp.router import GuestInfoSubmit
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                guest_info=GuestInfoSubmit(
+                    first_name="John",
+                    last_name="Doe",
+                    allergies="Severe peanut allergy",
+                    dietary_requirements=[
+                        DietaryRequirement(requirement_type=DietaryType.VEGETARIAN, notes="No eggs"),
+                        DietaryRequirement(requirement_type=DietaryType.GLUTEN_FREE, notes=None),
+                    ],
+                ),
+                family_member_updates={},
+            )
+
+            result = await write_model.submit_rsvp(
+                token="allergies-dietary-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            # Verify RSVP was successful
+            assert result.attending is True
+
+            # Verify allergies were saved
+            guest_result = await session.execute(
+                select(Guest).where(Guest.uuid == guest_uuid)
+            )
+            updated_guest = guest_result.scalar_one()
+            assert updated_guest.allergies == "Severe peanut allergy"
+
+            # Verify dietary requirements were also saved
+            dietary_result = await session.execute(
+                select(DietaryOption).where(DietaryOption.guest_id == guest_uuid)
+            )
+            dietary_opts = dietary_result.scalars().all()
+            assert len(dietary_opts) == 2
+            assert any(d.requirement_type == DietaryType.VEGETARIAN for d in dietary_opts)
+            assert any(d.requirement_type == DietaryType.GLUTEN_FREE for d in dietary_opts)
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_saves_plus_one_allergies():
+    """Test that plus-one allergies are saved when creating a plus-one guest."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="plus_one_allergies@example.com")
+            guest = await create_test_guest(session, user, rsvp_token="plus-one-allergies-token-123")
+            guest_uuid = guest.uuid
+
+            # Import and setup plus-one write model
+            from src.guests.features.create_plus_one_guest.write_model import SqlPlusOneGuestWriteModel
+            plus_one_write_model = SqlPlusOneGuestWriteModel()
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session,
+                email_service=MockEmailService(),
+                plus_one_guest_write_model=plus_one_write_model,
+            )
+
+            from src.guests.features.update_rsvp.router import PlusOneSubmit
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                plus_one_details=PlusOneSubmit(
+                    email="plusone@example.com",
+                    first_name="Jane",
+                    last_name="Smith",
+                    allergies="Lactose intolerant",
+                    dietary_requirements=[],
+                ),
+                family_member_updates={},
+            )
+
+            result = await write_model.submit_rsvp(
+                token="plus-one-allergies-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            # Verify RSVP was successful
+            assert result.attending is True
+
+            # Verify primary guest has plus-one reference
+            guest_result = await session.execute(
+                select(Guest).where(Guest.uuid == guest_uuid)
+            )
+            updated_guest = guest_result.scalar_one()
+            assert updated_guest.bring_a_plus_one_id is not None
+
+            # Verify plus-one guest has allergies saved
+            plus_one_result = await session.execute(
+                select(Guest).where(Guest.uuid == updated_guest.bring_a_plus_one_id)
+            )
+            plus_one_guest = plus_one_result.scalar_one()
+            assert plus_one_guest.allergies == "Lactose intolerant"
+            assert plus_one_guest.plus_one_of_id == guest_uuid
+        finally:
+            await session.rollback()
+
+
+# Allergies tests - Medium Priority
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_saves_family_member_allergies():
+    """Test that family member allergies are saved via guest_info in family_member_updates."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="family_allergies@example.com")
+            guest = await create_test_guest(session, user, rsvp_token="family-allergies-token-123")
+
+            # Create a family member (without Family model to avoid test setup complexity)
+            family_member = Guest(
+                user_id=user.uuid,
+                first_name="Child",
+                last_name="Doe",
+                preferred_language=Language.EN,
+            )
+            session.add(family_member)
+            await session.flush()
+
+            # Create RSVP info for family member
+            family_member_rsvp = RSVPInfo(
+                guest_id=family_member.uuid,
+                status=GuestStatus.PENDING,
+                rsvp_token="family-member-token",
+                rsvp_link="http://example.com/rsvp/family-member-token",
+            )
+            session.add(family_member_rsvp)
+            await session.flush()
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session, email_service=MockEmailService()
+            )
+
+            from src.guests.features.update_rsvp.router import FamilyMemberSubmit, GuestInfoSubmit
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                family_member_updates={
+                    str(family_member.uuid): FamilyMemberSubmit(
+                        attending=True,
+                        guest_info=GuestInfoSubmit(
+                            first_name="Child",
+                            last_name="Doe",
+                            allergies="Dairy allergy",
+                            dietary_requirements=[],
+                        ),
+                    ),
+                },
+            )
+
+            await write_model.submit_rsvp(
+                token="family-allergies-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            # Verify family member allergies were saved
+            family_member_result = await session.execute(
+                select(Guest).where(Guest.uuid == family_member.uuid)
+            )
+            updated_family_member = family_member_result.scalar_one()
+            assert updated_family_member.allergies == "Dairy allergy"
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_clears_allergies_with_empty_string():
+    """Test that allergies can be cleared by submitting an empty string."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="clear_allergies@example.com")
+            guest = await create_test_guest(session, user, rsvp_token="clear-allergies-token-123")
+            guest_uuid = guest.uuid
+
+            # Set initial allergies
+            guest.allergies = "Old allergies to be cleared"
+            await session.flush()
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session, email_service=MockEmailService()
+            )
+
+            from src.guests.features.update_rsvp.router import GuestInfoSubmit
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                guest_info=GuestInfoSubmit(
+                    first_name="John",
+                    last_name="Doe",
+                    allergies="",  # Empty string to clear
+                ),
+                family_member_updates={},
+            )
+
+            await write_model.submit_rsvp(
+                token="clear-allergies-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            # Verify allergies were cleared
+            guest_result = await session.execute(
+                select(Guest).where(Guest.uuid == guest_uuid)
+            )
+            updated_guest = guest_result.scalar_one()
+            assert updated_guest.allergies == ""
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_allergies_persist_when_not_provided():
+    """Test that allergies are not cleared when guest_info.allergies is None."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="persist_allergies@example.com")
+            guest = await create_test_guest(session, user, rsvp_token="persist-allergies-token-123")
+            guest_uuid = guest.uuid
+
+            # Set initial allergies
+            guest.allergies = "Existing allergies"
+            await session.flush()
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session, email_service=MockEmailService()
+            )
+
+            from src.guests.features.update_rsvp.router import GuestInfoSubmit
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                guest_info=GuestInfoSubmit(
+                    first_name="John",
+                    last_name="Doe",
+                    allergies=None,  # None should not clear existing allergies
+                ),
+                family_member_updates={},
+            )
+
+            await write_model.submit_rsvp(
+                token="persist-allergies-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            # Verify allergies persisted
+            guest_result = await session.execute(
+                select(Guest).where(Guest.uuid == guest_uuid)
+            )
+            updated_guest = guest_result.scalar_one()
+            assert updated_guest.allergies == "Existing allergies"
+        finally:
+            await session.rollback()
+
+
+# Allergies tests - Low Priority
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_long_allergies_text():
+    """Test that long allergies text is handled correctly (stress test)."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="long_allergies@example.com")
+            guest = await create_test_guest(session, user, rsvp_token="long-allergies-token-123")
+            guest_uuid = guest.uuid
+
+            # Create a long allergies string (500+ characters)
+            long_allergies = "Allergies: " + ", ".join([f"allergen_{i}" for i in range(100)])
+            assert len(long_allergies) > 500
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session, email_service=MockEmailService()
+            )
+
+            from src.guests.features.update_rsvp.router import GuestInfoSubmit
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                guest_info=GuestInfoSubmit(
+                    first_name="John",
+                    last_name="Doe",
+                    allergies=long_allergies,
+                ),
+                family_member_updates={},
+            )
+
+            result = await write_model.submit_rsvp(
+                token="long-allergies-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            # Verify RSVP was successful
+            assert result.attending is True
+
+            # Verify long allergies were saved
+            guest_result = await session.execute(
+                select(Guest).where(Guest.uuid == guest_uuid)
+            )
+            updated_guest = guest_result.scalar_one()
+            assert updated_guest.allergies == long_allergies
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_special_characters_in_allergies():
+    """Test that special characters, unicode, and newlines in allergies are handled correctly."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="special_allergies@example.com")
+            guest = await create_test_guest(session, user, rsvp_token="special-allergies-token-123")
+            guest_uuid = guest.uuid
+
+            # Allergies with special characters, unicode, and newlines
+            special_allergies = "Allergies:\n- Peanuts 🥜\n- Shellfish 🦐\n- Lactose (milk products)\n- Émoji test 😊"
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session, email_service=MockEmailService()
+            )
+
+            from src.guests.features.update_rsvp.router import GuestInfoSubmit
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                guest_info=GuestInfoSubmit(
+                    first_name="John",
+                    last_name="Doe",
+                    allergies=special_allergies,
+                ),
+                family_member_updates={},
+            )
+
+            result = await write_model.submit_rsvp(
+                token="special-allergies-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            # Verify RSVP was successful
+            assert result.attending is True
+
+            # Verify special characters in allergies were saved correctly
+            guest_result = await session.execute(
+                select(Guest).where(Guest.uuid == guest_uuid)
+            )
+            updated_guest = guest_result.scalar_one()
+            assert updated_guest.allergies == special_allergies
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_updates_phone_and_allergies():
+    """Test that both phone and allergies fields are updated correctly together."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="phone_allergies@example.com")
+            guest = await create_test_guest(session, user, rsvp_token="phone-allergies-token-123")
+            guest_uuid = guest.uuid
+
+            # Set initial values
+            guest.phone = "+1234567890"
+            guest.allergies = "Old allergies"
+            await session.flush()
+
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session, email_service=MockEmailService()
+            )
+
+            from src.guests.features.update_rsvp.router import GuestInfoSubmit
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                guest_info=GuestInfoSubmit(
+                    first_name="John",
+                    last_name="Doe",
+                    phone="+9876543210",
+                    allergies="New allergies: shellfish",
+                ),
+                family_member_updates={},
+            )
+
+            await write_model.submit_rsvp(
+                token="phone-allergies-token-123",
+                rsvp_data=rsvp_data,
+            )
+
+            # Verify both phone and allergies were updated
+            guest_result = await session.execute(
+                select(Guest).where(Guest.uuid == guest_uuid)
+            )
+            updated_guest = guest_result.scalar_one()
+            assert updated_guest.phone == "+9876543210"
+            assert updated_guest.allergies == "New allergies: shellfish"
+        finally:
+            await session.rollback()

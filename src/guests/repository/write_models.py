@@ -87,6 +87,7 @@ class SqlRSVPWriteModel(RSVPWriteModel):
             guest.phone = guest_info.phone
         if guest_info.allergies is not None:
             guest.allergies = guest_info.allergies
+        session.add(guest)
 
     async def _update_family_member(
         self,
@@ -137,6 +138,7 @@ class SqlRSVPWriteModel(RSVPWriteModel):
                 )
                 session.add(dietary)
 
+        await session.flush()
         await session.refresh(family_member)
 
     async def submit_rsvp(
@@ -204,6 +206,7 @@ class SqlRSVPWriteModel(RSVPWriteModel):
             if guest_info:
                 await self._update_guest_info(session, guest, guest_info)
 
+            await session.flush()
             await session.refresh(guest)
 
             # Create plus-one guest if details provided
