@@ -36,6 +36,19 @@ class EmailForwarder(Protocol):
         ...
 
 
+class EmailStatusUpdater(Protocol):
+    """Protocol for email status updates."""
+
+    async def __call__(
+        self,
+        resend_email_id: str,
+        event_type: str,
+        event_data: dict,
+    ) -> bool:
+        """Update email status from webhook event."""
+        ...
+
+
 # =============================================================================
 # Default implementations
 # =============================================================================
@@ -148,6 +161,13 @@ def get_email_forwarder() -> EmailForwarder:
     return ResendEmailForwarder(http_client_class=httpx.AsyncClient, config=settings)
 
 
+def get_email_status_updater() -> EmailStatusUpdater:
+    """Factory for email status updater. Override in tests."""
+    from src.email_service.email_status_updater import SQLEmailStatusUpdater
+
+    return SQLEmailStatusUpdater()
+
+
 # =============================================================================
 # Webhook endpoint
 # =============================================================================
@@ -158,13 +178,17 @@ async def resend_receiving_webhook(
     request: Request,
     verifier: WebhookVerifier = Depends(get_webhook_verifier),
     forwarder: EmailForwarder = Depends(get_email_forwarder),
+    status_updater: EmailStatusUpdater = Depends(get_email_status_updater),
 ) -> dict[str, str]:
     """
-    Handle Resend email.received webhook events and forward emails.
+    Handle Resend webhook events:
+    - email.received: Forward emails
+    - email.sent/delivered/bounced/etc: Update email logs
 
     Dependencies are injected for easy testing:
     - verifier: validates webhook signature
     - forwarder: handles email forwarding
+    - status_updater: updates email delivery status
     """
     logger.info("Received webhook request")
 
@@ -226,9 +250,38 @@ async def resend_receiving_webhook(
         except Exception as e:
             logger.error(f"Failed to forward email {email_id}: {e}", exc_info=True)
             raise HTTPException(status_code=500, detail="Forward failed")
+
+    elif event_type in (
+        "email.sent",
+        "email.delivered",
+        "email.bounced",
+        "email.delivery_delayed",
+        "email.complained",
+    ):
+        # Handle email delivery status events
+        data = payload.get("data", {})
+        email_id = data.get("email_id")
+
+        if not email_id:
+            logger.warning(f"Webhook {event_type} missing email_id")
+            return {"status": "ignored"}
+
+        # Update status using injected dependency
+        success = await status_updater.update_status(
+            resend_email_id=email_id,
+            event_type=event_type,
+            event_data=data,
+        )
+
+        if not success:
+            logger.warning(f"No EmailLog found for resend_email_id={email_id}")
+            return {"status": "not_found"}
+
+        logger.info(f"Updated EmailLog for {email_id}: {event_type}")
+
     else:
         # Log all other events for monitoring
-        logger.info(f"Received non-email.received event: {event_type}")
+        logger.info(f"Received non-handled event: {event_type}")
         logger.info(f"Event data: {payload.get('data', {})}")
 
     logger.info("Webhook processing completed successfully")

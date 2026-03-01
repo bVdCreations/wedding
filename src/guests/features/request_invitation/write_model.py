@@ -149,6 +149,8 @@ class SqlRequestInvitationWriteModel(RequestInvitationWriteModel):
                             rsvp_url=rsvp_info.rsvp_link,
                             response_deadline="September 7, 2026",
                             language=preferred_language,
+                            guest_id=guest.uuid,
+                            user_id=user.uuid,
                         )
                         email_sent_on = datetime.now(UTC)
                 except Exception:
@@ -194,6 +196,8 @@ class SqlRequestInvitationWriteModel(RequestInvitationWriteModel):
                         rsvp_url=rsvp_info.rsvp_link,
                         response_deadline="September 7, 2026",
                         language=getattr(guest, "preferred_language", Language.EN),
+                        guest_id=guest.uuid,
+                        user_id=user.uuid,
                     )
                     rsvp_info.email_sent_on = datetime.now(UTC)
                     await session.flush()

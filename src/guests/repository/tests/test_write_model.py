@@ -22,6 +22,8 @@ class MockEmailService(EmailServiceBase):
         attending: str,
         dietary: str,
         language: Language = Language.EN,
+        guest_id=None,
+        user_id=None,
     ) -> None:
         """Mock send confirmation - does nothing."""
         pass
@@ -35,6 +37,8 @@ class MockEmailService(EmailServiceBase):
         rsvp_url: str,
         response_deadline: str,
         language: Language = Language.EN,
+        guest_id=None,
+        user_id=None,
     ) -> None:
         """Mock send invitation - does nothing."""
         pass
@@ -45,6 +49,8 @@ class MockEmailService(EmailServiceBase):
         guest_name: str,
         plus_one_details: dict,
         language: Language = Language.EN,
+        guest_id=None,
+        user_id=None,
     ) -> None:
         """Mock send invite one plus one - does nothing."""
         pass
@@ -423,6 +429,8 @@ class SpyEmailService(EmailServiceBase):
         attending: str,
         dietary: str,
         language: Language = Language.EN,
+        guest_id=None,
+        user_id=None,
     ) -> None:
         """Capture send confirmation calls."""
         self.send_confirmation_calls.append(
@@ -444,6 +452,8 @@ class SpyEmailService(EmailServiceBase):
         rsvp_url: str,
         response_deadline: str,
         language: Language = Language.EN,
+        guest_id=None,
+        user_id=None,
     ) -> None:
         """Mock send invitation - does nothing."""
         pass
@@ -454,6 +464,8 @@ class SpyEmailService(EmailServiceBase):
         guest_name: str,
         plus_one_details: dict,
         language: Language = Language.EN,
+        guest_id=None,
+        user_id=None,
     ) -> None:
         """Mock send invite one plus one - does nothing."""
         pass

@@ -277,6 +277,8 @@ class SqlRSVPWriteModel(RSVPWriteModel):
                     attending="Yes" if attending else "No",
                     dietary=dietary_str,
                     language=preferred_language,
+                    guest_id=guest.uuid,
+                    user_id=guest.user_id,
                 )
 
             # Return DTO instead of ORM model

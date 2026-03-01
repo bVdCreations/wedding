@@ -131,6 +131,8 @@ class SqlGuestCreateWriteModel(GuestCreateWriteModel):
                             rsvp_url=rsvp_info.rsvp_link,
                             response_deadline="July 15, 2026",
                             language=preferred_language,
+                            guest_id=guest.uuid,
+                            user_id=user.uuid,
                         )
                         email_sent_on = datetime.now(UTC)
                 except Exception:
