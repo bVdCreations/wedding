@@ -1411,8 +1411,11 @@ async def test_submit_rsvp_without_email_service_does_not_crash():
 
 
 @pytest.mark.asyncio
-async def test_submit_rsvp_update_with_plus_one_resends_email():
-    """Test that updating RSVP with plus-one re-sends the invitation email."""
+async def test_submit_rsvp_update_with_plus_one_does_not_resend_email():
+    """Test that updating RSVP with the same plus-one does NOT resend the invitation email.
+
+    The email is only sent when a new plus-one is created, not when updating an existing one.
+    """
     async with async_session_manager() as session:
         try:
             user = await create_test_user(session, email="update_plus_one@test.com")
@@ -1436,9 +1439,9 @@ async def test_submit_rsvp_update_with_plus_one_resends_email():
             rsvp_data = RSVPResponseSubmit(
                 attending=True,
                 plus_one_details=PlusOneSubmit(
-                    email="plusone_update@example.com",
-                    first_name="John",
-                    last_name="Updated",
+                    email="plusone@example.com",
+                    first_name="First",
+                    last_name="PlusOne",
                     allergies=None,
                     dietary_requirements=[],
                 ),
@@ -1451,14 +1454,16 @@ async def test_submit_rsvp_update_with_plus_one_resends_email():
             )
 
             assert len(spy_email_service.send_invite_one_plus_one_calls) == 1
+            first_call = spy_email_service.send_invite_one_plus_one_calls[0]
+            assert first_call["to_address"] == "plusone@example.com"
 
             rsvp_data_2 = RSVPResponseSubmit(
                 attending=True,
                 plus_one_details=PlusOneSubmit(
-                    email="plusone_update@example.com",
-                    first_name="John",
-                    last_name="Updated",
-                    allergies="New allergies",
+                    email="plusone@example.com",
+                    first_name="First",
+                    last_name="PlusOne",
+                    allergies="Updated allergies",
                     dietary_requirements=[],
                 ),
                 family_member_updates={},
@@ -1469,7 +1474,7 @@ async def test_submit_rsvp_update_with_plus_one_resends_email():
                 rsvp_data=rsvp_data_2,
             )
 
-            assert len(spy_email_service.send_invite_one_plus_one_calls) == 2
+            assert len(spy_email_service.send_invite_one_plus_one_calls) == 1
         finally:
             await session.rollback()
 

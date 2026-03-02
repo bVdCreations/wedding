@@ -39,11 +39,16 @@ class PlusOneGuestWriteModel(ABC):
         original_guest_id: UUID,
         plus_one_data: PlusOneDTO,
         needs_transport: bool = False,
+        inviter_name: str | None = None,
+        inviter_language: Language | None = None,
+        inviter_user_id: UUID | None = None,
     ) -> tuple[GuestDTO, UUID]:
         """
         Create a new plus-one guest with user, guest, and RSVPInfo.
         Returns tuple of (GuestDTO with RSVP token and link, plus-one guest UUID).
         needs_transport: copies the main guest's transport preference to the plus-one.
+        inviter_name, inviter_language, inviter_user_id: if provided and plus-one is newly created,
+            send invitation email to the plus-one.
         """
         raise NotImplementedError
 
@@ -82,12 +87,17 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
         original_guest_id: UUID,
         plus_one_data: PlusOneDTO,
         needs_transport: bool = False,
+        inviter_name: str | None = None,
+        inviter_language: Language | None = None,
+        inviter_user_id: UUID | None = None,
     ) -> tuple[GuestDTO, UUID]:
         """
         Create a new plus-one guest with user, guest, and RSVPInfo.
         Returns tuple of (GuestDTO with RSVP token and link, plus-one guest UUID).
         Raises CannotAddPlusOneError if the original guest is itself a plus-one.
         Raises CannotChangePlusOneEmailError if trying to change an existing plus-one's email.
+        If inviter_name, inviter_language, and inviter_user_id are provided and a new plus-one
+        is created, sends an invitation email to the plus-one.
         """
         async with self.async_session_manager(session_overwrite=self._session_overwrite) as session:
             # 1. Validate that original guest can add a plus-one
@@ -105,7 +115,7 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
             # 4. Check if user already has a guest - if so, return their info
             existing_guest = await self._get_guest_by_user_id(session, user.uuid)
             if existing_guest is not None:
-                # Return existing guest's info
+                # Return existing guest's info - don't send email for existing guests
                 rsvp_info = await self._get_rsvp_info_by_guest_id(session, existing_guest.uuid)
                 return (
                     GuestDTO(
@@ -125,85 +135,98 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
                     ),
                     existing_guest.uuid,
                 )
+            else:
+                # 5. Get original guest's preferred language
+                original_guest_for_lang = await session.execute(
+                    select(Guest).where(Guest.uuid == original_guest_id)
+                )
+                original_guest_obj = original_guest_for_lang.scalar_one()
+                preferred_language = getattr(original_guest_obj, "preferred_language", Language.EN)
 
-            # 5. Get original guest's preferred language
-            original_guest_for_lang = await session.execute(
-                select(Guest).where(Guest.uuid == original_guest_id)
-            )
-            original_guest_obj = original_guest_for_lang.scalar_one()
-            preferred_language = getattr(original_guest_obj, "preferred_language", Language.EN)
-
-            # 6. Create Guest linked to User with plus_one_of_id set
-            guest = Guest(
-                user_id=user.uuid,
-                first_name=plus_one_data.first_name,
-                last_name=plus_one_data.last_name,
-                phone=None,
-                plus_one_of_id=original_guest_id,
-                notes=None,
-                preferred_language=preferred_language,
-                allergies=plus_one_data.allergies,
-            )
-            session.add(guest)
-            await session.flush()
-
-            # 6a. Create DietaryOption records if provided
-            if plus_one_data.dietary_requirements:
-                for req in plus_one_data.dietary_requirements:
-                    dietary_option = DietaryOption(
-                        guest_id=guest.uuid,
-                        requirement_type=req.requirement_type,
-                        notes=req.notes,
-                    )
-                    session.add(dietary_option)
+                # 6. Create Guest linked to User with plus_one_of_id set
+                guest = Guest(
+                    user_id=user.uuid,
+                    first_name=plus_one_data.first_name,
+                    last_name=plus_one_data.last_name,
+                    phone=None,
+                    plus_one_of_id=original_guest_id,
+                    notes=None,
+                    preferred_language=preferred_language,
+                    allergies=plus_one_data.allergies,
+                )
+                session.add(guest)
                 await session.flush()
 
-            # 7. Create RSVPInfo linked to Guest
-            rsvp_token = str(uuid4())
-            lang_prefix = (
-                preferred_language.value
-                if hasattr(preferred_language, "value")
-                else preferred_language
-            )
-            rsvp_info = RSVPInfo(
-                guest_id=guest.uuid,
-                status=GuestStatus.PENDING,
-                active=True,
-                rsvp_token=rsvp_token,
-                rsvp_link=f"{settings.frontend_url}/{lang_prefix}/rsvp/?token={rsvp_token}&plus_one=true",
-                notes=None,
-                email_sent_on=None,  # Default to None, plus-one gets invite via original guest
-                needs_transport=needs_transport,
-            )
-            session.add(rsvp_info)
+                # 6a. Create DietaryOption records if provided
+                if plus_one_data.dietary_requirements:
+                    for req in plus_one_data.dietary_requirements:
+                        dietary_option = DietaryOption(
+                            guest_id=guest.uuid,
+                            requirement_type=req.requirement_type,
+                            notes=req.notes,
+                        )
+                        session.add(dietary_option)
+                    await session.flush()
 
-            await session.flush()
+                # 7. Create RSVPInfo linked to Guest
+                rsvp_token = str(uuid4())
+                lang_prefix = (
+                    preferred_language.value
+                    if hasattr(preferred_language, "value")
+                    else preferred_language
+                )
+                rsvp_info = RSVPInfo(
+                    guest_id=guest.uuid,
+                    status=GuestStatus.PENDING,
+                    active=True,
+                    rsvp_token=rsvp_token,
+                    rsvp_link=f"{settings.frontend_url}/{lang_prefix}/rsvp/?token={rsvp_token}&plus_one=true",
+                    notes=None,
+                    email_sent_on=None,  # Default to None, plus-one gets invite via original guest
+                    needs_transport=needs_transport,
+                )
+                session.add(rsvp_info)
 
-            # 7. Update the original guest's bring_a_plus_one_id
-            original_guest_result = await session.execute(
-                select(Guest).where(Guest.uuid == original_guest_id)
-            )
-            original_guest_db = original_guest_result.scalar_one()
-            original_guest_db.bring_a_plus_one_id = guest.uuid
-            await session.flush()
+                await session.flush()
 
-        # 5. Build and return GuestDTO with plus-one guest UUID
-        return (
-            GuestDTO(
-                id=guest.uuid,
-                first_name=plus_one_data.first_name,
-                last_name=plus_one_data.last_name,
-                phone=None,
-                plus_one_of_id=original_guest_id,
-                email=str(plus_one_data.email),
-                rsvp=RSVPDTO(
-                    status=GuestStatus(rsvp_info.status),
-                    token=rsvp_token,
-                    link=rsvp_info.rsvp_link,
-                ),
-            ),
-            guest.uuid,
-        )
+                # 7. Update the original guest's bring_a_plus_one_id
+                original_guest_result = await session.execute(
+                    select(Guest).where(Guest.uuid == original_guest_id)
+                )
+                original_guest_db = original_guest_result.scalar_one()
+                original_guest_db.bring_a_plus_one_id = guest.uuid
+                await session.flush()
+
+                # 8. Send invitation email to plus-one if inviter details provided
+                if self._email_service and inviter_name and inviter_language and inviter_user_id:
+                    language = inviter_language if inviter_language else Language.EN
+                    await self._email_service.send_invite_one_plus_one(
+                        to_address=str(plus_one_data.email),
+                        guest_name=f"{plus_one_data.first_name} {plus_one_data.last_name}",
+                        inviter_name=inviter_name,
+                        rsvp_url=rsvp_info.rsvp_link,
+                        language=language,
+                        guest_id=guest.uuid,
+                        user_id=inviter_user_id,
+                    )
+
+                # 5. Build and return GuestDTO with plus-one guest UUID
+                return (
+                    GuestDTO(
+                        id=guest.uuid,
+                        first_name=plus_one_data.first_name,
+                        last_name=plus_one_data.last_name,
+                        phone=None,
+                        plus_one_of_id=original_guest_id,
+                        email=str(plus_one_data.email),
+                        rsvp=RSVPDTO(
+                            status=GuestStatus(rsvp_info.status),
+                            token=rsvp_token,
+                            link=rsvp_info.rsvp_link,
+                        ),
+                    ),
+                    guest.uuid,
+                )
 
     async def _get_or_create_user(self, session: AsyncSession, email: str) -> User:
         """Get existing user by email or create a new one."""

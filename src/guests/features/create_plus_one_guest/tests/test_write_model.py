@@ -460,6 +460,48 @@ async def test_plus_one_guest_email_service_not_called_by_default():
             await db_session.rollback()
 
 
+async def test_plus_one_guest_sends_email_when_inviter_details_provided():
+    """Test that email_service is called when inviter details are provided."""
+    mock_email_service = AsyncMock()
+
+    async with async_session_maker() as db_session:
+        try:
+            # Create original guest
+            guest_write_model = SqlGuestCreateWriteModel(session_overwrite=db_session)
+            original_guest = await guest_write_model.create_guest(
+                email="original_with_inviter@test.com",
+                first_name="Original",
+                last_name="Guest",
+            )
+
+            # Create plus-one guest with inviter details
+            plus_one_write_model = SqlPlusOneGuestWriteModel(session_overwrite=db_session)
+            plus_one_write_model.set_email_service(mock_email_service)
+
+            plus_one_data = PlusOneDTO(
+                email="plusone_with_inviter@test.com",
+                first_name="Plus",
+                last_name="One",
+            )
+            result, plus_one_uuid = await plus_one_write_model.create_plus_one_guest(
+                original_guest_id=original_guest.id,
+                plus_one_data=plus_one_data,
+                inviter_name="Original Guest",
+                inviter_language=Language.EN,
+                inviter_user_id=original_guest.id,
+            )
+
+            # Verify email service WAS called
+            mock_email_service.send_invite_one_plus_one.assert_called_once()
+            call_kwargs = mock_email_service.send_invite_one_plus_one.call_args.kwargs
+            assert call_kwargs["to_address"] == "plusone_with_inviter@test.com"
+            assert call_kwargs["guest_name"] == "Plus One"
+            assert call_kwargs["inviter_name"] == "Original Guest"
+            assert call_kwargs["language"] == Language.EN
+        finally:
+            await db_session.rollback()
+
+
 # Language inheritance tests
 
 

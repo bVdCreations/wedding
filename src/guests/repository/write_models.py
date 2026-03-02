@@ -214,6 +214,9 @@ class SqlRSVPWriteModel(RSVPWriteModel):
             await session.flush()
             await session.refresh(guest)
 
+            # Get guest's preferred language (needed for plus-one email and confirmation email)
+            preferred_language = getattr(guest, "preferred_language", Language.EN)
+
             # Create plus-one guest if details provided
             if attending and plus_one_details and self._plus_one_guest_write_model:
                 plus_one_dto = PlusOneDTO(
@@ -231,6 +234,8 @@ class SqlRSVPWriteModel(RSVPWriteModel):
                 )
                 # Copy main guest's transport preference to plus-one
                 needs_transport_value = getattr(rsvp_data, "needs_transport", False)
+                # Get inviter info for email
+                inviter_name = f"{guest.first_name} {guest.last_name}"
                 (
                     _,
                     plus_one_guest_uuid,
@@ -238,6 +243,9 @@ class SqlRSVPWriteModel(RSVPWriteModel):
                     original_guest_id=guest.uuid,
                     plus_one_data=plus_one_dto,
                     needs_transport=needs_transport_value,
+                    inviter_name=inviter_name,
+                    inviter_language=preferred_language,
+                    inviter_user_id=guest.user_id,
                 )
                 # Set bring_a_plus_one_id to the plus-one guest's UUID
                 guest.bring_a_plus_one_id = plus_one_guest_uuid
@@ -279,9 +287,6 @@ class SqlRSVPWriteModel(RSVPWriteModel):
                 user_email = await self._get_user_email(session, guest.user_id)
                 guest_name = f"{guest.first_name} {guest.last_name}"
 
-                # Get guest's preferred language
-                preferred_language = getattr(guest, "preferred_language", Language.EN)
-
                 await self._email_service.send_confirmation(
                     to_address=user_email,
                     guest_name=guest_name,
@@ -291,26 +296,6 @@ class SqlRSVPWriteModel(RSVPWriteModel):
                     guest_id=guest.uuid,
                     user_id=guest.user_id,
                 )
-            # Send plus-one invitation email if email_service is available
-            if attending and plus_one_details and plus_one_details.email and self._email_service:
-                # Get plus-one's RSVP info for the link
-                rsvp_stmt = select(RSVPInfo).where(RSVPInfo.guest_id == plus_one_guest_uuid)
-                rsvp_result = await session.execute(rsvp_stmt)
-                plus_one_rsvp_info = rsvp_result.scalar_one_or_none()
-
-                if plus_one_rsvp_info:
-                    inviter_name = f"{guest.first_name} {guest.last_name}"
-                    preferred_language = getattr(guest, "preferred_language", Language.EN)
-
-                    await self._email_service.send_invite_one_plus_one(
-                        to_address=plus_one_details.email,
-                        guest_name=f"{plus_one_details.first_name} {plus_one_details.last_name}",
-                        inviter_name=inviter_name,
-                        rsvp_url=plus_one_rsvp_info.rsvp_link,
-                        language=preferred_language,
-                        guest_id=plus_one_guest_uuid,
-                        user_id=guest.user_id,
-                    )
 
             # Return DTO instead of ORM model
             return RSVPResponseDTO(
