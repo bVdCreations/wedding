@@ -47,10 +47,7 @@ async def _create_guest_and_send_email(language: Language = Language.EN):
     await email_service.send_invitation(
         to_address=email,
         guest_name=f"{first_name} {last_name}",
-        event_date="August 15, 2026",
-        event_location="Castillo de Example, Spain",
         rsvp_url=guest.rsvp.link,
-        response_deadline="July 15, 2026",
         language=language,
     )
 
@@ -495,10 +492,7 @@ async def _send_test_email(
         await email_service.send_invitation(
             to_address=to_email,
             guest_name=guest_name,
-            event_date="August 15, 2026",
-            event_location="Castillo de Example, Spain",
             rsvp_url="https://example.com/rsvp/test-token",
-            response_deadline="July 15, 2026",
             language=language,
         )
     elif email_type == EmailType.CONFIRMATION:
@@ -512,11 +506,9 @@ async def _send_test_email(
     elif email_type == EmailType.PLUS_ONE:
         await email_service.send_invite_one_plus_one(
             to_address=to_email,
-            guest_name=guest_name,
-            plus_one_details={
-                "name": "Test Plus One",
-                "rsvp_url": "https://example.com/rsvp/plus-one-token",
-            },
+            guest_name="Test Plus One",
+            inviter_name="Test Guest",
+            rsvp_url="https://example.com/rsvp/plus-one-token",
             language=language,
         )
 
@@ -578,10 +570,7 @@ async def _send_all_test_emails(
     email_service = SMTPEmailService()
     guest_name = "Test Guest"
     inviter_name = "Test Inviter"
-    event_date = "August 15, 2026"
-    event_location = "Castillo de Example, Spain"
     rsvp_url = "https://example.com/rsvp/test-token"
-    response_deadline = "July 15, 2026"
     attending = "yes"
     dietary = "none"
 
@@ -596,10 +585,7 @@ async def _send_all_test_emails(
                 await email_service.send_invitation(
                     to_address=to_email,
                     guest_name=guest_name,
-                    event_date=event_date,
-                    event_location=event_location,
                     rsvp_url=rsvp_url,
-                    response_deadline=response_deadline,
                     language=lang,
                 )
             elif etype == EmailType.CONFIRMATION:
@@ -615,10 +601,7 @@ async def _send_all_test_emails(
                     to_address=to_email,
                     guest_name=guest_name,
                     inviter_name=inviter_name,
-                    event_date=event_date,
-                    event_location=event_location,
                     rsvp_url=rsvp_url,
-                    response_deadline=response_deadline,
                     language=lang,
                 )
             sent_count += 1

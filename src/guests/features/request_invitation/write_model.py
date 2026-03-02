@@ -144,10 +144,7 @@ class SqlRequestInvitationWriteModel(RequestInvitationWriteModel):
                         await self.email_service.send_invitation(
                             to_address=email,
                             guest_name=f"{first_name} {last_name}".strip(),
-                            event_date="November 7, 2026",
-                            event_location="Rancho del Inglés, Malaga, Spain",
                             rsvp_url=rsvp_info.rsvp_link,
-                            response_deadline="September 7, 2026",
                             language=preferred_language,
                             guest_id=guest.uuid,
                             user_id=user.uuid,
@@ -159,9 +156,7 @@ class SqlRequestInvitationWriteModel(RequestInvitationWriteModel):
             rsvp_info.email_sent_on = email_sent_on
             await session.flush()
 
-        return RequestInvitationResponse(
-            message="Check your email for your invitation link"
-        )
+        return RequestInvitationResponse(message="Check your email for your invitation link")
 
     async def _get_user_by_email(self, session, email: str) -> User | None:
         """Get user by email."""
@@ -176,9 +171,7 @@ class SqlRequestInvitationWriteModel(RequestInvitationWriteModel):
     async def _resend_invitation(self, session, user: User, guest: Guest) -> None:
         """Resend invitation email to existing guest."""
         # Get RSVPInfo for this guest
-        result = await session.execute(
-            select(RSVPInfo).where(RSVPInfo.guest_id == guest.uuid)
-        )
+        result = await session.execute(select(RSVPInfo).where(RSVPInfo.guest_id == guest.uuid))
         rsvp_info = result.scalar_one_or_none()
 
         if not rsvp_info:
@@ -191,10 +184,7 @@ class SqlRequestInvitationWriteModel(RequestInvitationWriteModel):
                     await self.email_service.send_invitation(
                         to_address=user.email,
                         guest_name=f"{guest.first_name} {guest.last_name}".strip() or "Guest",
-                        event_date="November 7, 2026",
-                        event_location="Rancho del Inglés, Malaga, Spain",
                         rsvp_url=rsvp_info.rsvp_link,
-                        response_deadline="September 7, 2026",
                         language=getattr(guest, "preferred_language", Language.EN),
                         guest_id=guest.uuid,
                         user_id=user.uuid,

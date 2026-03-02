@@ -1,609 +1,926 @@
-from dataclasses import dataclass
-
-from src.guests.dtos import Language
-
-
-@dataclass
-class EmailTemplates:
-    # English templates
-    INVITATION_SUBJECT_EN = "You're Invited to Our Wedding!"
-    INVITATION_HTML_EN = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #d4a373;">Save the Date!</h1>
-        </div>
-
-        <p>Dear {guest_name},</p>
-
-        <p>We are delighted to invite you to our wedding celebration!</p>
-
-        <div style="background-color: #fefae0; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="color: #bc6c25; margin-top: 0;">Wedding Details</h2>
-            <p><strong>Date:</strong> {event_date}</p>
-            <p><strong>Location:</strong> {event_location}</p>
-        </div>
-
-        <p>Please let us know if you can attend by clicking the button below:</p>
-
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="{rsvp_url}" style="background-color: #d4a373; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-size: 18px;">
-                RSVP Now
-            </a>
-        </div>
-
-        <p>If the button doesn't work, you can copy and paste the following link into your browser:</p>
-        <p style="word-break: break-all; color: #606c38;"><a href="{rsvp_url}">{rsvp_url}</a></p>
-
-        <p>We kindly ask that you respond by {response_deadline}.</p>
-
-        <p>We look forward to celebrating with you!</p>
-
-        <p>With love,<br>{couple_names}</p>
-
-        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
-
-        <p style="font-size: 12px; color: #888; text-align: center;">
-            If you have any questions, please don't hesitate to contact us.
-        </p>
-    </body>
-    </html>
-    """
-
-    INVITATION_TEXT_EN = """
-    Dear {guest_name},
-
-    We are delighted to invite you to our wedding celebration!
-
-    Wedding Details:
-    - Date: {event_date}
-    - Location: {event_location}
-
-    Please let us know if you can attend by visiting:
-    {rsvp_url}
-
-    We kindly ask that you respond by {response_deadline}.
-
-    We look forward to celebrating with you!
-
-    With love,
-    {couple_names}
-    """
-
-    CONFIRMATION_SUBJECT_EN = "Thank you for your RSVP!"
-    CONFIRMATION_HTML_EN = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #d4a373;">Thank You!</h1>
-        </div>
-
-        <p>Dear {guest_name},</p>
-
-        <p>Thank you for responding to our wedding invitation!</p>
-
-        <div style="background-color: #fefae0; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="color: #bc6c25; margin-top: 0;">Your Response</h2>
-            <p><strong>Attending:</strong> {attending}</p>
-            <p><strong>Dietary Requirements:</strong> {dietary}</p>
-        </div>
-
-        <p>We can't wait to celebrate with you!</p>
-
-        <p>With love,<br>{couple_names}</p>
-    </body>
-    </html>
-    """
-
-    CONFIRMATION_TEXT_EN = """
-    Dear {guest_name},
-
-    Thank you for responding to our wedding invitation!
-
-    Your Response:
-    - Attending: {attending}
-    - Dietary Requirements: {dietary}
-
-    We can't wait to celebrate with you!
-
-    With love,
-    {couple_names}
-    """
-
-    # Spanish templates
-    INVITATION_SUBJECT_ES = "¡Estás Invitado a Nuestra Boda!"
-    INVITATION_HTML_ES = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #d4a373;">¡Reserva la Fecha!</h1>
-        </div>
-
-        <p>Querido/a {guest_name},</p>
-
-        <p>¡Estamos encantados de invitarte a nuestra celebración de boda!</p>
-
-        <div style="background-color: #fefae0; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="color: #bc6c25; margin-top: 0;">Detalles de la Boda</h2>
-            <p><strong>Fecha:</strong> {event_date}</p>
-            <p><strong>Lugar:</strong> {event_location}</p>
-        </div>
-
-        <p>Por favor, haznos saber si puedes asistir haciendo clic en el botón de abajo:</p>
-
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="{rsvp_url}" style="background-color: #d4a373; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-size: 18px;">
-                Confirmar Asistencia
-            </a>
-        </div>
-
-        <p>Si el botón no funciona, puedes copiar y pegar el siguiente enlace en tu navegador:</p>
-        <p style="word-break: break-all; color: #606c38;"><a href="{rsvp_url}">{rsvp_url}</a></p>
-
-        <p>Te pedimos amablemente que respondas antes del {response_deadline}.</p>
-
-        <p>¡Esperamos celebrar contigo!</p>
-
-        <p>Con cariño,<br>{couple_names}</p>
-
-        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
-
-        <p style="font-size: 12px; color: #888; text-align: center;">
-            Si tienes alguna pregunta, no dudes en contactarnos.
-        </p>
-    </body>
-    </html>
-    """
-
-    INVITATION_TEXT_ES = """
-    Querido/a {guest_name},
-
-    ¡Estamos encantados de invitarte a nuestra celebración de boda!
-
-    Detalles de la Boda:
-    - Fecha: {event_date}
-    - Lugar: {event_location}
-
-    Por favor, haznos saber si puedes asistir visitando:
-    {rsvp_url}
-
-    Te pedimos amablemente que respondas antes del {response_deadline}.
-
-    ¡Esperamos celebrar contigo!
-
-    Con cariño,
-    {couple_names}
-    """
-
-    CONFIRMATION_SUBJECT_ES = "¡Gracias por tu Confirmación!"
-    CONFIRMATION_HTML_ES = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #d4a373;">¡Gracias!</h1>
-        </div>
-
-        <p>Querido/a {guest_name},</p>
-
-        <p>¡Gracias por responder a nuestra invitación de boda!</p>
-
-        <div style="background-color: #fefae0; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="color: #bc6c25; margin-top: 0;">Tu Respuesta</h2>
-            <p><strong>Asistencia:</strong> {attending}</p>
-            <p><strong>Requisitos Dietéticos:</strong> {dietary}</p>
-        </div>
-
-        <p>¡Estamos deseando celebrar contigo!</p>
-
-        <p>Con cariño,<br>{couple_names}</p>
-    </body>
-    </html>
-    """
-
-    CONFIRMATION_TEXT_ES = """
-    Querido/a {guest_name},
-
-    ¡Gracias por responder a nuestra invitación de boda!
-
-    Tu Respuesta:
-    - Asistencia: {attending}
-    - Requisitos Dietéticos: {dietary}
-
-    ¡Estamos deseando celebrar contigo!
-
-    Con cariño,
-    {couple_names}
-    """
-
-    # Dutch templates
-    INVITATION_SUBJECT_NL = "Je Bent Uitgenodigd voor Onze Bruiloft!"
-    INVITATION_HTML_NL = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #d4a373;">Save the Date!</h1>
-        </div>
-
-        <p>Beste {guest_name},</p>
-
-        <p>We nodigen je van harte uit voor onze bruiloft!</p>
-
-        <div style="background-color: #fefae0; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="color: #bc6c25; margin-top: 0;">Bruiloft Details</h2>
-            <p><strong>Datum:</strong> {event_date}</p>
-            <p><strong>Locatie:</strong> {event_location}</p>
-        </div>
-
-        <p>Laat ons weten of je kunt komen door op de onderstaande knop te klikken:</p>
-
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="{rsvp_url}" style="background-color: #d4a373; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-size: 18px;">
-                Bevestig Aanwezigheid
-            </a>
-        </div>
-
-        <p>Als de knop niet werkt, kun je de volgende link kopiëren en plakken in je browser:</p>
-        <p style="word-break: break-all; color: #606c38;"><a href="{rsvp_url}">{rsvp_url}</a></p>
-
-        <p>We vragen je vriendelijk om te reageren voor {response_deadline}.</p>
-
-        <p>We kijken ernaar uit om met je te vieren!</p>
-
-        <p>Met liefde,<br>{couple_names}</p>
-
-        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
-
-        <p style="font-size: 12px; color: #888; text-align: center;">
-            Als je vragen hebt, neem dan gerust contact met ons op.
-        </p>
-    </body>
-    </html>
-    """
-
-    INVITATION_TEXT_NL = """
-    Beste {guest_name},
-
-    We nodigen je van harte uit voor onze bruiloft!
-
-    Bruiloft Details:
-    - Datum: {event_date}
-    - Locatie: {event_location}
-
-    Laat ons weten of je kunt komen door te bezoeken:
-    {rsvp_url}
-
-    We vragen je vriendelijk om te reageren voor {response_deadline}.
-
-    We kijken ernaar uit om met je te vieren!
-
-    Met liefde,
-    {couple_names}
-    """
-
-    CONFIRMATION_SUBJECT_NL = "Bedankt voor je Reactie!"
-    CONFIRMATION_HTML_NL = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #d4a373;">Bedankt!</h1>
-        </div>
-
-        <p>Beste {guest_name},</p>
-
-        <p>Bedankt voor je reactie op onze bruiloftuitnodiging!</p>
-
-        <div style="background-color: #fefae0; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="color: #bc6c25; margin-top: 0;">Jouw Reactie</h2>
-            <p><strong>Aanwezigheid:</strong> {attending}</p>
-            <p><strong>Dieetwensen:</strong> {dietary}</p>
-        </div>
-
-        <p>We kunnen niet wachten om met je te vieren!</p>
-
-        <p>Met liefde,<br>{couple_names}</p>
-    </body>
-    </html>
-    """
-
-    CONFIRMATION_TEXT_NL = """
-    Beste {guest_name},
-
-    Bedankt voor je reactie op onze bruiloftuitnodiging!
-
-    Jouw Reactie:
-    - Aanwezigheid: {attending}
-    - Dieetwensen: {dietary}
-
-    We kunnen niet wachten om met je te vieren!
-
-    Met liefde,
-    {couple_names}
-    """
-
-    # Plus-One Invitation templates
-    PLUS_ONE_INVITATION_SUBJECT_EN = "You're Invited to Our Wedding!"
-    PLUS_ONE_INVITATION_HTML_EN = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #d4a373;">Special Invitation!</h1>
-        </div>
-
-        <p>Dear {guest_name},</p>
-
-        <p><strong>{inviter_name}</strong> has invited you as their plus-one to our wedding celebration!</p>
-
-        <div style="background-color: #fefae0; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="color: #bc6c25; margin-top: 0;">Wedding Details</h2>
-            <p><strong>Date:</strong> {event_date}</p>
-            <p><strong>Location:</strong> {event_location}</p>
-        </div>
-
-        <p>Please let us know if you can attend by clicking the button below:</p>
-
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="{rsvp_url}" style="background-color: #d4a373; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-size: 18px;">
-                RSVP Now
-            </a>
-        </div>
-
-        <p>If the button doesn't work, you can copy and paste the following link into your browser:</p>
-        <p style="word-break: break-all; color: #606c38;"><a href="{rsvp_url}">{rsvp_url}</a></p>
-
-        <p>We kindly ask that you respond by {response_deadline}.</p>
-
-        <p>We look forward to celebrating with you!</p>
-
-        <p>With love,<br>{couple_names}</p>
-
-        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
-
-        <p style="font-size: 12px; color: #888; text-align: center;">
-            If you have any questions, please don't hesitate to contact us.
-        </p>
-    </body>
-    </html>
-    """
-
-    PLUS_ONE_INVITATION_TEXT_EN = """
-    Dear {guest_name},
-
-    {inviter_name} has invited you as their plus-one to our wedding celebration!
-
-    Wedding Details:
-    - Date: {event_date}
-    - Location: {event_location}
-
-    Please let us know if you can attend by visiting:
-    {rsvp_url}
-
-    We kindly ask that you respond by {response_deadline}.
-
-    We look forward to celebrating with you!
-
-    With love,
-    {couple_names}
-    """
-
-    PLUS_ONE_INVITATION_SUBJECT_ES = "¡Estás Invitado a Nuestra Boda!"
-    PLUS_ONE_INVITATION_HTML_ES = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #d4a373;">¡Invitación Especial!</h1>
-        </div>
-
-        <p>Querido/a {guest_name},</p>
-
-        <p><strong>{inviter_name}</strong> te ha invitado como su acompañante a nuestra celebración de boda!</p>
-
-        <div style="background-color: #fefae0; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="color: #bc6c25; margin-top: 0;">Detalles de la Boda</h2>
-            <p><strong>Fecha:</strong> {event_date}</p>
-            <p><strong>Lugar:</strong> {event_location}</p>
-        </div>
-
-        <p>Por favor, haznos saber si puedes asistir haciendo clic en el botón de abajo:</p>
-
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="{rsvp_url}" style="background-color: #d4a373; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-size: 18px;">
-                Confirmar Asistencia
-            </a>
-        </div>
-
-        <p>Si el botón no funciona, puedes copiar y pegar el siguiente enlace en tu navegador:</p>
-        <p style="word-break: break-all; color: #606c38;"><a href="{rsvp_url}">{rsvp_url}</a></p>
-
-        <p>Te pedimos amablemente que respondas antes del {response_deadline}.</p>
-
-        <p>¡Estamos deseando celebrar contigo!</p>
-
-        <p>Con cariño,<br>{couple_names}</p>
-
-        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
-
-        <p style="font-size: 12px; color: #888; text-align: center;">
-            Si tienes alguna pregunta, no dudes en contactarnos.
-        </p>
-    </body>
-    </html>
-    """
-
-    PLUS_ONE_INVITATION_TEXT_ES = """
-    Querido/a {guest_name},
-
-    {inviter_name} te ha invitado como su acompañante a nuestra celebración de boda!
-
-    Detalles de la Boda:
-    - Fecha: {event_date}
-    - Lugar: {event_location}
-
-    Por favor, haznos saber si puedes asistir visitando:
-    {rsvp_url}
-
-    Te pedimos amablemente que respondas antes del {response_deadline}.
-
-    ¡Estamos deseando celebrar contigo!
-
-    Con cariño,
-    {couple_names}
-    """
-
-    PLUS_ONE_INVITATION_SUBJECT_NL = "Je Bent Uitgenodigd voor Onze Bruiloft!"
-    PLUS_ONE_INVITATION_HTML_NL = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #d4a373;">Speciale Uitnodiging!</h1>
-        </div>
-
-        <p>Beste {guest_name},</p>
-
-        <p><strong>{inviter_name}</strong> heeft je uitgenodigd als hun plus-één voor onze bruiloft!</p>
-
-        <div style="background-color: #fefae0; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="color: #bc6c25; margin-top: 0;">Bruiloft Details</h2>
-            <p><strong>Datum:</strong> {event_date}</p>
-            <p><strong>Locatie:</strong> {event_location}</p>
-        </div>
-
-        <p>Laat ons weten of je kunt komen door op de onderstaande knop te klikken:</p>
-
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="{rsvp_url}" style="background-color: #d4a373; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-size: 18px;">
-                Bevestig Aanwezigheid
-            </a>
-        </div>
-
-        <p>Als de knop niet werkt, kun je de volgende link kopiëren en plakken in je browser:</p>
-        <p style="word-break: break-all; color: #606c38;"><a href="{rsvp_url}">{rsvp_url}</a></p>
-
-        <p>We vragen je vriendelijk om te reageren voor {response_deadline}.</p>
-
-        <p>We kijken ernaar uit om met je te vieren!</p>
-
-        <p>Met liefde,<br>{couple_names}</p>
-
-        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
-
-        <p style="font-size: 12 #888; textpx; color:-align: center;">
-            Als je vragen hebt, neem dan gerust contact met ons op.
-        </p>
-    </body>
-    </html>
-    """
-
-    PLUS_ONE_INVITATION_TEXT_NL = """
-    Beste {guest_name},
-
-    {inviter_name} heeft je uitgenodigd als hun plus-één voor onze bruiloft!
-
-    Bruiloft Details:
-    - Datum: {event_date}
-    - Locatie: {event_location}
-
-    Laat ons weten of je kunt komen door te bezoeken:
-    {rsvp_url}
-
-    We vragen je vriendelijk om te reageren voor {response_deadline}.
-
-    We kijken ernaar uit om met je te vieren!
-
-    Met liefde,
-    {couple_names}
-    """
-
-    # Legacy aliases for backwards compatibility
-    INVITATION_SUBJECT = INVITATION_SUBJECT_EN
-    INVITATION_HTML = INVITATION_HTML_EN
-    INVITATION_TEXT = INVITATION_TEXT_EN
-    CONFIRMATION_SUBJECT = CONFIRMATION_SUBJECT_EN
-    CONFIRMATION_HTML = CONFIRMATION_HTML_EN
-    CONFIRMATION_TEXT = CONFIRMATION_TEXT_EN
-
-    @classmethod
-    def get_invitation_templates(cls, language: Language) -> tuple[str, str, str]:
-        """Get invitation templates for a specific language.
-
-        Returns: (subject, html_body, text_body)
-        """
-        lang_suffix = language.value.upper()
-        subject = getattr(cls, f"INVITATION_SUBJECT_{lang_suffix}", cls.INVITATION_SUBJECT_EN)
-        html = getattr(cls, f"INVITATION_HTML_{lang_suffix}", cls.INVITATION_HTML_EN)
-        text = getattr(cls, f"INVITATION_TEXT_{lang_suffix}", cls.INVITATION_TEXT_EN)
-        return subject, html, text
-
-    @classmethod
-    def get_confirmation_templates(cls, language: Language) -> tuple[str, str, str]:
-        """Get confirmation templates for a specific language.
-
-        Returns: (subject, html_body, text_body)
-        """
-        lang_suffix = language.value.upper()
-        subject = getattr(cls, f"CONFIRMATION_SUBJECT_{lang_suffix}", cls.CONFIRMATION_SUBJECT_EN)
-        html = getattr(cls, f"CONFIRMATION_HTML_{lang_suffix}", cls.CONFIRMATION_HTML_EN)
-        text = getattr(cls, f"CONFIRMATION_TEXT_{lang_suffix}", cls.CONFIRMATION_TEXT_EN)
-        return subject, html, text
-
-    @classmethod
-    def get_plus_one_invitation_templates(cls, language: Language) -> tuple[str, str, str]:
-        """Get plus-one invitation templates for a specific language.
-
-        Returns: (subject, html_body, text_body)
-        """
-        lang_suffix = language.value.upper()
-        subject = getattr(
-            cls, f"PLUS_ONE_INVITATION_SUBJECT_{lang_suffix}", cls.PLUS_ONE_INVITATION_SUBJECT_EN
-        )
-        html = getattr(
-            cls, f"PLUS_ONE_INVITATION_HTML_{lang_suffix}", cls.PLUS_ONE_INVITATION_HTML_EN
-        )
-        text = getattr(
-            cls, f"PLUS_ONE_INVITATION_TEXT_{lang_suffix}", cls.PLUS_ONE_INVITATION_TEXT_EN
-        )
-        return subject, html, text
+INVITATION_SUBJECT_EN = "You're Invited to Our Wedding!"
+INVITATION_HTML_EN = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500&display=swap');
+</style>
+</head>
+<body style="font-family: 'Inter', sans-serif; line-height: 1.6; color: #4a4a4a; background-color: #faf9f6; margin: 0; padding: 0;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; padding: 40px 20px;">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                <tr>
+                    <td style="padding: 40px 40px 20px; text-align: center;">
+                        <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 400; color: #c9a66b; margin: 0; letter-spacing: 2px;">SAVE THE DATE</h1>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px 40px 40px;">
+                        <p style="font-size: 18px; margin-bottom: 30px;">Dear {guest_name},</p>
+
+                        <p style="margin-bottom: 25px;">We are delighted to invite you to our wedding celebration!</p>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
+                            <tr>
+                                <td style="padding: 25px;">
+                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 20px 0;">Wedding Details</h2>
+                                    <p style="margin: 8px 0;"><strong>Date:</strong> {ceremony_date}</p>
+                                    <p style="margin: 8px 0;"><strong>Time:</strong> {ceremony_time}</p>
+                                    <p style="margin: 8px 0;"><strong>Venue:</strong> {venue_name}</p>
+                                    <p style="margin: 8px 0; font-size: 14px; color: #666;">{venue_address}</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
+                            <tr>
+                                <td style="padding: 25px;">
+                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Schedule</h2>
+                                    <p style="margin: 8px 0; font-size: 15px;">{reception_details}</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="margin: 25px 0;">Please let us know if you can attend by clicking the button below:</p>
+
+                        <table width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td align="center" style="padding: 25px 0;">
+                                    <a href="{rsvp_url}" style="background-color: #c9a66b; color: #ffffff; padding: 16px 36px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; display: inline-block;">RSVP Now</a>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="font-size: 14px; color: #888; margin-top: 20px;">If the button doesn't work, copy this link:<br>
+                        <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a></p>
+
+                        <p style="margin: 25px 0 10px;">We kindly ask that you respond by {rsvp_deadline}.</p>
+
+                        <p style="margin-bottom: 5px;">We look forward to celebrating with you!</p>
+
+                        <p style="font-family: 'Cormorant Garamond', serif; font-size: 20px; color: #c9a66b; margin: 20px 0 0;">{couple_names}</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
+                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 10px;">{contact_email}</p>
+                        <a href="{google_maps_url}" style="font-size: 13px; color: #c9a66b; text-decoration: none;">Get Directions</a>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
+"""
+
+INVITATION_TEXT_EN = """Dear {guest_name},
+
+We are delighted to invite you to our wedding celebration!
+
+Wedding Details:
+- Date: {ceremony_date}
+- Time: {ceremony_time}
+- Venue: {venue_name}
+- Address: {venue_address}
+
+Schedule:
+{reception_details}
+
+Please let us know if you can attend by visiting:
+{rsvp_url}
+
+We kindly ask that you respond by {rsvp_deadline}.
+
+We look forward to celebrating with you!
+
+With love,
+{couple_names}
+
+---
+Questions? Contact us at: {contact_email}
+Get Directions: {google_maps_url}
+"""
+
+CONFIRMATION_SUBJECT_EN = "Thank you for your RSVP!"
+CONFIRMATION_HTML_EN = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500&display=swap');
+</style>
+</head>
+<body style="font-family: 'Inter', sans-serif; line-height: 1.6; color: #4a4a4a; background-color: #faf9f6; margin: 0; padding: 0;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; padding: 40px 20px;">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                <tr>
+                    <td style="padding: 40px 40px 20px; text-align: center;">
+                        <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 400; color: #c9a66b; margin: 0; letter-spacing: 2px;">THANK YOU</h1>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px 40px 40px;">
+                        <p style="font-size: 18px; margin-bottom: 30px;">Dear {guest_name},</p>
+
+                        <p style="margin-bottom: 25px;">Thank you for responding to our wedding invitation!</p>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
+                            <tr>
+                                <td style="padding: 25px;">
+                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Your Response</h2>
+                                    <p style="margin: 8px 0;"><strong>Attending:</strong> {attending}</p>
+                                    <p style="margin: 8px 0;"><strong>Dietary Requirements:</strong> {dietary}</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
+                            <tr>
+                                <td style="padding: 25px;">
+                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Wedding Details</h2>
+                                    <p style="margin: 8px 0;"><strong>Date:</strong> {ceremony_date}</p>
+                                    <p style="margin: 8px 0;"><strong>Time:</strong> {ceremony_time}</p>
+                                    <p style="margin: 8px 0;"><strong>Venue:</strong> {venue_name}</p>
+                                    <p style="margin: 8px 0; font-size: 14px; color: #666;">{venue_address}</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="margin-bottom: 5px;">We can't wait to celebrate with you!</p>
+
+                        <p style="font-family: 'Cormorant Garamond', serif; font-size: 20px; color: #c9a66b; margin: 20px 0 0;">{couple_names}</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
+                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 10px;">{contact_email}</p>
+                        <a href="{google_maps_url}" style="font-size: 13px; color: #c9a66b; text-decoration: none;">Get Directions</a>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
+"""
+
+CONFIRMATION_TEXT_EN = """Dear {guest_name},
+
+Thank you for responding to our wedding invitation!
+
+Your Response:
+- Attending: {attending}
+- Dietary Requirements: {dietary}
+
+Wedding Details:
+- Date: {ceremony_date}
+- Time: {ceremony_time}
+- Venue: {venue_name}
+- Address: {venue_address}
+
+We can't wait to celebrate with you!
+
+With love,
+{couple_names}
+
+---
+Questions? Contact us at: {contact_email}
+Get Directions: {google_maps_url}
+"""
+
+INVITATION_SUBJECT_ES = "¡Estás Invitado a Nuestra Boda!"
+INVITATION_HTML_ES = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500&display=swap');
+</style>
+</head>
+<body style="font-family: 'Inter', sans-serif; line-height: 1.6; color: #4a4a4a; background-color: #faf9f6; margin: 0; padding: 0;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; padding: 40px 20px;">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                <tr>
+                    <td style="padding: 40px 40px 20px; text-align: center;">
+                        <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 400; color: #c9a66b; margin: 0; letter-spacing: 2px;">RESERVA LA FECHA</h1>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px 40px 40px;">
+                        <p style="font-size: 18px; margin-bottom: 30px;">Querido/a {guest_name},</p>
+
+                        <p style="margin-bottom: 25px;">¡Estamos encantados de invitarte a nuestra celebración de boda!</p>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
+                            <tr>
+                                <td style="padding: 25px;">
+                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 20px 0;">Detalles de la Boda</h2>
+                                    <p style="margin: 8px 0;"><strong>Fecha:</strong> {ceremony_date}</p>
+                                    <p style="margin: 8px 0;"><strong>Hora:</strong> {ceremony_time}</p>
+                                    <p style="margin: 8px 0;"><strong>Lugar:</strong> {venue_name}</p>
+                                    <p style="margin: 8px 0; font-size: 14px; color: #666;">{venue_address}</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
+                            <tr>
+                                <td style="padding: 25px;">
+                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Horario</h2>
+                                    <p style="margin: 8px 0; font-size: 15px;">{reception_details}</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="margin: 25px 0;">Por favor, haznos saber si puedes asistir haciendo clic en el botón de abajo:</p>
+
+                        <table width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td align="center" style="padding: 25px 0;">
+                                    <a href="{rsvp_url}" style="background-color: #c9a66b; color: #ffffff; padding: 16px 36px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; display: inline-block;">Confirmar Asistencia</a>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="font-size: 14px; color: #888; margin-top: 20px;">Si el botón no funciona, copia este enlace:<br>
+                        <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a></p>
+
+                        <p style="margin: 25px 0 10px;">Te pedimos amablemente que respondas antes del {rsvp_deadline}.</p>
+
+                        <p style="margin-bottom: 5px;">¡ esperamos celebrar contigo!</p>
+
+                        <p style="font-family: 'Cormorant Garamond', serif; font-size: 20px; color: #c9a66b; margin: 20px 0 0;">{couple_names}</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
+                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 10px;">{contact_email}</p>
+                        <a href="{google_maps_url}" style="font-size: 13px; color: #c9a66b; text-decoration: none;">Cómo Llegar</a>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
+"""
+
+INVITATION_TEXT_ES = """Querido/a {guest_name},
+
+¡Estamos encantado de invitarte a nuestra celebración de boda!
+
+Detalles de la Boda:
+- Fecha: {ceremony_date}
+- Hora: {ceremony_time}
+- Lugar: {venue_name}
+- Dirección: {venue_address}
+
+Horario:
+{reception_details}
+
+Por favor, haznos saber si puedes asistir visitando:
+{rsvp_url}
+
+Te pedimos amablemente que respondas antes del {rsvp_deadline}.
+
+¡ esperamos celebrar contigo!
+
+Con cariño,
+{couple_names}
+
+---
+¿Preguntas? Contáctanos en: {contact_email}
+Cómo Llegar: {google_maps_url}
+"""
+
+CONFIRMATION_SUBJECT_ES = "¡Gracias por tu Confirmación!"
+CONFIRMATION_HTML_ES = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500&display=swap');
+</style>
+</head>
+<body style="font-family: 'Inter', sans-serif; line-height: 1.6; color: #4a4a4a; background-color: #faf9f6; margin: 0; padding: 0;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; padding: 40px 20px;">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                <tr>
+                    <td style="padding: 40px 40px 20px; text-align: center;">
+                        <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 400; color: #c9a66b; margin: 0; letter-spacing: 2px;">GRACIAS</h1>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px 40px 40px;">
+                        <p style="font-size: 18px; margin-bottom: 30px;">Querido/a {guest_name},</p>
+
+                        <p style="margin-bottom: 25px;">¡Gracias por responder a nuestra invitación de boda!</p>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
+                            <tr>
+                                <td style="padding: 25px;">
+                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Tu Respuesta</h2>
+                                    <p style="margin: 8px 0;"><strong>Asistencia:</strong> {attending}</p>
+                                    <p style="margin: 8px 0;"><strong>Requisitos Dietéticos:</strong> {dietary}</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
+                            <tr>
+                                <td style="padding: 25px;">
+                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Detalles de la Boda</h2>
+                                    <p style="margin: 8px 0;"><strong>Fecha:</strong> {ceremony_date}</p>
+                                    <p style="margin: 8px 0;"><strong>Hora:</strong> {ceremony_time}</p>
+                                    <p style="margin: 8px 0;"><strong>Lugar:</strong> {venue_name}</p>
+                                    <p style="margin: 8px 0; font-size: 14px; color: #666;">{venue_address}</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="margin-bottom: 5px;">¡Estamos deseando celebrar contigo!</p>
+
+                        <p style="font-family: 'Cormorant Garamond', serif; font-size: 20px; color: #c9a66b; margin: 20px 0 0;">{couple_names}</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
+                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 10px;">{contact_email}</p>
+                        <a href="{google_maps_url}" style="font-size: 13px; color: #c9a66b; text-decoration: none;">Cómo Llegar</a>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
+"""
+
+CONFIRMATION_TEXT_ES = """Querido/a {guest_name},
+
+¡Gracias por responder a nuestra invitación de boda!
+
+Tu Respuesta:
+- Asistencia: {attending}
+- Requisitos Dietéticos: {dietary}
+
+Detalles de la Boda:
+- Fecha: {ceremony_date}
+- Hora: {ceremony_time}
+- Lugar: {venue_name}
+- Dirección: {venue_address}
+
+¡Estamos deseando celebrar contigo!
+
+Con cariño,
+{couple_names}
+
+---
+¿Preguntas? Contáctanos en: {contact_email}
+Cómo Llegar: {google_maps_url}
+"""
+
+INVITATION_SUBJECT_NL = "Je Bent Uitgenodigd voor Onze Bruiloft!"
+INVITATION_HTML_NL = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500&display=swap');
+</style>
+</head>
+<body style="font-family: 'Inter', sans-serif; line-height: 1.6; color: #4a4a4a; background-color: #faf9f6; margin: 0; padding: 0;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; padding: 40px 20px;">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                <tr>
+                    <td style="padding: 40px 40px 20px; text-align: center;">
+                        <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 400; color: #c9a66b; margin: 0; letter-spacing: 2px;">SAVE THE DATE</h1>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px 40px 40px;">
+                        <p style="font-size: 18px; margin-bottom: 30px;">Beste {guest_name},</p>
+
+                        <p style="margin-bottom: 25px;">We nodigen je van harte uit voor onze bruiloft!</p>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
+                            <tr>
+                                <td style="padding: 25px;">
+                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 20px 0;">Bruiloft Details</h2>
+                                    <p style="margin: 8px 0;"><strong>Datum:</strong> {ceremony_date}</p>
+                                    <p style="margin: 8px 0;"><strong>Tijd:</strong> {ceremony_time}</p>
+                                    <p style="margin: 8px 0;"><strong>Locatie:</strong> {venue_name}</p>
+                                    <p style="margin: 8px 0; font-size: 14px; color: #666;">{venue_address}</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
+                            <tr>
+                                <td style="padding: 25px;">
+                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Programma</h2>
+                                    <p style="margin: 8px 0; font-size: 15px;">{reception_details}</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="margin: 25px 0;">Laat ons weten of je kunt komen door op de onderstaande knop te klikken:</p>
+
+                        <table width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td align="center" style="padding: 25px 0;">
+                                    <a href="{rsvp_url}" style="background-color: #c9a66b; color: #ffffff; padding: 16px 36px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; display: inline-block;">Bevestig Aanwezigheid</a>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="font-size: 14px; color: #888; margin-top: 20px;">Als de knop niet werkt, kopieer deze link:<br>
+                        <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a></p>
+
+                        <p style="margin: 25px 0 10px;">We vragen je vriendelijk om te reageren voor {rsvp_deadline}.</p>
+
+                        <p style="margin-bottom: 5px;">We kijken ernaar uit om met je te vieren!</p>
+
+                        <p style="font-family: 'Cormorant Garamond', serif; font-size: 20px; color: #c9a66b; margin: 20px 0 0;">{couple_names}</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
+                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 10px;">{contact_email}</p>
+                        <a href="{google_maps_url}" style="font-size: 13px; color: #c9a66b; text-decoration: none;">Routebeschrijving</a>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
+"""
+
+INVITATION_TEXT_NL = """Beste {guest_name},
+
+We nodigen je van harte uit voor onze bruiloft!
+
+Bruiloft Details:
+- Datum: {ceremony_date}
+- Tijd: {ceremony_time}
+- Locatie: {venue_name}
+- Adres: {venue_address}
+
+Programma:
+{reception_details}
+
+Laat ons weten of je kunt komen door te bezoeken:
+{rsvp_url}
+
+We vragen je vriendelijk om te reageren voor {rsvp_deadline}.
+
+We kijken ernaar uit om met je te vieren!
+
+Met liefde,
+{couple_names}
+
+---
+Vragen? Neem contact op via: {contact_email}
+Routebeschrijving: {google_maps_url}
+"""
+
+CONFIRMATION_SUBJECT_NL = "Bedankt voor je Reactie!"
+CONFIRMATION_HTML_NL = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500&display=swap');
+</style>
+</head>
+<body style="font-family: 'Inter', sans-serif; line-height: 1.6; color: #4a4a4a; background-color: #faf9f6; margin: 0; padding: 0;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; padding: 40px 20px;">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                <tr>
+                    <td style="padding: 40px 40px 20px; text-align: center;">
+                        <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 400; color: #c9a66b; margin: 0; letter-spacing: 2px;">BEDANKT</h1>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px 40px 40px;">
+                        <p style="font-size: 18px; margin-bottom: 30px;">Beste {guest_name},</p>
+
+                        <p style="margin-bottom: 25px;">Bedankt voor je reactie op onze bruiloftuitnodiging!</p>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
+                            <tr>
+                                <td style="padding: 25px;">
+                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Jouw Reactie</h2>
+                                    <p style="margin: 8px 0;"><strong>Aanwezigheid:</strong> {attending}</p>
+                                    <p style="margin: 8px 0;"><strong>Dieetwensen:</strong> {dietary}</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
+                            <tr>
+                                <td style="padding: 25px;">
+                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Bruiloft Details</h2>
+                                    <p style="margin: 8px 0;"><strong>Datum:</strong> {ceremony_date}</p>
+                                    <p style="margin: 8px 0;"><strong>Tijd:</strong> {ceremony_time}</p>
+                                    <p style="margin: 8px 0;"><strong>Locatie:</strong> {venue_name}</p>
+                                    <p style="margin: 8px 0; font-size: 14px; color: #666;">{venue_address}</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="margin-bottom: 5px;">We kunnen niet wachten om met je te vieren!</p>
+
+                        <p style="font-family: 'Cormorant Garamond', serif; font-size: 20px; color: #c9a66b; margin: 20px 0 0;">{couple_names}</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
+                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 10px;">{contact_email}</p>
+                        <a href="{google_maps_url}" style="font-size: 13px; color: #c9a66b; text-decoration: none;">Routebeschrijving</a>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
+"""
+
+CONFIRMATION_TEXT_NL = """Beste {guest_name},
+
+Bedankt voor je reactie op onze bruiloftuitnodiging!
+
+Jouw Reactie:
+- Aanwezigheid: {attending}
+- Dieetwensen: {dietary}
+
+Bruiloft Details:
+- Datum: {ceremony_date}
+- Tijd: {ceremony_time}
+- Locatie: {venue_name}
+- Adres: {venue_address}
+
+We kunnen niet wachten om met je te vieren!
+
+Met liefde,
+{couple_names}
+
+---
+Vragen? Neem contact op via: {contact_email}
+Routebeschrijving: {google_maps_url}
+"""
+
+PLUS_ONE_INVITATION_SUBJECT_EN = "You're Invited to Our Wedding!"
+PLUS_ONE_INVITATION_HTML_EN = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500&display=swap');
+</style>
+</head>
+<body style="font-family: 'Inter', sans-serif; line-height: 1.6; color: #4a4a4a; background-color: #faf9f6; margin: 0; padding: 0;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; padding: 40px 20px;">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                <tr>
+                    <td style="padding: 40px 40px 20px; text-align: center;">
+                        <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 400; color: #c9a66b; margin: 0; letter-spacing: 2px;">SPECIAL INVITATION</h1>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px 40px 40px;">
+                        <p style="font-size: 18px; margin-bottom: 30px;">Dear {guest_name},</p>
+
+                        <p style="margin-bottom: 25px;"><strong>{inviter_name}</strong> has invited you as their plus-one to our wedding celebration!</p>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
+                            <tr>
+                                <td style="padding: 25px;">
+                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 20px 0;">Wedding Details</h2>
+                                    <p style="margin: 8px 0;"><strong>Date:</strong> {ceremony_date}</p>
+                                    <p style="margin: 8px 0;"><strong>Time:</strong> {ceremony_time}</p>
+                                    <p style="margin: 8px 0;"><strong>Venue:</strong> {venue_name}</p>
+                                    <p style="margin: 8px 0; font-size: 14px; color: #666;">{venue_address}</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
+                            <tr>
+                                <td style="padding: 25px;">
+                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Schedule</h2>
+                                    <p style="margin: 8px 0; font-size: 15px;">{reception_details}</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="margin: 25px 0;">Please let us know if you can attend by clicking the button below:</p>
+
+                        <table width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td align="center" style="padding: 25px 0;">
+                                    <a href="{rsvp_url}" style="background-color: #c9a66b; color: #ffffff; padding: 16px 36px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; display: inline-block;">RSVP Now</a>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="font-size: 14px; color: #888; margin-top: 20px;">If the button doesn't work, copy this link:<br>
+                        <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a></p>
+
+                        <p style="margin: 25px 0 10px;">We kindly ask that you respond by {rsvp_deadline}.</p>
+
+                        <p style="margin-bottom: 5px;">We look forward to celebrating with you!</p>
+
+                        <p style="font-family: 'Cormorant Garamond', serif; font-size: 20px; color: #c9a66b; margin: 20px 0 0;">{couple_names}</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
+                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 10px;">{contact_email}</p>
+                        <a href="{google_maps_url}" style="font-size: 13px; color: #c9a66b; text-decoration: none;">Get Directions</a>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
+"""
+
+PLUS_ONE_INVITATION_TEXT_EN = """Dear {guest_name},
+
+{inviter_name} has invited you as their plus-one to our wedding celebration!
+
+Wedding Details:
+- Date: {ceremony_date}
+- Time: {ceremony_time}
+- Venue: {venue_name}
+- Address: {venue_address}
+
+Schedule:
+{reception_details}
+
+Please let us know if you can attend by visiting:
+{rsvp_url}
+
+We kindly ask that you respond by {rsvp_deadline}.
+
+We look forward to celebrating with you!
+
+With love,
+{couple_names}
+
+---
+Questions? Contact us at: {contact_email}
+Get Directions: {google_maps_url}
+"""
+
+PLUS_ONE_INVITATION_SUBJECT_ES = "¡Estás Invitado a Nuestra Boda!"
+PLUS_ONE_INVITATION_HTML_ES = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500&display=swap');
+</style>
+</head>
+<body style="font-family: 'Inter', sans-serif; line-height: 1.6; color: #4a4a4a; background-color: #faf9f6; margin: 0; padding: 0;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; padding: 40px 20px;">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                <tr>
+                    <td style="padding: 40px 40px 20px; text-align: center;">
+                        <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 400; color: #c9a66b; margin: 0; letter-spacing: 2px;">INVITACIÓN ESPECIAL</h1>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px 40px 40px;">
+                        <p style="font-size: 18px; margin-bottom: 30px;">Querido/a {guest_name},</p>
+
+                        <p style="margin-bottom: 25px;"><strong>{inviter_name}</strong> te ha invitado como su acompañante a nuestra celebración de boda!</p>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
+                            <tr>
+                                <td style="padding: 25px;">
+                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 20px 0;">Detalles de la Boda</h2>
+                                    <p style="margin: 8px 0;"><strong>Fecha:</strong> {ceremony_date}</p>
+                                    <p style="margin: 8px 0;"><strong>Hora:</strong> {ceremony_time}</p>
+                                    <p style="margin: 8px 0;"><strong>Lugar:</strong> {venue_name}</p>
+                                    <p style="margin: 8px 0; font-size: 14px; color: #666;">{venue_address}</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
+                            <tr>
+                                <td style="padding: 25px;">
+                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Horario</h2>
+                                    <p style="margin: 8px 0; font-size: 15px;">{reception_details}</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="margin: 25px 0;">Por favor, haznos saber si puedes asistir haciendo clic en el botón de abajo:</p>
+
+                        <table width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td align="center" style="padding: 25px 0;">
+                                    <a href="{rsvp_url}" style="background-color: #c9a66b; color: #ffffff; padding: 16px 36px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; display: inline-block;">Confirmar Asistencia</a>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="font-size: 14px; color: #888; margin-top: 20px;">Si el botón no funciona, copia este enlace:<br>
+                        <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a></p>
+
+                        <p style="margin: 25px 0 10px;">Te pedimos amablemente que respondas antes del {rsvp_deadline}.</p>
+
+                        <p style="margin-bottom: 5px;">¡ esperamos celebrate contigo!</p>
+
+                        <p style="font-family: 'Cormorant Garamond', serif; font-size: 20px; color: #c9a66b; margin: 20px 0 0;">{couple_names}</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
+                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 10px;">{contact_email}</p>
+                        <a href="{google_maps_url}" style="font-size: 13px; color: #c9a66b; text-decoration: none;">Cómo Llegar</a>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
+"""
+
+PLUS_ONE_INVITATION_TEXT_ES = """Querido/a {guest_name},
+
+{inviter_name} te ha invitado como su accompagnante a nuestra celebración de boda!
+
+Detalles de la Boda:
+- Fecha: {ceremony_date}
+- Hora: {ceremony_time}
+- Lugar: {venue_name}
+- Dirección: {venue_address}
+
+Horario:
+{reception_details}
+
+Por favor, haznos saber si puedes asistir visitando:
+{rsvp_url}
+
+Te pedimos amablemente que respondas antes del {rsvp_deadline}.
+
+¡ esperamos celebrate contigo!
+
+Con cariño,
+{couple_names}
+
+---
+¿Preguntas? Contáctanos en: {contact_email}
+Cómo Llegar: {google_maps_url}
+"""
+
+PLUS_ONE_INVITATION_SUBJECT_NL = "Je Bent Uitgenodigd voor Onze Bruiloft!"
+PLUS_ONE_INVITATION_HTML_NL = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500&display=swap');
+</style>
+</head>
+<body style="font-family: 'Inter', sans-serif; line-height: 1.6; color: #4a4a4a; background-color: #faf9f6; margin: 0; padding: 0;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; padding: 40px 20px;">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                <tr>
+                    <td style="padding: 40px 40px 20px; text-align: center;">
+                        <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 400; color: #c9a66b; margin: 0; letter-spacing: 2px;">SPECIALE UITNODIGING</h1>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px 40px 40px;">
+                        <p style="font-size: 18px; margin-bottom: 30px;">Beste {guest_name},</p>
+
+                        <p style="margin-bottom: 25px;"><strong>{inviter_name}</strong> heeft je uitgenodigd als hun plus-één voor onze bruiloft!</p>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
+                            <tr>
+                                <td style="padding: 25px;">
+                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 20px 0;">Bruiloft Details</h2>
+                                    <p style="margin: 8px 0;"><strong>Datum:</strong> {ceremony_date}</p>
+                                    <p style="margin: 8px 0;"><strong>Tijd:</strong> {ceremony_time}</p>
+                                    <p style="margin: 8px 0;"><strong>Locatie:</strong> {venue_name}</p>
+                                    <p style="margin: 8px 0; font-size: 14px; color: #666;">{venue_address}</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
+                            <tr>
+                                <td style="padding: 25px;">
+                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Programma</h2>
+                                    <p style="margin: 8px 0; font-size: 15px;">{reception_details}</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="margin: 25px 0;">Laat ons weten of je kunt komen door op de onderstaande knop te klikken:</p>
+
+                        <table width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td align="center" style="padding: 25px 0;">
+                                    <a href="{rsvp_url}" style="background-color: #c9a66b; color: #ffffff; padding: 16px 36px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; display: inline-block;">Bevestig Aanwezigheid</a>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="font-size: 14px; color: #888; margin-top: 20px;">Als de knop niet werkt, kopieer deze link:<br>
+                        <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a></p>
+
+                        <p style="margin: 25px 0 10px;">We vragen je vriendelijk om te reageren voor {rsvp_deadline}.</p>
+
+                        <p style="margin-bottom: 5px;">We kijken ernaar uit om met je te vieren!</p>
+
+                        <p style="font-family: 'Cormorant Garamond', serif; font-size: 20px; color: #c9a66b; margin: 20px 0 0;">{couple_names}</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
+                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 10px;">{contact_email}</p>
+                        <a href="{google_maps_url}" style="font-size: 13px; color: #c9a66b; text-decoration: none;">Routebeschrijving</a>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
+"""
+
+PLUS_ONE_INVITATION_TEXT_NL = """Beste {guest_name},
+
+{inviter_name} heeft je uitgenodigd als hun plus-één voor onze bruiloft!
+
+Bruiloft Details:
+- Datum: {ceremony_date}
+- Tijd: {ceremony_time}
+- Locatie: {venue_name}
+- Adres: {venue_address}
+
+Programma:
+{reception_details}
+
+Laat ons weten of je kunt komen door te bezoeken:
+{rsvp_url}
+
+We vragen je vriendelijk om te reageren voor {rsvp_deadline}.
+
+We kijken ernaar uit om met je te vieren!
+
+Met liefde,
+{couple_names}
+
+---
+Vragen? Neem contact op via: {contact_email}
+Routebeschrijving: {google_maps_url}
+"""

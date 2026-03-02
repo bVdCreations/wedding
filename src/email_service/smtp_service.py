@@ -5,7 +5,7 @@ from uuid import UUID
 
 from src.config.settings import settings
 from src.email_service.base import EmailServiceBase
-from src.email_service.templates import EmailTemplates
+from src.email_service.template_builder import EmailTemplates
 from src.guests.dtos import Language
 
 
@@ -50,38 +50,18 @@ class SMTPEmailService(EmailServiceBase):
         self,
         to_address: str,
         guest_name: str,
-        event_date: str,
-        event_location: str,
         rsvp_url: str,
-        response_deadline: str,
         language: Language = Language.EN,
         guest_id: UUID | None = None,
         user_id: UUID | None = None,
     ) -> None:
-        subject, html_template, text_template = EmailTemplates.get_invitation_templates(language)
-
-        html_body = html_template.format(
-            guest_name=guest_name,
-            event_date=event_date,
-            event_location=event_location,
-            rsvp_url=rsvp_url,
-            response_deadline=response_deadline,
-            couple_names="Bastiaan & Gemma",
-        )
-        text_body = text_template.format(
-            guest_name=guest_name,
-            event_date=event_date,
-            event_location=event_location,
-            rsvp_url=rsvp_url,
-            response_deadline=response_deadline,
-            couple_names="Bastiaan & Gemma",
-        )
+        content = EmailTemplates().get_invitation_templates(language, guest_name, rsvp_url)
 
         msg = self._create_message(
             to_address=to_address,
-            subject=subject,
-            html_body=html_body,
-            text_body=text_body,
+            subject=content.subject,
+            html_body=content.html_body,
+            text_body=content.text_body,
         )
 
         self._send(msg)
@@ -96,26 +76,15 @@ class SMTPEmailService(EmailServiceBase):
         guest_id: UUID | None = None,
         user_id: UUID | None = None,
     ) -> None:
-        subject, html_template, text_template = EmailTemplates.get_confirmation_templates(language)
-
-        html_body = html_template.format(
-            guest_name=guest_name,
-            attending=attending,
-            dietary=dietary,
-            couple_names="Bastiaan & Gemma",
-        )
-        text_body = text_template.format(
-            guest_name=guest_name,
-            attending=attending,
-            dietary=dietary,
-            couple_names="Bastiaan & Gemma",
+        content = EmailTemplates().get_confirmation_templates(
+            language, guest_name, attending, dietary
         )
 
         msg = self._create_message(
             to_address=to_address,
-            subject=subject,
-            html_body=html_body,
-            text_body=text_body,
+            subject=content.subject,
+            html_body=content.html_body,
+            text_body=content.text_body,
         )
 
         self._send(msg)
@@ -125,42 +94,20 @@ class SMTPEmailService(EmailServiceBase):
         to_address: str,
         guest_name: str,
         inviter_name: str,
-        event_date: str,
-        event_location: str,
         rsvp_url: str,
-        response_deadline: str,
         language: Language = Language.EN,
         guest_id: UUID | None = None,
         user_id: UUID | None = None,
     ) -> None:
-        subject, html_template, text_template = EmailTemplates.get_plus_one_invitation_templates(
-            language
-        )
-
-        html_body = html_template.format(
-            guest_name=guest_name,
-            inviter_name=inviter_name,
-            event_date=event_date,
-            event_location=event_location,
-            rsvp_url=rsvp_url,
-            response_deadline=response_deadline,
-            couple_names="Bastiaan & Gemma",
-        )
-        text_body = text_template.format(
-            guest_name=guest_name,
-            inviter_name=inviter_name,
-            event_date=event_date,
-            event_location=event_location,
-            rsvp_url=rsvp_url,
-            response_deadline=response_deadline,
-            couple_names="Bastiaan & Gemma",
+        content = EmailTemplates().get_plus_one_invitation_templates(
+            language, guest_name, inviter_name, rsvp_url
         )
 
         msg = self._create_message(
             to_address=to_address,
-            subject=subject,
-            html_body=html_body,
-            text_body=text_body,
+            subject=content.subject,
+            html_body=content.html_body,
+            text_body=content.text_body,
         )
 
         self._send(msg)

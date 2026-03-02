@@ -131,6 +131,7 @@ class NoOpEmailLogger(EmailLogger):
         language: Language | None = None,
     ) -> UUID:
         from uuid import uuid4
+
         return uuid4()
 
     async def log_email_success(

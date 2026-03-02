@@ -296,9 +296,9 @@ class SqlRSVPWriteModel(RSVPWriteModel):
                 # Get plus-one's RSVP info for the link
                 rsvp_stmt = select(RSVPInfo).where(RSVPInfo.guest_id == plus_one_guest_uuid)
                 rsvp_result = await session.execute(rsvp_stmt)
-                rsvp_info = rsvp_result.scalar_one_or_none()
+                plus_one_rsvp_info = rsvp_result.scalar_one_or_none()
 
-                if rsvp_info:
+                if plus_one_rsvp_info:
                     inviter_name = f"{guest.first_name} {guest.last_name}"
                     preferred_language = getattr(guest, "preferred_language", Language.EN)
 
@@ -306,10 +306,7 @@ class SqlRSVPWriteModel(RSVPWriteModel):
                         to_address=plus_one_details.email,
                         guest_name=f"{plus_one_details.first_name} {plus_one_details.last_name}",
                         inviter_name=inviter_name,
-                        event_date="August 15, 2026",
-                        event_location="Castillo de Example, Spain",
-                        rsvp_url=rsvp_info.rsvp_link,
-                        response_deadline="July 15, 2026",
+                        rsvp_url=plus_one_rsvp_info.rsvp_link,
                         language=preferred_language,
                         guest_id=plus_one_guest_uuid,
                         user_id=guest.user_id,

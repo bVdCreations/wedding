@@ -3,7 +3,7 @@ from src.email_service.base import EmailServiceBase
 from src.email_service.email_logger import SQLEmailLogger
 from src.email_service.resend_service import ResendEmailService
 from src.email_service.smtp_service import SMTPEmailService
-from src.email_service.templates import EmailTemplates
+from src.email_service.template_builder import EmailTemplates
 
 
 def get_email_service() -> EmailServiceBase:
@@ -17,4 +17,5 @@ __all__ = [
     "EmailServiceBase",
     "EmailTemplates",
     "get_email_service",
+    "SMTPEmailService",
 ]

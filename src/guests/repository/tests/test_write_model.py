@@ -34,10 +34,7 @@ class MockEmailService(EmailServiceBase):
         self,
         to_address: str,
         guest_name: str,
-        event_date: str,
-        event_location: str,
         rsvp_url: str,
-        response_deadline: str,
         language: Language = Language.EN,
         guest_id: UUID | None = None,
         user_id: UUID | None = None,
@@ -50,10 +47,7 @@ class MockEmailService(EmailServiceBase):
         to_address: str,
         guest_name: str,
         inviter_name: str,
-        event_date: str,
-        event_location: str,
         rsvp_url: str,
-        response_deadline: str,
         language: Language = Language.EN,
         guest_id: UUID | None = None,
         user_id: UUID | None = None,
@@ -462,10 +456,7 @@ class SpyEmailService(EmailServiceBase):
         self,
         to_address: str,
         guest_name: str,
-        event_date: str,
-        event_location: str,
         rsvp_url: str,
-        response_deadline: str,
         language: Language = Language.EN,
         guest_id=None,
         user_id=None,
@@ -478,10 +469,7 @@ class SpyEmailService(EmailServiceBase):
         to_address: str,
         guest_name: str,
         inviter_name: str,
-        event_date: str,
-        event_location: str,
         rsvp_url: str,
-        response_deadline: str,
         language: Language = Language.EN,
         guest_id=None,
         user_id=None,
@@ -492,10 +480,7 @@ class SpyEmailService(EmailServiceBase):
                 "to_address": to_address,
                 "guest_name": guest_name,
                 "inviter_name": inviter_name,
-                "event_date": event_date,
-                "event_location": event_location,
                 "rsvp_url": rsvp_url,
-                "response_deadline": response_deadline,
                 "language": language,
                 "guest_id": guest_id,
                 "user_id": user_id,
@@ -1189,10 +1174,7 @@ async def test_submit_rsvp_sends_plus_one_invitation_email():
             assert call["to_address"] == "plusone@example.com"
             assert call["guest_name"] == "Jane Smith"
             assert call["inviter_name"] == "John Doe"
-            assert call["event_date"] == "August 15, 2026"
-            assert call["event_location"] == "Castillo de Example, Spain"
             assert "rsvp_url" in call
-            assert call["response_deadline"] == "July 15, 2026"
         finally:
             await session.rollback()
 

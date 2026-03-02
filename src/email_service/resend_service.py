@@ -5,7 +5,7 @@ import httpx
 
 from src.email_service.base import EmailServiceBase
 from src.email_service.email_logger import EmailLogger, NoOpEmailLogger
-from src.email_service.templates import EmailTemplates
+from src.email_service.template_builder import EmailTemplates
 from src.guests.dtos import Language
 
 
@@ -36,7 +36,6 @@ class ResendEmailService(EmailServiceBase):
     ) -> str:
         """Send email via Resend and log via injected logger."""
 
-        # Log attempt before sending
         log_uuid = await self.email_logger.log_email_attempt(
             to_address=to_address,
             from_address=self._config.emails_from,
@@ -67,11 +66,9 @@ class ResendEmailService(EmailServiceBase):
                 )
                 response.raise_for_status()
 
-                # Extract Resend email ID from response
                 response_data = response.json()
                 resend_email_id = response_data.get("id")
 
-                # Log success
                 await self.email_logger.log_email_success(
                     log_uuid=log_uuid,
                     resend_email_id=resend_email_id,
@@ -80,7 +77,6 @@ class ResendEmailService(EmailServiceBase):
                 return resend_email_id
 
         except httpx.HTTPStatusError as e:
-            # Log failure
             await self.email_logger.log_email_failure(
                 log_uuid=log_uuid,
                 error_message=str(e),
@@ -91,38 +87,18 @@ class ResendEmailService(EmailServiceBase):
         self,
         to_address: str,
         guest_name: str,
-        event_date: str,
-        event_location: str,
         rsvp_url: str,
-        response_deadline: str,
         language: Language = Language.EN,
         guest_id: UUID | None = None,
         user_id: UUID | None = None,
     ) -> None:
-        subject, html_template, text_template = EmailTemplates.get_invitation_templates(language)
-
-        html_body = html_template.format(
-            guest_name=guest_name,
-            event_date=event_date,
-            event_location=event_location,
-            rsvp_url=rsvp_url,
-            response_deadline=response_deadline,
-            couple_names="Bastiaan & Gemma",
-        )
-        text_body = text_template.format(
-            guest_name=guest_name,
-            event_date=event_date,
-            event_location=event_location,
-            rsvp_url=rsvp_url,
-            response_deadline=response_deadline,
-            couple_names="Bastiaan & Gemma",
-        )
+        content = EmailTemplates().get_invitation_templates(language, guest_name, rsvp_url)
 
         await self._send(
             to_address=to_address,
-            subject=subject,
-            html_body=html_body,
-            text_body=text_body,
+            subject=content.subject,
+            html_body=content.html_body,
+            text_body=content.text_body,
             email_type="invitation",
             guest_id=guest_id,
             user_id=user_id,
@@ -139,26 +115,15 @@ class ResendEmailService(EmailServiceBase):
         guest_id: UUID | None = None,
         user_id: UUID | None = None,
     ) -> None:
-        subject, html_template, text_template = EmailTemplates.get_confirmation_templates(language)
-
-        html_body = html_template.format(
-            guest_name=guest_name,
-            attending=attending,
-            dietary=dietary,
-            couple_names="Bastiaan & Gemma",
-        )
-        text_body = text_template.format(
-            guest_name=guest_name,
-            attending=attending,
-            dietary=dietary,
-            couple_names="Bastiaan & Gemma",
+        content = EmailTemplates().get_confirmation_templates(
+            language, guest_name, attending, dietary
         )
 
         await self._send(
             to_address=to_address,
-            subject=subject,
-            html_body=html_body,
-            text_body=text_body,
+            subject=content.subject,
+            html_body=content.html_body,
+            text_body=content.text_body,
             email_type="confirmation",
             guest_id=guest_id,
             user_id=user_id,
@@ -170,42 +135,20 @@ class ResendEmailService(EmailServiceBase):
         to_address: str,
         guest_name: str,
         inviter_name: str,
-        event_date: str,
-        event_location: str,
         rsvp_url: str,
-        response_deadline: str,
         language: Language = Language.EN,
         guest_id: UUID | None = None,
         user_id: UUID | None = None,
     ) -> None:
-        subject, html_template, text_template = EmailTemplates.get_plus_one_invitation_templates(
-            language
-        )
-
-        html_body = html_template.format(
-            guest_name=guest_name,
-            inviter_name=inviter_name,
-            event_date=event_date,
-            event_location=event_location,
-            rsvp_url=rsvp_url,
-            response_deadline=response_deadline,
-            couple_names="Bastiaan & Gemma",
-        )
-        text_body = text_template.format(
-            guest_name=guest_name,
-            inviter_name=inviter_name,
-            event_date=event_date,
-            event_location=event_location,
-            rsvp_url=rsvp_url,
-            response_deadline=response_deadline,
-            couple_names="Bastiaan & Gemma",
+        content = EmailTemplates().get_plus_one_invitation_templates(
+            language, guest_name, inviter_name, rsvp_url
         )
 
         await self._send(
             to_address=to_address,
-            subject=subject,
-            html_body=html_body,
-            text_body=text_body,
+            subject=content.subject,
+            html_body=content.html_body,
+            text_body=content.text_body,
             email_type="plus_one_invitation",
             guest_id=guest_id,
             user_id=user_id,

@@ -126,10 +126,7 @@ class SqlGuestCreateWriteModel(GuestCreateWriteModel):
                         await self.email_service.send_invitation(
                             to_address=email,
                             guest_name=f"{first_name or ''} {last_name or ''}".strip() or "Guest",
-                            event_date="August 15, 2026",
-                            event_location="Castillo de Example, Spain",
                             rsvp_url=rsvp_info.rsvp_link,
-                            response_deadline="July 15, 2026",
                             language=preferred_language,
                             guest_id=guest.uuid,
                             user_id=user.uuid,
