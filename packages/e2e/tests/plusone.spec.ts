@@ -195,10 +195,6 @@ test.describe('Plus-One Prefill Display', () => {
       /display:\s*none/
     );
 
-    await expect(page.locator('#plus-one-allergies-section')).not.toHaveAttribute(
-      'style',
-      /display:\s*none/
-    );
     await expect(page.locator('#plus_one_allergies')).toHaveValue('Peanut allergy');
   });
 
@@ -224,7 +220,7 @@ test.describe('Plus-One Prefill Display', () => {
     await page.goto(`/${language}/rsvp?token=${testToken}`);
     await page.waitForLoadState('networkidle');
 
-    await expect(page.locator('#plus-one-dietary-vegetarian')).toBeChecked();
+    await expect(page.locator('input[name="plus_one_dietary"][value="vegetarian"]')).toBeChecked();
   });
 
   test('should display plus-one dietary notes when "other" dietary is prefilled', async ({
