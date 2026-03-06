@@ -23,6 +23,8 @@ class PlusOneResponse(BaseModel):
     email: str
     first_name: str
     last_name: str
+    allergies: str | None = None
+    dietary_requirements: list[DietaryRequirementResponse] = []
 
 
 class FamilyMemberResponse(BaseModel):
@@ -84,6 +86,11 @@ async def get_guest_info(
             email=rsvp_info.plus_one_email,
             first_name=rsvp_info.plus_one_first_name,
             last_name=rsvp_info.plus_one_last_name,
+            allergies=rsvp_info.plus_one_allergies,
+            dietary_requirements=[
+                DietaryRequirementResponse(requirement_type=req.requirement_type, notes=req.notes)
+                for req in rsvp_info.plus_one_dietary_requirements
+            ],
         )
 
     # Build family members response

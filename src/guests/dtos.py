@@ -131,6 +131,8 @@ class RSVPInfoDTO:
     plus_one_email: str | None = None
     plus_one_first_name: str | None = None
     plus_one_last_name: str | None = None
+    plus_one_allergies: str | None = None
+    plus_one_dietary_requirements: list[DietaryRequirementDTO] = field(default_factory=list)
     # Prefill fields
     attending: bool | None = None
     dietary_requirements: list[DietaryRequirementDTO] = field(default_factory=list)

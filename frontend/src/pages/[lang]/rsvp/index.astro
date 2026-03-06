@@ -350,9 +350,9 @@ input.invalid, textarea.invalid {
     document.getElementById('summary-transport').textContent = data.needs_transport ? t.yes : t.no;
 
     const plusOneContainer = document.getElementById('summary-plus-one-container');
-    if (data.plus_one_first_name && data.plus_one_last_name) {
+    if (data.plus_one && data.plus_one.first_name && data.plus_one.last_name) {
       plusOneContainer.style.display = 'block';
-      document.getElementById('summary-plus-one').textContent = `${data.plus_one_first_name} ${data.plus_one_last_name}`;
+      document.getElementById('summary-plus-one').textContent = `${data.plus_one.first_name} ${data.plus_one.last_name}`;
     } else {
       plusOneContainer.style.display = 'none';
     }
@@ -396,6 +396,17 @@ input.invalid, textarea.invalid {
       plusOneDetailsSection.style.display = 'block';
       const emailInput = document.getElementById('plus_one_email');
       if (emailInput) emailInput.value = data.plus_one.email;
+
+      const firstNameInput = document.getElementById('plus_one_first_name');
+      if (firstNameInput) firstNameInput.value = data.plus_one.first_name || '';
+
+      const lastNameInput = document.getElementById('plus_one_last_name');
+      if (lastNameInput) lastNameInput.value = data.plus_one.last_name || '';
+
+      const allergiesInput = document.getElementById('plus_one_allergies');
+      if (allergiesInput && data.plus_one.allergies) {
+        allergiesInput.value = data.plus_one.allergies;
+      }
 
       if (data.plus_one.dietary_requirements) {
         data.plus_one.dietary_requirements.forEach(req => {

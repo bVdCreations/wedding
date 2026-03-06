@@ -127,6 +127,8 @@ class SqlRSVPReadModel(RSVPReadModel):
             plus_one_email = None
             plus_one_first_name = None
             plus_one_last_name = None
+            plus_one_allergies = None
+            plus_one_dietary_requirements: list[DietaryRequirementDTO] = []
             if guest.bring_a_plus_one_id:
                 plus_one_stmt = select(Guest).where(Guest.uuid == guest.bring_a_plus_one_id)
                 plus_one_result = await session.execute(plus_one_stmt)
@@ -134,12 +136,26 @@ class SqlRSVPReadModel(RSVPReadModel):
                 if plus_one_guest:
                     plus_one_first_name = plus_one_guest.first_name
                     plus_one_last_name = plus_one_guest.last_name
+                    plus_one_allergies = plus_one_guest.allergies
                     # Get plus-one's email from User table
                     user_stmt = select(User).where(User.uuid == plus_one_guest.user_id)
                     user_result = await session.execute(user_stmt)
                     plus_one_user = user_result.scalar_one_or_none()
                     if plus_one_user:
                         plus_one_email = plus_one_user.email
+                    # Get plus-one's dietary requirements from DietaryOption table
+                    plus_one_dietary_stmt = select(DietaryOption).where(
+                        DietaryOption.guest_id == plus_one_guest.uuid
+                    )
+                    plus_one_dietary_result = await session.execute(plus_one_dietary_stmt)
+                    plus_one_dietary_options = plus_one_dietary_result.scalars().all()
+                    plus_one_dietary_requirements = [
+                        DietaryRequirementDTO(
+                            requirement_type=DietaryType(option.requirement_type),
+                            notes=option.notes,
+                        )
+                        for option in plus_one_dietary_options
+                    ]
 
             return RSVPInfoDTO(
                 guest_uuid=guest.uuid,
@@ -154,6 +170,8 @@ class SqlRSVPReadModel(RSVPReadModel):
                 plus_one_email=plus_one_email,
                 plus_one_first_name=plus_one_first_name,
                 plus_one_last_name=plus_one_last_name,
+                plus_one_allergies=plus_one_allergies,
+                plus_one_dietary_requirements=plus_one_dietary_requirements,
                 attending=attending,
                 dietary_requirements=dietary_requirements,
                 allergies=guest.allergies,
