@@ -1,0 +1,45 @@
+- [ ] manual testing single guest
+  - [ ] saved
+    - [ ] name is saved
+    - [ ] alegries is saved
+    - [ ] dietary requirements is saved
+    - [ ] attending is saved
+    - [ ] plus one is saved
+  - [ ] retrieved
+    - [ ] name is retrieved
+    - [ ] alegries is retrieved
+    - [ ] dietary requirements is retrieved
+    - [ ] attending is retrieved
+    - [ ] plus one is retrieved
+
+- [ ] manual testing plus-one guest
+  - [ ] saved
+    - [ ] name is saved
+    - [ ] alegries is saved
+    - [ ] dietary requirements is saved
+    - [ ] attending is saved
+    - [ ] plus one is saved
+  - [ ] retrieved
+    - [ ] name is retrieved
+    - [ ] alegries is retrieved
+    - [ ] dietary requirements is retrieved
+    - [ ] attending is retrieved
+    - [ ] plus one is retrieved
+- [ ] manual testing family guest
+- [ ] manual testing family guest with kids
+- [x] change pictures in frontend
+- [x] deploy to render.com
+- [x] create database on neon https://neon.com/
+- [x] deploy frontend to render
+- [x] create a domain
+- [x] create a DNS record
+- [x] setup email with sender
+- [ ] check email sendt
+- [x] extend email service to send confirmation and invitation emails
+- [x] update text in the frontend page
+- [ ] add all guest to the database
+- [x] setup sentry
+
+# later
+
+- [ ] when a guest has filled the rsvp form an request it again, it will get a summary email instead
