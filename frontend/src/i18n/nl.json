@@ -119,7 +119,8 @@
     "notAttending": "Niet Aanwezig",
     "dietaryRequirements": "Dieetwensen",
     "transportNeeded": "Vervoer Nodig",
-    "plusOneAttending": "Plus Een Aanwezig"
+    "plusOneAttending": "Plus Een Aanwezig",
+    "contactEmailText": "Heb je vragen? Stuur ons gerust een e-mail op"
   },
   "requestInvitation": {
     "title": "Uitnodiging Aanvragen",

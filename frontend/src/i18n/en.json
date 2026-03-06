@@ -119,7 +119,8 @@
     "notAttending": "Not Attending",
     "dietaryRequirements": "Dietary Requirements",
     "transportNeeded": "Transport Needed",
-    "plusOneAttending": "Plus One Attending"
+    "plusOneAttending": "Plus One Attending",
+    "contactEmailText": "Do you have any questions? Feel free to email us at"
   },
   "requestInvitation": {
     "title": "Request Invitation",

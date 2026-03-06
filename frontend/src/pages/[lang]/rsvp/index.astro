@@ -240,6 +240,15 @@ const t = getTranslations(lang as Language);
             <p class="text-gray-600" id="summary-venue-city"></p>
           </div>
           
+          <div id="contact-email-note"  style="display: none;">
+            <p class="text-center text-gray-600" >
+              {t.rsvpPage.contactEmailText}
+            </p>
+            <p class="text-center" >
+              <a href="mailto:info@gemma-bastiaan.wedding" class="text-[#c9a66b] hover:underline">info@gemma-bastiaan.wedding</a>
+            </p>
+          </div>
+
           <div class="text-center mt-8">
             <a id="back-to-main" href="" class="inline-block bg-[#c9a66b] text-white border-none px-8 py-3 rounded-lg hover:bg-[#b8945a] transition-colors">
               {t.rsvpPage.backToMainPage}
@@ -347,6 +356,9 @@ input.invalid, textarea.invalid {
     } else {
       plusOneContainer.style.display = 'none';
     }
+
+    const contactNote = document.getElementById('contact-email-note');
+    if (data.attending) contactNote.style.display = 'block';
 
     const backToMain = document.getElementById('back-to-main');
     backToMain.href = `/${lang}`;

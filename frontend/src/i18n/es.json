@@ -119,7 +119,8 @@
     "notAttending": "No Asistiendo",
     "dietaryRequirements": "Requisitos Dietéticos",
     "transportNeeded": "Transporte Necesario",
-    "plusOneAttending": "Acompañante Asistiendo"
+    "plusOneAttending": "Acompañante Asistiendo",
+    "contactEmailText": "¿Tienes alguna pregunta? No dudes en enviarnos un correo a"
   },
   "requestInvitation": {
     "title": "Solicitar Invitación",
