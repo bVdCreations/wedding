@@ -138,6 +138,7 @@ async function submitRSVPForm(
       allergies?: string;
       dietary_requirements?: Array<{ requirement_type: string; notes: string | null }>;
     };
+    language?: string;
   }
 ): Promise<{ success: boolean; data: Record<string, unknown> }> {
   return page.evaluate(
@@ -170,6 +171,7 @@ async function submitRSVPForm(
           allergies: data.allergies || null,
           plus_one_details: plusOneDetailsWithDietary,
           family_member_updates: {},
+          language: data.language || null,
         }),
       });
       const responseData = await response.json();
@@ -695,6 +697,66 @@ test.describe('RSVP Submission - Language Support', () => {
     });
 
     expect(result.success).toBe(true);
+  });
+
+  test('should send language in RSVP submission payload', async ({ page, language }) => {
+    let capturedRequest: Record<string, unknown> | null = null;
+    const token = 'test-token-language-payload';
+
+    await mockGuestInfoEndpoint(page, token);
+    await page.route(`${API_BASE_URL}/api/v1/guests/${token}/rsvp`, async (route: Route) => {
+      capturedRequest = JSON.parse(route.request().postData() || '{}');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(createMockRSVPResponse(true)),
+      });
+    });
+
+    await page.goto(`/${language}/rsvp?token=${token}`);
+
+    const result = await submitRSVPForm(page, token, {
+      attending: true,
+      firstName: 'John',
+      lastName: 'Doe',
+      language: language,
+    });
+
+    expect(result.success).toBe(true);
+    expect(capturedRequest).not.toBeNull();
+    expect(capturedRequest!.language).toBe(language);
+  });
+
+  test('should send correct language for all supported languages', async ({ page }) => {
+    const languages = ['en', 'es', 'nl'];
+
+    for (const lang of languages) {
+      let capturedRequest: Record<string, unknown> | null = null;
+      const token = `test-token-lang-${lang}`;
+
+      await mockGuestInfoEndpoint(page, token);
+      await page.route(`${API_BASE_URL}/api/v1/guests/${token}/rsvp`, async (route: Route) => {
+        capturedRequest = JSON.parse(route.request().postData() || '{}');
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(createMockRSVPResponse(true)),
+        });
+      });
+
+      await page.goto(`/${lang}/rsvp?token=${token}`);
+
+      const result = await submitRSVPForm(page, token, {
+        attending: true,
+        firstName: 'Test',
+        lastName: 'User',
+        language: lang,
+      });
+
+      expect(result.success).toBe(true);
+      expect(capturedRequest).not.toBeNull();
+      expect(capturedRequest!.language).toBe(lang);
+    }
   });
 });
 

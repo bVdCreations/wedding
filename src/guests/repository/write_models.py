@@ -216,6 +216,13 @@ class SqlRSVPWriteModel(RSVPWriteModel):
             if guest_info:
                 await self._update_guest_info(session, guest, guest_info)
 
+            # Update preferred_language if provided
+            if rsvp_data.language:
+                try:
+                    guest.preferred_language = Language(rsvp_data.language)
+                except ValueError:
+                    pass  # Ignore invalid language values
+
             await session.flush()
             await session.refresh(guest)
 

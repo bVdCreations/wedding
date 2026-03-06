@@ -529,3 +529,53 @@ async def test_submit_rsvp_first_time_succeeds(client_factory):
     # Verify the data was stored in memory
     assert token in memory
     assert memory[token]["attending"] is True
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_with_language(client_factory):
+    """Test that submitting RSVP with language saves the language field."""
+    memory = {}
+    token = "test-token-language"
+    write_model = InMemoryRSVPWriteModel(memory)
+    rsvp_data = {
+        "attending": True,
+        "language": "es",
+        "family_member_updates": {},
+    }
+    overrides = {
+        get_rsvp_write_model: lambda: write_model,
+    }
+
+    async with client_factory(overrides) as client:
+        response = await client.post(url=UPDATE_RSVP_URL.format(token=token), json=rsvp_data)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["attending"] is True
+    # Verify the language was stored in memory
+    assert token in memory
+    assert memory[token]["language"] == "es"
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_with_all_languages(client_factory):
+    """Test that submitting RSVP accepts all supported languages."""
+    memory = {}
+    write_model = InMemoryRSVPWriteModel(memory)
+
+    for lang in ["en", "es", "nl"]:
+        token = f"test-token-{lang}"
+        rsvp_data = {
+            "attending": True,
+            "language": lang,
+            "family_member_updates": {},
+        }
+        overrides = {
+            get_rsvp_write_model: lambda: write_model,
+        }
+
+        async with client_factory(overrides) as client:
+            response = await client.post(url=UPDATE_RSVP_URL.format(token=token), json=rsvp_data)
+
+        assert response.status_code == 200
+        assert memory[token]["language"] == lang

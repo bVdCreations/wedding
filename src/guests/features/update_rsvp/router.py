@@ -72,6 +72,7 @@ class RSVPResponseSubmit(BaseModel):
     guest_info: GuestInfoSubmit | None = None
     family_member_updates: dict[str, FamilyMemberSubmit] = {}
     needs_transport: bool = False
+    language: str | None = None
 
     @model_validator(mode="after")
     def clear_plus_one_when_not_attending(self) -> "RSVPResponseSubmit":
