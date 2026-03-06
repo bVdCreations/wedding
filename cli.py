@@ -658,3 +658,7 @@ def send_test_emails(
     sent_count = asyncio.run(_send_all_test_emails(lang, etype))
 
     typer.secho(f"\nSuccessfully sent {sent_count} email(s) to Mailhog!", fg=typer.colors.GREEN)
+
+
+if __name__ == "__main__":
+    app()
