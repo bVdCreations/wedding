@@ -97,11 +97,11 @@ test.describe('RSVP Already Submitted Summary', () => {
   test('should have working back to main page link', async ({ page, language }) => {
     await page.goto(`/${language}/rsvp?token=test-token`);
 
-    // Click the back to main page link
-    await page.locator('#back-to-main').click();
+    // Click the back to main page link inside the submitted summary
+    await page.locator('#submitted-summary #back-to-main').click();
 
     // Should navigate to main page for the language
-    await expect(page).toHaveURL(new RegExp(`/${language}/?$`));
+    await expect(page).toHaveURL(`/${language}`);
   });
 });
 
