@@ -1,4 +1,3 @@
----
 export { default as RsvpForm } from './RsvpForm.astro';
 export { default as GuestInfo } from './GuestInfo.astro';
 export { default as Attendance } from './Attendance.astro';
@@ -8,4 +7,4 @@ export { default as Transport } from './Transport.astro';
 export { default as PlusOne } from './PlusOne.astro';
 export { default as FamilyMembers } from './FamilyMembers.astro';
 export { default as RsvpSummary } from './RsvpSummary.astro';
----
+export { default as BackToMain } from './BackToMain.astro';

@@ -1,10 +1,13 @@
 ---
+import BackToMain from './BackToMain.astro';
+
 const { t } = Astro.props;
 ---
 
 <div id="success-message" class="success-message text-center p-8 bg-[#606c38] text-white rounded-lg" style="display: none;">
-  <h2 class="text-white mb-2">{t.successTitle}</h2>
+  <h2 class="text-3xl font-bold text-white mb-2">{t.successTitle}</h2>
   <p id="success-text"></p>
+  <BackToMain t={t} />
 </div>
 
 <div id="submitted-summary" class="summary-section" style="display: none;">
@@ -56,11 +59,7 @@ const { t } = Astro.props;
     </p>
   </div>
 
-  <div class="text-center mt-8">
-    <a id="back-to-main" href="" class="inline-block bg-[#c9a66b] text-white border-none px-8 py-3 rounded-lg hover:bg-[#b8945a] transition-colors">
-      {t.backToMainPage}
-    </a>
-  </div>
+  <BackToMain t={t} />
 </div>
 
 <div id="error-message" class="error-message text-center p-4 bg-[#c1121f] text-white rounded-lg mt-4" style="display: none;">
