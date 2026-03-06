@@ -185,4 +185,13 @@ test.describe('RSVP Submitted - Not Attending', () => {
     // Form should be hidden
     await expect(page.locator('#rsvp-form')).not.toBeVisible();
   });
+
+  test('should show contact email when not attending', async ({ page, language }) => {
+    await page.goto(`/${language}/rsvp?token=declined-token`);
+
+    // Contact email should be visible even when declined
+    const contactEmail = page.locator('#contact-email-note');
+    await expect(contactEmail).toBeVisible();
+    await expect(contactEmail).toContainText('info@gemma-bastiaan.wedding');
+  });
 });

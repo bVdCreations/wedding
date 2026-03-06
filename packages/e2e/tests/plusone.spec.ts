@@ -363,4 +363,29 @@ test.describe('Plus-One Prefill Display', () => {
     await expect(allergiesInput).toBeVisible();
     await expect(allergiesInput).toHaveValue('Peanut allergy');
   });
+
+  test('should show contact email in form when plus-one is allowed', async ({ page, language }) => {
+    await mockGuestInfoEndpoint(
+      page,
+      testToken,
+      createMockGuestInfo({
+        attending: null,
+        plus_one: {
+          email: 'jane@example.com',
+          first_name: 'Jane',
+          last_name: 'Smith',
+          allergies: null,
+          dietary_requirements: [],
+        },
+      })
+    );
+
+    await page.goto(`/${language}/rsvp?token=${testToken}`);
+    await page.waitForLoadState('networkidle');
+
+    // Contact email should be visible in the form
+    const contactEmail = page.locator('#contact-email-note-form');
+    await expect(contactEmail).toBeVisible();
+    await expect(contactEmail).toContainText('info@gemma-bastiaan.wedding');
+  });
 });

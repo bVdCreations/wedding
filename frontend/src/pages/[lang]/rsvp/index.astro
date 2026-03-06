@@ -184,6 +184,13 @@ const t = getTranslations(lang as Language);
             </div>
           </div>
 
+          <div id="contact-email-note-form" class="text-center mt-8 mb-4">
+            <p class="text-gray-600">{t.rsvpPage.contactEmailText}</p>
+            <p>
+              <a href="mailto:info@gemma-bastiaan.wedding" class="text-[#c9a66b] hover:underline">info@gemma-bastiaan.wedding</a>
+            </p>
+          </div>
+
           <div class="form-actions text-center mt-8">
             <button type="submit" class="submit-btn bg-[#c9a66b] text-white border-none px-10 py-4 text-lg rounded-lg hover:bg-[#b8945a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3 mx-auto">
               <span class="btn-text">{t.rsvpPage.submit}</span>
@@ -358,7 +365,7 @@ input.invalid, textarea.invalid {
     }
 
     const contactNote = document.getElementById('contact-email-note');
-    if (data.attending) contactNote.style.display = 'block';
+    contactNote.style.display = 'block';
 
     const backToMain = document.getElementById('back-to-main');
     backToMain.href = `/${lang}`;
