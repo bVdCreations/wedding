@@ -110,7 +110,16 @@
     "errorPlusOneDietaryNotesRequired": "Please describe your plus one's dietary requirements",
     "transportTitle": "Transport",
     "transportCheckbox": "I need transport from Malaga Center to the venue and back",
-    "transportVenueAddress": "Camino del Convento, s/n, 29130 Alhaurín de la Torre, Málaga, Spain"
+    "transportVenueAddress": "Camino del Convento, s/n, 29130 Alhaurín de la Torre, Málaga, Spain",
+    "alreadyResponded": "You have already responded to this invitation",
+    "yourResponse": "Your Response",
+    "backToMainPage": "Back to Main Page",
+    "venueInfo": "Venue Information",
+    "attendingStatus": "Attending",
+    "notAttending": "Not Attending",
+    "dietaryRequirements": "Dietary Requirements",
+    "transportNeeded": "Transport Needed",
+    "plusOneAttending": "Plus One Attending"
   },
   "requestInvitation": {
     "title": "Request Invitation",

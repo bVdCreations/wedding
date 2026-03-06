@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, field_validator, model_validator
 
 from src.email_service import get_email_service
-from src.guests.dtos import DietaryType, GuestStatus
+from src.guests.dtos import DietaryType, GuestStatus, RSVPAlreadySubmittedError
 from src.guests.features.create_plus_one_guest.write_model import (
     SqlPlusOneGuestWriteModel,
 )
@@ -116,6 +116,14 @@ async def submit_rsvp(
             message=response_dto.message,
             attending=response_dto.attending,
             status=response_dto.status,
+        )
+    except RSVPAlreadySubmittedError:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "error": "rsvp_already_submitted",
+                "message": "You have already submitted your RSVP. Please refresh the page to view your response.",
+            },
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

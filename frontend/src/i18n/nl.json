@@ -110,7 +110,16 @@
     "errorPlusOneDietaryNotesRequired": "Beschrijf de dieetwensen van je partner",
     "transportTitle": "Vervoer",
     "transportCheckbox": "Ik heb vervoer nodig van het centrum van Malaga naar de locatie en terug",
-    "transportVenueAddress": "Camino del Convento, s/n, 29130 Alhaurín de la Torre, Málaga, Spanje"
+    "transportVenueAddress": "Camino del Convento, s/n, 29130 Alhaurín de la Torre, Málaga, Spanje",
+    "alreadyResponded": "Je hebt al gereageerd op deze uitnodiging",
+    "yourResponse": "Jouw Reactie",
+    "backToMainPage": "Terug naar Hoofdpagina",
+    "venueInfo": "Locatie Informatie",
+    "attendingStatus": "Aanwezig",
+    "notAttending": "Niet Aanwezig",
+    "dietaryRequirements": "Dieetwensen",
+    "transportNeeded": "Vervoer Nodig",
+    "plusOneAttending": "Plus Een Aanwezig"
   },
   "requestInvitation": {
     "title": "Uitnodiging Aanvragen",

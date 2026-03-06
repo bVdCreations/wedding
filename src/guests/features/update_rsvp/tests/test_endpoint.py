@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from src.guests.dtos import GuestStatus, RSVPResponseDTO
+from src.guests.dtos import GuestStatus, RSVPAlreadySubmittedError, RSVPResponseDTO
 
 if TYPE_CHECKING:
     from src.guests.features.update_rsvp.router import RSVPResponseSubmit
@@ -17,15 +17,22 @@ class InMemoryRSVPWriteModel(RSVPWriteModel):
     def __init__(
         self,
         memory: dict,
+        submitted_tokens: set | None = None,
     ):
         self._memory = memory
+        self._submitted_tokens = submitted_tokens or set()
 
     async def submit_rsvp(
         self,
         token: str,
         rsvp_data: "RSVPResponseSubmit",
     ) -> RSVPResponseDTO:
+        # Check if RSVP already submitted for this token
+        if token in self._submitted_tokens:
+            raise RSVPAlreadySubmittedError()
+
         self._memory[token] = rsvp_data.model_dump()
+        self._submitted_tokens.add(token)
 
         attending = rsvp_data.attending
         status = GuestStatus.CONFIRMED if attending else GuestStatus.DECLINED
@@ -285,7 +292,9 @@ async def test_submit_rsvp_family_member_allergies_in_guest_info(client_factory)
     assert response.status_code == 200
     family_update = memory[token]["family_member_updates"][family_uuid]
     assert family_update["guest_info"]["allergies"] == "Sesame"
-    assert family_update["guest_info"]["dietary_requirements"][0]["requirement_type"] == "vegetarian"
+    assert (
+        family_update["guest_info"]["dietary_requirements"][0]["requirement_type"] == "vegetarian"
+    )
 
 
 @pytest.mark.asyncio
@@ -479,3 +488,44 @@ async def test_not_attending_strips_plus_one(client_factory):
     assert response.status_code == 200
     assert response.json()["attending"] is False
     assert memory[token]["plus_one_details"] is None
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_already_submitted_returns_404(client_factory):
+    """Test that submitting RSVP again with same token returns 404."""
+    memory = {}
+    submitted_tokens = {"already-submitted-token"}
+    token = "already-submitted-token"
+    write_model = InMemoryRSVPWriteModel(memory, submitted_tokens)
+    rsvp_data = {"attending": True, "family_member_updates": {}}
+    overrides = {
+        get_rsvp_write_model: lambda: write_model,
+    }
+
+    async with client_factory(overrides) as client:
+        response = await client.post(url=UPDATE_RSVP_URL.format(token=token), json=rsvp_data)
+
+    assert response.status_code == 409
+    assert response.json()["detail"]["error"] == "rsvp_already_submitted"
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_first_time_succeeds(client_factory):
+    """Test that submitting RSVP for the first time succeeds."""
+    memory = {}
+    token = "new-token"
+    write_model = InMemoryRSVPWriteModel(memory)
+    rsvp_data = {"attending": True, "family_member_updates": {}}
+    overrides = {
+        get_rsvp_write_model: lambda: write_model,
+    }
+
+    async with client_factory(overrides) as client:
+        response = await client.post(url=UPDATE_RSVP_URL.format(token=token), json=rsvp_data)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["attending"] is True
+    # Verify the data was stored in memory
+    assert token in memory
+    assert memory[token]["attending"] is True

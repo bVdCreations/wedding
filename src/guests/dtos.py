@@ -17,6 +17,13 @@ class GuestAlreadyExistsError(Exception):
         super().__init__(f"User with email '{email}' already has a guest account")
 
 
+class RSVPAlreadySubmittedError(Exception):
+    """Raised when trying to submit an RSVP with a token that has already been used."""
+
+    def __init__(self) -> None:
+        super().__init__("RSVP already submitted")
+
+
 class DietaryType(str, Enum):
     VEGETARIAN = "vegetarian"
     VEGAN = "vegan"
@@ -129,6 +136,7 @@ class RSVPInfoDTO:
     dietary_requirements: list[DietaryRequirementDTO] = field(default_factory=list)
     allergies: str | None = None
     needs_transport: bool = False
+    rsvp_submitted: bool = False
 
 
 @dataclass(frozen=True)

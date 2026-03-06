@@ -22,7 +22,7 @@ const t = getTranslations(lang as Language);
     <div class="w-full max-w-2xl">
       <div class="rsvp-card bg-white rounded-xl shadow-lg p-8">
         <h1 class="text-3xl md:text-4xl font-serif text-center text-gray-800 mb-4">{t.rsvpPage.heading}</h1>
-        <p class="text-center text-gray-600 mb-8">{t.rsvpPage.subheading}</p>
+        <p id="rsvp-subheading" class="text-center text-gray-600 mb-8">{t.rsvpPage.subheading}</p>
 
         <form id="rsvp-form">
           <!-- Main Guest Section -->
@@ -200,6 +200,53 @@ const t = getTranslations(lang as Language);
           <p id="success-text"></p>
         </div>
 
+        <div id="submitted-summary" class="summary-section" style="display: none;">
+          <div class="text-center mb-8">
+            <h2 class="text-2xl font-serif text-gray-800 mb-2">{t.rsvpPage.alreadyResponded}</h2>
+            <p class="text-gray-600">{t.rsvpPage.yourResponse}</p>
+          </div>
+          
+          <div class="bg-stone-50 rounded-lg p-6 mb-6">
+            <div class="mb-4">
+              <p class="text-sm text-gray-500">{t.rsvpPage.attending}</p>
+              <p id="summary-attending" class="text-lg font-medium text-gray-800"></p>
+            </div>
+            
+            <div class="mb-4">
+              <p class="text-sm text-gray-500">{t.rsvpPage.dietaryRequirements}</p>
+              <p id="summary-dietary" class="text-gray-800"></p>
+            </div>
+            
+            <div class="mb-4">
+              <p class="text-sm text-gray-500">{t.rsvpPage.allergies}</p>
+              <p id="summary-allergies" class="text-gray-800"></p>
+            </div>
+            
+            <div class="mb-4">
+              <p class="text-sm text-gray-500">{t.rsvpPage.transportNeeded}</p>
+              <p id="summary-transport" class="text-gray-800"></p>
+            </div>
+            
+            <div id="summary-plus-one-container" class="mb-4" style="display: none;">
+              <p class="text-sm text-gray-500">{t.rsvpPage.plusOneAttending}</p>
+              <p id="summary-plus-one" class="text-gray-800"></p>
+            </div>
+          </div>
+          
+          <div class="bg-stone-50 rounded-lg p-6 mb-6">
+            <h3 class="text-lg font-serif mb-4 text-gray-800">{t.rsvpPage.venueInfo}</h3>
+            <p class="text-gray-700 font-medium" id="summary-venue-name"></p>
+            <p class="text-gray-600" id="summary-venue-address"></p>
+            <p class="text-gray-600" id="summary-venue-city"></p>
+          </div>
+          
+          <div class="text-center mt-8">
+            <a id="back-to-main" href="" class="inline-block bg-[#c9a66b] text-white border-none px-8 py-3 rounded-lg hover:bg-[#b8945a] transition-colors">
+              {t.rsvpPage.backToMainPage}
+            </a>
+          </div>
+        </div>
+
         <div id="error-message" class="error-message text-center p-4 bg-[#c1121f] text-white rounded-lg mt-4" style="display: none;">
           <p id="error-text"></p>
         </div>
@@ -226,7 +273,7 @@ input.invalid, textarea.invalid {
 }
 </style>
 
-<script define:vars={{ t: t.rsvpPage, apiHost: import.meta.env.PUBLIC_BACKEND_API_URL || '' }}>
+<script define:vars={{ t: t.rsvpPage, apiHost: import.meta.env.PUBLIC_BACKEND_API_URL || '', lang: lang }}>
   const form = document.getElementById('rsvp-form');
   const attendingInputs = document.getElementsByName('attending');
   const plusOneSection = document.getElementById('plus-one-section');
@@ -240,6 +287,7 @@ input.invalid, textarea.invalid {
   const familySection = document.getElementById('family-section');
   const familyMembersContainer = document.getElementById('family-members-container');
   const successMessage = document.getElementById('success-message');
+  const submittedSummary = document.getElementById('submitted-summary');
   const errorMessage = document.getElementById('error-message');
     const submitBtn = document.querySelector('.submit-btn');
   const btnText = submitBtn.querySelector('.btn-text');
@@ -264,11 +312,49 @@ input.invalid, textarea.invalid {
       const response = await fetch(`${apiHost}/api/v1/guests/${token}/info`);
       if (response.ok) {
         const data = await response.json();
-        prefillForm(data);
+        if (data.rsvp_submitted) {
+          showSummary(data);
+        } else {
+          prefillForm(data);
+        }
       }
     } catch (error) {
       console.warn('Could not fetch guest info:', error);
     }
+  }
+
+  function showSummary(data) {
+    form.style.display = 'none';
+    submittedSummary.style.display = 'block';
+    document.getElementById('rsvp-subheading').style.display = 'none';
+
+    document.getElementById('summary-attending').textContent = data.attending ? t.attendingYes : t.attendingNo;
+    document.getElementById('summary-attending').className = data.attending ? 'text-lg font-medium text-[#606c38]' : 'text-lg font-medium text-[#c1121f]';
+
+    const dietaryList = data.dietary_requirements && data.dietary_requirements.length > 0 
+      ? data.dietary_requirements.map(req => req.requirement_type === 'other' && req.notes ? `${t.other}: ${req.notes}` : t[req.requirement_type] || req.requirement_type).join(', ')
+      : '-';
+    document.getElementById('summary-dietary').textContent = dietaryList;
+
+    document.getElementById('summary-allergies').textContent = data.allergies || '-';
+
+    document.getElementById('summary-transport').textContent = data.needs_transport ? t.yes : t.no;
+
+    const plusOneContainer = document.getElementById('summary-plus-one-container');
+    if (data.plus_one_first_name && data.plus_one_last_name) {
+      plusOneContainer.style.display = 'block';
+      document.getElementById('summary-plus-one').textContent = `${data.plus_one_first_name} ${data.plus_one_last_name}`;
+    } else {
+      plusOneContainer.style.display = 'none';
+    }
+
+    const backToMain = document.getElementById('back-to-main');
+    backToMain.href = `/${lang}`;
+
+    const langParam = lang || 'en';
+    document.getElementById('summary-venue-name').textContent = t.venue || 'Rancho del Inglés';
+    document.getElementById('summary-venue-address').textContent = t.address || 'Camino del Convento, s/n';
+    document.getElementById('summary-venue-city').textContent = t.city || '29130 Alhaurín de la Torre, Málaga, Spain';
   }
 
   function prefillForm(data) {

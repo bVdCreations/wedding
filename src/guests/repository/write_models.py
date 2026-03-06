@@ -14,6 +14,7 @@ from src.guests.dtos import (
     GuestStatus,
     Language,
     PlusOneDTO,
+    RSVPAlreadySubmittedError,
     RSVPResponseDTO,
 )
 from src.guests.repository.orm_models import DietaryOption, DietaryType, Guest, RSVPInfo
@@ -172,6 +173,10 @@ class SqlRSVPWriteModel(RSVPWriteModel):
             rsvp_result = await session.execute(rsvp_stmt)
             rsvp_info = rsvp_result.scalar_one_or_none()
 
+            # Check if RSVP already submitted
+            if rsvp_info and not rsvp_info.active:
+                raise RSVPAlreadySubmittedError()
+
             # Update RSVP status
             assert rsvp_info is not None
             rsvp_info.status = GuestStatus.CONFIRMED if attending else GuestStatus.DECLINED
@@ -262,6 +267,9 @@ class SqlRSVPWriteModel(RSVPWriteModel):
             if family_member_updates:
                 for member_id, update_data in family_member_updates.items():
                     await self._update_family_member(session, UUID(member_id), update_data)
+
+            # Mark RSVP as submitted (one-time use token)
+            rsvp_info.active = False
 
             # Build response message
             message = (

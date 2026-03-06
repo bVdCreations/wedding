@@ -18,8 +18,9 @@ from src.guests.urls import GET_GUEST_INFO_URL
 class InMemoryRSVPReadModel(RSVPReadModel):
     """In-memory read model for testing."""
 
-    def __init__(self, guests: list[GuestDTO] | None = None):
+    def __init__(self, guests: list[GuestDTO] | None = None, active: bool = True):
         self._guests: dict[str, GuestDTO] = {}
+        self._active = active
         if guests:
             for guest in guests:
                 self._guests[guest.rsvp.token] = guest
@@ -53,6 +54,7 @@ class InMemoryRSVPReadModel(RSVPReadModel):
             plus_one_last_name=None,
             attending=attending,
             dietary_requirements=[],
+            rsvp_submitted=not self._active,
         )
 
 
@@ -104,7 +106,9 @@ class InMemoryRSVPReadModelWithDietary(RSVPReadModel):
             attending=attending,
             dietary_requirements=[
                 DietaryRequirementDTO(requirement_type=DietaryType.VEGETARIAN, notes=None),
-                DietaryRequirementDTO(requirement_type=DietaryType.GLUTEN_FREE, notes="Minor allergy"),
+                DietaryRequirementDTO(
+                    requirement_type=DietaryType.GLUTEN_FREE, notes="Minor allergy"
+                ),
             ],
         )
 
@@ -259,3 +263,69 @@ async def test_get_rsvp_invalid_token(
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Invalid or expired RSVP link"
+
+
+@pytest.mark.asyncio
+async def test_get_rsvp_info_rsvp_submitted_false_when_active(client_factory):
+    """Test that rsvp_submitted is false when RSVP token is active (not yet submitted)."""
+    token = str(uuid4())
+    guest_id = uuid4()
+    guest = GuestDTO(
+        id=guest_id,
+        email="john@example.com",
+        rsvp=RSVPDTO(
+            status=GuestStatus.PENDING,
+            token=token,
+            link=f"http://localhost:4321/rsvp/?token={token}",
+        ),
+        first_name="John",
+        last_name="Doe",
+        plus_one_of_id=None,
+    )
+
+    # active=True means token has not been used yet
+    read_model = InMemoryRSVPReadModel([guest], active=True)
+
+    overrides = {
+        get_rsvp_read_model: lambda: read_model,
+    }
+
+    async with client_factory(overrides) as client:
+        response = await client.get(GET_GUEST_INFO_URL.format(token=token))
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["rsvp_submitted"] is False
+
+
+@pytest.mark.asyncio
+async def test_get_rsvp_info_rsvp_submitted_true_when_inactive(client_factory):
+    """Test that rsvp_submitted is true when RSVP token is inactive (already submitted)."""
+    token = str(uuid4())
+    guest_id = uuid4()
+    guest = GuestDTO(
+        id=guest_id,
+        email="john@example.com",
+        rsvp=RSVPDTO(
+            status=GuestStatus.CONFIRMED,
+            token=token,
+            link=f"http://localhost:4321/rsvp/?token={token}",
+        ),
+        first_name="John",
+        last_name="Doe",
+        plus_one_of_id=None,
+    )
+
+    # active=False means token has already been used
+    read_model = InMemoryRSVPReadModel([guest], active=False)
+
+    overrides = {
+        get_rsvp_read_model: lambda: read_model,
+    }
+
+    async with client_factory(overrides) as client:
+        response = await client.get(GET_GUEST_INFO_URL.format(token=token))
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["rsvp_submitted"] is True

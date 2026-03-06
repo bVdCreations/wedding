@@ -110,7 +110,16 @@
     "errorPlusOneDietaryNotesRequired": "Describe los requisitos dietéticos de tu acompañante",
     "transportTitle": "Transporte",
     "transportCheckbox": "Necesito transporte desde el centro de Málaga al lugar de la boda y viceversa",
-    "transportVenueAddress": "Camino del Convento, s/n, 29130 Alhaurín de la Torre, Málaga, España"
+    "transportVenueAddress": "Camino del Convento, s/n, 29130 Alhaurín de la Torre, Málaga, España",
+    "alreadyResponded": "Ya has respondido a esta invitación",
+    "yourResponse": "Tu Respuesta",
+    "backToMainPage": "Volver a la Página Principal",
+    "venueInfo": "Información del Lugar",
+    "attendingStatus": "Asistiendo",
+    "notAttending": "No Asistiendo",
+    "dietaryRequirements": "Requisitos Dietéticos",
+    "transportNeeded": "Transporte Necesario",
+    "plusOneAttending": "Acompañante Asistiendo"
   },
   "requestInvitation": {
     "title": "Solicitar Invitación",

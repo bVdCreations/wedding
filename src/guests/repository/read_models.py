@@ -158,4 +158,5 @@ class SqlRSVPReadModel(RSVPReadModel):
                 dietary_requirements=dietary_requirements,
                 allergies=guest.allergies,
                 needs_transport=rsvp_info.needs_transport,
+                rsvp_submitted=not rsvp_info.active,
             )

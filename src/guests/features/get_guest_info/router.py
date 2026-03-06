@@ -54,6 +54,7 @@ class RSVPTokenResponse(BaseModel):
     attending: bool | None = None
     allergies: str | None = None
     needs_transport: bool = False
+    rsvp_submitted: bool = False
 
 
 def get_rsvp_read_model() -> RSVPReadModel:
@@ -123,4 +124,5 @@ async def get_guest_info(
             for req in rsvp_info.dietary_requirements
         ],
         needs_transport=rsvp_info.needs_transport,
+        rsvp_submitted=rsvp_info.rsvp_submitted,
     )
