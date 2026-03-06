@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass, field
-from uuid import UUID
 from enum import Enum
+from uuid import UUID
 
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
 
@@ -28,7 +28,6 @@ class CreateGuestCommand:
     first_name: str = ""
     last_name: str = ""
     lang: str = "en"
-    user_id: UUID | None = None
     send_email: bool = False
 
 
@@ -61,6 +60,8 @@ class CreateGuestFactory:
         commands = []
 
         for row in rows:
+            if row.get("guest_id", "").strip():
+                continue
             email = row.get("email", "").strip()
             if not email:
                 raise ValueError("Email is required")
@@ -76,7 +77,6 @@ class CreateGuestFactory:
                 first_name=row.get("first_name", "").strip() or "",
                 last_name=row.get("last_name", "").strip() or "",
                 lang=row.get("lang", "").strip() or "en",
-                user_id=user_id,
             )
             commands.append(command)
 

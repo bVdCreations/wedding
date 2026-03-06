@@ -321,3 +321,17 @@ class TestCreateGuestFactory:
         assert len(series.commands) == 2
         assert series.commands[0].email == "user.name+tag@example.co.uk"
         assert series.commands[1].email == "test123@sub.domain.example.com"
+
+    def test_create_commands_skips_rows_with_guest_id(self):
+        """Test that rows with guest_id are skipped."""
+        rows = [
+            {"email": "existing@example.com", "guest_id": "abc123"},
+            {"email": "new@example.com"},
+            {"email": "another@example.com", "guest_id": ""},
+        ]
+
+        series = CreateGuestFactory.create_commands(rows)
+
+        assert len(series.commands) == 2
+        assert series.commands[0].email == "new@example.com"
+        assert series.commands[1].email == "another@example.com"
