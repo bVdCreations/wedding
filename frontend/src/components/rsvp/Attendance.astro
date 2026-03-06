@@ -1,0 +1,18 @@
+---
+const { t } = Astro.props;
+---
+
+<div class="form-section mb-8 pb-6 border-b border-gray-100">
+  <h2 class="text-xl font-serif mb-4 text-gray-800">{t.attending}</h2>
+  <div class="flex flex-col gap-3">
+    <label class="radio-label cursor-pointer flex items-center gap-3 p-4 rounded-lg hover:bg-stone-50 transition-colors">
+      <input type="radio" name="attending" value="yes" required class="w-5 h-5 accent-[#c9a66b]" />
+      <span class="text-gray-700">{t.attendingYes}</span>
+    </label>
+    <label class="radio-label cursor-pointer flex items-center gap-3 p-4 rounded-lg hover:bg-stone-50 transition-colors">
+      <input type="radio" name="attending" value="no" required class="w-5 h-5 accent-[#c9a66b]" />
+      <span class="text-gray-700">{t.attendingNo}</span>
+    </label>
+  </div>
+  <span id="error-attending" class="field-error" aria-live="polite"></span>
+</div>

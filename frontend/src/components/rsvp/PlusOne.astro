@@ -1,0 +1,67 @@
+---
+const { t } = Astro.props;
+---
+
+<div class="form-section mb-8 pb-6 border-b border-gray-100" id="plus-one-section" style="display: none;">
+  <h2 class="text-xl font-serif mb-4 text-gray-800">{t.plusOne}</h2>
+  <div id="plus-one-allowed" style="display: none;">
+    <label class="checkbox-label cursor-pointer flex items-center gap-3 p-4 rounded-lg hover:bg-stone-50 transition-colors">
+      <input type="checkbox" name="plus_one" id="plus-one-checkbox" class="w-5 h-5 accent-[#c9a66b]" />
+      <span class="text-gray-700">{t.bringingPlusOne}</span>
+    </label>
+
+    <div id="plus-one-details-section" style="display: none; margin-top: 1rem;" class="bg-stone-50 p-6 rounded-lg">
+      <h3 class="text-lg font-serif mb-4 text-gray-800">{t.plusOneDetails}</h3>
+      <div class="form-group">
+        <label for="plus_one_email" class="block font-medium text-sm mb-1">{t.email}</label>
+        <input type="email" id="plus_one_email" name="plus_one_email" placeholder={t.emailPlaceholder}
+          class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
+        <span id="error-plus_one_email" class="field-error" aria-live="polite"></span>
+      </div>
+      <div class="form-group mt-4">
+        <label for="plus_one_first_name" class="block font-medium text-sm mb-1">{t.firstName}</label>
+        <input type="text" id="plus_one_first_name" name="plus_one_first_name" placeholder={t.firstName}
+          class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
+        <span id="error-plus_one_first_name" class="field-error" aria-live="polite"></span>
+      </div>
+      <div class="form-group mt-4">
+        <label for="plus_one_last_name" class="block font-medium text-sm mb-1">{t.lastName}</label>
+        <input type="text" id="plus_one_last_name" name="plus_one_last_name" placeholder={t.lastName}
+          class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
+        <span id="error-plus_one_last_name" class="field-error" aria-live="polite"></span>
+      </div>
+      <div class="form-group mt-4">
+        <label for="plus_one_allergies" class="block font-medium text-sm mb-1">{t.allergies}</label>
+        <textarea id="plus_one_allergies" name="plus_one_allergies" placeholder={t.allergiesPlaceholder}
+          rows="3" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors"></textarea>
+      </div>
+      <div class="form-group mt-4">
+        <p class="block font-medium text-sm mb-2">{t.dietary}</p>
+        <p class="text-xs text-gray-500 mb-3">{t.dietarySubtext}</p>
+        <div class="flex flex-col gap-2">
+          <label class="checkbox-label cursor-pointer flex items-center gap-3 p-3 rounded-lg hover:bg-white transition-colors">
+            <input type="checkbox" name="plus_one_dietary" value="vegetarian" class="w-5 h-5 accent-[#c9a66b]" />
+            <span class="text-gray-700">{t.vegetarian}</span>
+          </label>
+          <label class="checkbox-label cursor-pointer flex items-center gap-3 p-3 rounded-lg hover:bg-white transition-colors">
+            <input type="checkbox" name="plus_one_dietary" value="other" id="plus-one-dietary-other" class="w-5 h-5 accent-[#c9a66b]" />
+            <span class="text-gray-700">{t.other}</span>
+          </label>
+          <div id="plus-one-dietary-notes-section" style="display: none;" class="mt-2 ml-8">
+            <textarea
+              id="plus_one_dietary_notes"
+              name="plus_one_dietary_notes"
+              placeholder={t.dietaryNotesPlaceholder}
+              rows="3"
+              class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors"
+            ></textarea>
+            <span id="error-plus_one_dietary_notes" class="field-error" aria-live="polite"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="plus-one-not-allowed" style="display: none;">
+    <p class="text-gray-500 text-sm">{t.plusOneNotAllowed}</p>
+  </div>
+</div>

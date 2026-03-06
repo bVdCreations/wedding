@@ -64,4 +64,23 @@ const currentSearch = Astro.url.search;
     font-family: 'Cormorant Garamond', serif;
     font-weight: 400;
   }
+
+  .field-error {
+    color: #c0392b;
+    font-size: 0.85rem;
+    display: block;
+    margin-top: 0.25rem;
+  }
+
+  input.invalid, textarea.invalid {
+    border-color: #c0392b;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
 </style>

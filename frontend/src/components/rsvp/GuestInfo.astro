@@ -1,0 +1,26 @@
+---
+const { t } = Astro.props;
+---
+
+<div class="form-section mb-8 pb-6 border-b border-gray-100">
+  <h2 class="text-xl font-serif mb-4 text-gray-800">{t.yourInfo}</h2>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="form-group">
+      <label for="first_name" class="block font-medium text-sm mb-1">{t.firstName}</label>
+      <input type="text" id="first_name" name="first_name" required
+        class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
+      <span id="error-first_name" class="field-error" aria-live="polite"></span>
+    </div>
+    <div class="form-group">
+      <label for="last_name" class="block font-medium text-sm mb-1">{t.lastName}</label>
+      <input type="text" id="last_name" name="last_name" required
+        class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
+      <span id="error-last_name" class="field-error" aria-live="polite"></span>
+    </div>
+  </div>
+  <div class="form-group mt-4">
+    <label for="phone" class="block font-medium text-sm mb-1">{t.phone}</label>
+    <input type="tel" id="phone" name="phone" placeholder={t.phonePlaceholder}
+      class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
+  </div>
+</div>

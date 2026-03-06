@@ -1,0 +1,458 @@
+---
+import GuestInfo from './GuestInfo.astro';
+import Attendance from './Attendance.astro';
+import Dietary from './Dietary.astro';
+import Allergies from './Allergies.astro';
+import Transport from './Transport.astro';
+import PlusOne from './PlusOne.astro';
+import FamilyMembers from './FamilyMembers.astro';
+import RsvpSummary from './RsvpSummary.astro';
+
+const { t, lang, apiHost } = Astro.props;
+---
+
+<form id="rsvp-form">
+  <GuestInfo t={t} />
+  <Attendance t={t} />
+  <FamilyMembers t={t} />
+  <Dietary t={t} />
+  <Allergies t={t} />
+  <Transport t={t} />
+  <PlusOne t={t} />
+
+  <div id="contact-email-note-form" class="text-center mt-8 mb-4">
+    <p class="text-gray-600">{t.contactEmailText}</p>
+    <p>
+      <a href="mailto:info@gemma-bastiaan.wedding" class="text-[#c9a66b] hover:underline">info@gemma-bastiaan.wedding</a>
+    </p>
+  </div>
+
+  <div class="form-actions text-center mt-8">
+    <button type="submit" class="submit-btn bg-[#c9a66b] text-white border-none px-10 py-4 text-lg rounded-lg hover:bg-[#b8945a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3 mx-auto">
+      <span class="btn-text">{t.submit}</span>
+      <svg class="spinner w-5 h-5 animate-spin" style="display: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+    </button>
+  </div>
+</form>
+
+<RsvpSummary t={t} />
+
+<script define:vars={{ t, apiHost, lang }}>
+  const form = document.getElementById('rsvp-form');
+  const attendingInputs = document.getElementsByName('attending');
+  const plusOneSection = document.getElementById('plus-one-section');
+  const plusOneAllowed = document.getElementById('plus-one-allowed');
+  const plusOneNotAllowed = document.getElementById('plus-one-not-allowed');
+  const plusOneCheckbox = document.getElementById('plus-one-checkbox');
+  const plusOneDetailsSection = document.getElementById('plus-one-details-section');
+  const dietarySection = document.getElementById('dietary-section');
+  const allergiesSection = document.getElementById('allergies-section');
+  const transportSection = document.getElementById('transport-section');
+  const familySection = document.getElementById('family-section');
+  const familyMembersContainer = document.getElementById('family-members-container');
+  const successMessage = document.getElementById('success-message');
+  const submittedSummary = document.getElementById('submitted-summary');
+  const errorMessage = document.getElementById('error-message');
+  const submitBtn = document.querySelector('.submit-btn');
+  const btnText = submitBtn.querySelector('.btn-text');
+  const spinner = submitBtn.querySelector('.spinner');
+
+  let guestIsPlusOne = false;
+  let guestUuid = '';
+  let familyMembers = [];
+
+  const token = new URLSearchParams(window.location.search).get('token');
+
+  if (!token) {
+    window.location.href = window.location.pathname.replace('/rsvp', '/rsvp/request');
+    return;
+  }
+
+  async function prefetchGuestInfo() {
+    if (!token) return;
+    try {
+      const response = await fetch(`${apiHost}/api/v1/guests/${token}/info`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.rsvp_submitted) {
+          showSummary(data);
+        } else {
+          prefillForm(data);
+        }
+      }
+    } catch (error) {
+      console.warn('Could not fetch guest info:', error);
+    }
+  }
+
+  function showSummary(data) {
+    form.style.display = 'none';
+    submittedSummary.style.display = 'block';
+    document.getElementById('rsvp-subheading').style.display = 'none';
+
+    document.getElementById('summary-attending').textContent = data.attending ? t.attendingYes : t.attendingNo;
+    document.getElementById('summary-attending').className = data.attending ? 'text-lg font-medium text-[#606c38]' : 'text-lg font-medium text-[#c1121f]';
+
+    const dietaryList = data.dietary_requirements && data.dietary_requirements.length > 0 
+      ? data.dietary_requirements.map(req => req.requirement_type === 'other' && req.notes ? `${t.other}: ${req.notes}` : t[req.requirement_type] || req.requirement_type).join(', ')
+      : '-';
+    document.getElementById('summary-dietary').textContent = dietaryList;
+
+    document.getElementById('summary-allergies').textContent = data.allergies || '-';
+
+    document.getElementById('summary-transport').textContent = data.needs_transport ? t.yes : t.no;
+
+    const plusOneContainer = document.getElementById('summary-plus-one-container');
+    if (data.plus_one && data.plus_one.first_name && data.plus_one.last_name) {
+      plusOneContainer.style.display = 'block';
+      document.getElementById('summary-plus-one').textContent = `${data.plus_one.first_name} ${data.plus_one.last_name}`;
+    } else {
+      plusOneContainer.style.display = 'none';
+    }
+
+    const contactNote = document.getElementById('contact-email-note');
+    contactNote.style.display = 'block';
+
+    const backToMain = document.getElementById('back-to-main');
+    backToMain.href = `/${lang}`;
+
+    const langParam = lang || 'en';
+    document.getElementById('summary-venue-name').textContent = t.venue || 'Rancho del Inglés';
+    document.getElementById('summary-venue-address').textContent = t.address || 'Camino del Convento, s/n';
+    document.getElementById('summary-venue-city').textContent = t.city || '29130 Alhaurín de la Torre, Málaga, Spain';
+  }
+
+  function prefillForm(data) {
+    guestUuid = data.guest_uuid;
+    guestIsPlusOne = data.is_plus_one;
+    familyMembers = data.family_members || [];
+
+    const firstNameInput = document.getElementById('first_name');
+    const lastNameInput = document.getElementById('last_name');
+    const phoneInput = document.getElementById('phone');
+    const allergiesInput = document.getElementById('allergies');
+    if (firstNameInput) firstNameInput.value = data.first_name || '';
+    if (lastNameInput) lastNameInput.value = data.last_name || '';
+    if (phoneInput && data.phone) phoneInput.value = data.phone;
+    if (allergiesInput && data.allergies) allergiesInput.value = data.allergies;
+
+    if (data.attending !== null && data.attending !== undefined) {
+      const attendingInput = document.querySelector(`input[name="attending"][value="${data.attending ? 'yes' : 'no'}"]`);
+      if (attendingInput) {
+        attendingInput.checked = true;
+        attendingInput.dispatchEvent(new Event('change'));
+      }
+    }
+
+    if (data.plus_one && !guestIsPlusOne) {
+      plusOneCheckbox.checked = true;
+      plusOneDetailsSection.style.display = 'block';
+      const emailInput = document.getElementById('plus_one_email');
+      if (emailInput) emailInput.value = data.plus_one.email;
+
+      const firstNameInput = document.getElementById('plus_one_first_name');
+      if (firstNameInput) firstNameInput.value = data.plus_one.first_name || '';
+
+      const lastNameInput = document.getElementById('plus_one_last_name');
+      if (lastNameInput) lastNameInput.value = data.plus_one.last_name || '';
+
+      const allergiesInput = document.getElementById('plus_one_allergies');
+      if (allergiesInput && data.plus_one.allergies) {
+        allergiesInput.value = data.plus_one.allergies;
+      }
+
+      if (data.plus_one.dietary_requirements) {
+        data.plus_one.dietary_requirements.forEach(req => {
+          const checkbox = document.querySelector(`input[name="plus_one_dietary"][value="${req.requirement_type}"]`);
+          if (checkbox) checkbox.checked = true;
+          if (req.requirement_type === 'other') {
+            const notesSection = document.getElementById('plus-one-dietary-notes-section');
+            if (notesSection) notesSection.style.display = 'block';
+            if (req.notes) {
+              const notesInput = document.getElementById('plus_one_dietary_notes');
+              if (notesInput) notesInput.value = req.notes;
+            }
+          }
+        });
+      }
+    }
+
+    if (data.family_id && data.family_members && data.family_members.length > 0) {
+      renderFamilyMembers(data.family_members);
+    }
+
+    if (data.dietary_requirements) {
+      data.dietary_requirements.forEach(req => {
+        const checkbox = document.querySelector(`input[name="dietary"][value="${req.requirement_type}"]`);
+        if (checkbox) checkbox.checked = true;
+        if (req.requirement_type === 'other') {
+          const notesSection = document.getElementById('dietary-notes-section');
+          if (notesSection) notesSection.style.display = 'block';
+          if (req.notes) {
+            const notesInput = document.getElementById('dietary_notes');
+            if (notesInput) notesInput.value = req.notes;
+          }
+        }
+      });
+    }
+
+    if (data.needs_transport === true) {
+      const transportCheckbox = document.getElementById('needs-transport');
+      if (transportCheckbox) transportCheckbox.checked = true;
+    }
+  }
+
+  function renderFamilyMembers(members) {
+    familySection.style.display = 'block';
+    familyMembersContainer.innerHTML = '';
+    members.forEach((member, index) => {
+      const isChild = member.guest_type === 'child';
+      const childBadge = isChild ? `<span class="badge bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs">${t.child}</span>` : '';
+      const attendingQuestion = t.familyMemberAttending.replace('{name}', member.first_name);
+      const section = document.createElement('div');
+      section.className = 'family-member-card bg-stone-50 p-6 rounded-lg mb-6';
+      section.innerHTML = `
+        <h3 class="text-lg font-serif mb-4 text-gray-800">${member.first_name} ${member.last_name} ${childBadge}</h3>
+        <input type="hidden" name="family_member_uuid_${index}" value="${member.uuid}" />
+        <div class="mb-6">
+          <h4 class="text-base font-medium mb-3">${attendingQuestion}</h4>
+          <div class="flex gap-4">
+            <label class="flex items-center gap-2 cursor-pointer p-3 rounded-lg hover:bg-white transition-colors">
+              <input type="radio" name="family_attending_${index}" value="yes" ${member.attending === true ? 'checked' : ''} class="w-5 h-5 accent-[#c9a66b]" />
+              <span>${t.yes}</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer p-3 rounded-lg hover:bg-white transition-colors">
+              <input type="radio" name="family_attending_${index}" value="no" ${member.attending === false ? 'checked' : ''} class="w-5 h-5 accent-[#c9a66b]" />
+              <span>${t.no}</span>
+            </label>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="form-group">
+            <label for="family_first_name_${index}" class="block font-medium text-sm mb-1">${t.firstName}</label>
+            <input type="text" id="family_first_name_${index}" name="family_first_name_${index}" value="${member.first_name}" required
+              class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
+          </div>
+          <div class="form-group">
+            <label for="family_last_name_${index}" class="block font-medium text-sm mb-1">${t.lastName}</label>
+            <input type="text" id="family_last_name_${index}" name="family_last_name_${index}" value="${member.last_name}" required
+              class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
+          </div>
+        </div>
+        <div class="form-group mt-4">
+          <label for="family_phone_${index}" class="block font-medium text-sm mb-1">${t.phone}</label>
+          <input type="tel" id="family_phone_${index}" name="family_phone_${index}" value="${member.phone || ''}"
+            class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors" />
+        </div>
+        <div class="form-group mt-4">
+          <label for="family_allergies_${index}" class="block font-medium text-sm mb-1">${t.allergies}</label>
+          <textarea id="family_allergies_${index}" name="family_allergies_${index}" placeholder="${t.allergiesPlaceholder}"
+            rows="3" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a66b] transition-colors">${member.allergies || ''}</textarea>
+        </div>
+      `;
+      familyMembersContainer.appendChild(section);
+    });
+  }
+
+  prefetchGuestInfo();
+
+  attendingInputs.forEach(input => {
+    input.addEventListener('change', (e) => {
+      const attending = e.target.value;
+      if (attending === 'yes') {
+        plusOneSection.style.display = 'block';
+        dietarySection.style.display = 'block';
+        allergiesSection.style.display = 'block';
+        transportSection.style.display = 'block';
+        if (guestIsPlusOne) {
+          plusOneAllowed.style.display = 'none';
+          plusOneNotAllowed.style.display = 'block';
+        } else {
+          plusOneAllowed.style.display = 'block';
+          plusOneNotAllowed.style.display = 'none';
+        }
+      } else {
+        plusOneSection.style.display = 'none';
+        dietarySection.style.display = 'none';
+        allergiesSection.style.display = 'none';
+        transportSection.style.display = 'none';
+        plusOneCheckbox.checked = false;
+        plusOneDetailsSection.style.display = 'none';
+      }
+    });
+  });
+
+  plusOneCheckbox.addEventListener('change', (e) => {
+    const checked = e.target.checked;
+    plusOneDetailsSection.style.display = checked ? 'block' : 'none';
+  });
+
+  const dietaryOtherCheckbox = document.getElementById('dietary-other');
+  const dietaryNotesSection = document.getElementById('dietary-notes-section');
+
+  dietaryOtherCheckbox.addEventListener('change', (e) => {
+    const checked = e.target.checked;
+    dietaryNotesSection.style.display = checked ? 'block' : 'none';
+  });
+
+  const plusOneDietaryOtherCheckbox = document.getElementById('plus-one-dietary-other');
+  const plusOneDietaryNotesSection = document.getElementById('plus-one-dietary-notes-section');
+
+  plusOneDietaryOtherCheckbox.addEventListener('change', (e) => {
+    const checked = e.target.checked;
+    plusOneDietaryNotesSection.style.display = checked ? 'block' : 'none';
+  });
+
+  function clearErrors() {
+    document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+    document.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
+  }
+
+  function displayErrors(errors) {
+    for (const [field, message] of Object.entries(errors)) {
+      const span = document.getElementById(`error-${field}`);
+      if (span) span.textContent = message;
+      const input = document.getElementById(field) ?? document.querySelector(`[name="${field}"]`);
+      if (input) input.classList.add('invalid');
+    }
+  }
+
+  function validateForm() {
+    const errors = {};
+    const firstNameVal = document.getElementById('first_name')?.value ?? '';
+    const lastNameVal = document.getElementById('last_name')?.value ?? '';
+    if (!firstNameVal.trim()) errors['first_name'] = t.errorFirstNameRequired;
+    if (!lastNameVal.trim()) errors['last_name'] = t.errorLastNameRequired;
+
+    const attendingChecked = document.querySelector('input[name="attending"]:checked');
+    if (!attendingChecked) {
+      errors['attending'] = t.errorAttendingRequired;
+    } else if (attendingChecked.value === 'yes') {
+      const dietaryOther = document.querySelector('input[name="dietary"][value="other"]');
+      if (dietaryOther?.checked) {
+        const notes = document.getElementById('dietary_notes')?.value ?? '';
+        if (!notes.trim()) errors['dietary_notes'] = t.errorDietaryNotesRequired;
+      }
+      if (plusOneCheckbox.checked && !guestIsPlusOne) {
+        const email = document.getElementById('plus_one_email')?.value ?? '';
+        const poFirst = document.getElementById('plus_one_first_name')?.value ?? '';
+        const poLast = document.getElementById('plus_one_last_name')?.value ?? '';
+        if (!email.trim()) errors['plus_one_email'] = t.errorPlusOneEmailRequired;
+        if (!poFirst.trim()) errors['plus_one_first_name'] = t.errorPlusOneFirstNameRequired;
+        if (!poLast.trim()) errors['plus_one_last_name'] = t.errorPlusOneLastNameRequired;
+        const poDietaryOther = document.querySelector('input[name="plus_one_dietary"][value="other"]');
+        if (poDietaryOther?.checked) {
+          const poNotes = document.getElementById('plus_one_dietary_notes')?.value ?? '';
+          if (!poNotes.trim()) errors['plus_one_dietary_notes'] = t.errorPlusOneDietaryNotesRequired;
+        }
+      }
+    }
+    return errors;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrors();
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      displayErrors(validationErrors);
+      document.querySelector('.field-error:not(:empty)')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    const attending = document.querySelector('input[name="attending"]:checked');
+    const attendingValue = attending?.value === 'yes';
+    const plusOne = plusOneCheckbox.checked && !guestIsPlusOne;
+    const firstName = document.getElementById('first_name')?.value;
+    const lastName = document.getElementById('last_name')?.value;
+    const phone = document.getElementById('phone')?.value;
+
+    let plusOneDetails = null;
+    if (plusOne) {
+      const email = document.getElementById('plus_one_email')?.value;
+      const poFirstName = document.getElementById('plus_one_first_name')?.value;
+      const poLastName = document.getElementById('plus_one_last_name')?.value;
+      const poAllergies = document.getElementById('plus_one_allergies')?.value || null;
+      const poDietaryCheckboxes = document.querySelectorAll('input[name="plus_one_dietary"]:checked');
+      const poDietaryNotes = document.getElementById('plus_one_dietary_notes')?.value || null;
+      const poDietaryRequirements = Array.from(poDietaryCheckboxes).map(cb => ({
+        requirement_type: cb.value,
+        notes: cb.value === 'other' ? poDietaryNotes : null,
+      }));
+      if (email && poFirstName && poLastName) {
+        plusOneDetails = {email: email, first_name: poFirstName, last_name: poLastName, allergies: poAllergies, dietary_requirements: poDietaryRequirements};
+      }
+    }
+
+    const dietaryCheckboxes = document.querySelectorAll('input[name="dietary"]:checked');
+    const dietaryNotes = document.getElementById('dietary_notes')?.value || null;
+    const dietaryRequirements = Array.from(dietaryCheckboxes).map(cb => {
+      const value = cb.value;
+      return {
+        requirement_type: value,
+        notes: value === 'other' ? dietaryNotes : null,
+      };
+    });
+
+    const allergies = document.getElementById('allergies')?.value || null;
+    const needsTransport = document.getElementById('needs-transport')?.checked || false;
+
+    const familyMemberUpdates = {};
+    familyMembers.forEach((member, index) => {
+      const memberAttending = document.querySelector(`input[name="family_attending_${index}"]:checked`);
+      const memberAttendingValue = memberAttending?.value === 'yes';
+      const memberFirstName = document.getElementById(`family_first_name_${index}`)?.value;
+      const memberLastName = document.getElementById(`family_last_name_${index}`)?.value;
+      const memberPhone = document.getElementById(`family_phone_${index}`)?.value;
+      const memberAllergies = document.getElementById(`family_allergies_${index}`)?.value || null;
+
+      const memberDietaryCheckboxes = document.querySelectorAll(`input[name="family_dietary_${index}"]:checked`);
+      const memberDietaryRequirements = Array.from(memberDietaryCheckboxes).map(cb => ({
+        requirement_type: cb.value,
+      }));
+
+      familyMemberUpdates[member.uuid] = {
+        attending: memberAttendingValue,
+        guest_info: {first_name: memberFirstName, last_name: memberLastName, phone: memberPhone || null, allergies: memberAllergies, dietary_requirements: memberDietaryRequirements},
+      };
+    });
+
+    submitBtn.disabled = true;
+    btnText.textContent = t.submitting;
+    spinner.style.display = 'block';
+
+    try {
+      const response = await fetch(`${apiHost}/api/v1/guests/${token}/rsvp`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          attending: attendingValue,
+          plus_one_details: plusOneDetails,
+          guest_info: {first_name: firstName, last_name: lastName, phone: phone || null, allergies: allergies, dietary_requirements: dietaryRequirements},
+          family_member_updates: familyMemberUpdates,
+          needs_transport: needsTransport,
+          language: lang,
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        form.style.display = 'none';
+        successMessage.style.display = 'block';
+        document.getElementById('success-text').textContent = data.message;
+      } else {
+        errorMessage.style.display = 'block';
+        document.getElementById('error-text').textContent = data.detail || 'Error';
+      }
+    } catch (error) {
+      errorMessage.style.display = 'block';
+      document.getElementById('error-text').textContent = t.networkError;
+    } finally {
+      submitBtn.disabled = false;
+      btnText.textContent = t.submit;
+      spinner.style.display = 'none';
+    }
+  });
+</script>
