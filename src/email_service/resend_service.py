@@ -2,6 +2,7 @@ from typing import Protocol
 from uuid import UUID
 
 import httpx
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.email_service.base import EmailServiceBase
 from src.email_service.email_logger import EmailLogger, NoOpEmailLogger
@@ -19,9 +20,11 @@ class ResendEmailService(EmailServiceBase):
         self,
         config: ResendEmailConfig,
         email_logger: EmailLogger | None = None,
+        session_overwrite: AsyncSession | None = None,
     ):
         self._config = config
         self.email_logger = email_logger or NoOpEmailLogger()
+        self._session_overwrite = session_overwrite
 
     async def _send(
         self,

@@ -687,32 +687,32 @@ async def test_request_invitation_rsvp_token_is_unique_uuid():
     async with async_session_maker() as db_session:
         write_model = SqlRequestInvitationWriteModel(session_overwrite=db_session)
 
-        # Create multiple guests
-        await write_model.request_invitation(
-            email="guest1@example.com",
-            first_name="Guest",
-            last_name="One",
-        )
-        await write_model.request_invitation(
-            email="guest2@example.com",
-            first_name="Guest",
-            last_name="Two",
-        )
-        await write_model.request_invitation(
-            email="guest3@example.com",
-            first_name="Guest",
-            last_name="Three",
-        )
+        emails = [
+            "guest1-unique@example.com",
+            "guest2-unique@example.com",
+            "guest3-unique@example.com",
+        ]
 
-        # Get all RSVPInfo records
-        rsvp_result = await db_session.execute(select(RSVPInfo))
+        for i, email in enumerate(emails):
+            await write_model.request_invitation(
+                email=email,
+                first_name="Guest",
+                last_name=f"Number{i + 1}",
+            )
+
+        users_result = await db_session.execute(select(User).where(User.email.in_(emails)))
+        users = users_result.scalars().all()
+        user_uuids = [u.uuid for u in users]
+
+        rsvp_result = await db_session.execute(
+            select(RSVPInfo).join(Guest).where(Guest.user_id.in_(user_uuids))
+        )
         rsvps = rsvp_result.scalars().all()
         tokens = [rsvp.rsvp_token for rsvp in rsvps]
 
-        # Verify all tokens are unique
+        assert len(tokens) == 3
         assert len(tokens) == len(set(tokens))
 
-        # Verify all tokens are valid UUIDs
         for token in tokens:
             try:
                 UUID(token)

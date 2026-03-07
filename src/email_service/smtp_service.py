@@ -3,6 +3,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from uuid import UUID
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.config.settings import settings
 from src.email_service.base import EmailServiceBase
 from src.email_service.template_builder import EmailTemplates
@@ -10,12 +12,13 @@ from src.guests.dtos import Language
 
 
 class SMTPEmailService(EmailServiceBase):
-    def __init__(self):
+    def __init__(self, session_overwrite: AsyncSession | None = None):
         self.host = settings.smtp_host
         self.port = settings.smtp_port
         self.username = settings.smtp_user
         self.password = settings.smtp_password
         self.from_address = settings.emails_from
+        self._session_overwrite = session_overwrite
 
     def _create_message(
         self,

@@ -6,6 +6,7 @@ import pytest
 from sqlalchemy import select
 
 from src.config.database import async_session_maker
+from src.email_service.base import EmailServiceBase
 from src.guests.dtos import RSVPDTO, GuestDTO, GuestStatus, Language
 from src.guests.features.create_guest.command import (
     CreateGuestCommand,
@@ -117,10 +118,10 @@ class TestTwoPhaseExecution:
 
         original_get_email_service = handler_module.get_email_service
 
-        def mock_get_email_service():
-            return MockEmailServiceFailingOnSecond()
+        def mock_get_email_service() -> EmailServiceBase:
+            return MockEmailServiceFailingOnSecond()  # type: ignore[return-value]
 
-        handler_module.get_email_service = mock_get_email_service
+        handler_module.get_email_service = mock_get_email_service  # type: ignore[assignment]
 
         try:
             result = await handler.execute(command)
@@ -260,10 +261,10 @@ class TestTwoPhaseExecution:
 
         original_get_email_service = handler_module.get_email_service
 
-        def mock_get_email_service():
-            return MockEmailServiceAlwaysFails()
+        def mock_get_email_service() -> EmailServiceBase:
+            return MockEmailServiceAlwaysFails()  # type: ignore[return-value]
 
-        handler_module.get_email_service = mock_get_email_service
+        handler_module.get_email_service = mock_get_email_service  # type: ignore[assignment]
 
         try:
             result = await handler.execute(command)

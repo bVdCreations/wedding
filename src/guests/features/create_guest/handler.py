@@ -217,6 +217,9 @@ class CreateGuestHandler:
                 if not rsvp_info:
                     raise Exception("RSVPInfo not found")
 
+                if not guest:
+                    raise Exception("Guest not found")
+
                 guest_name = f"{guest.first_name} {guest.last_name}".strip() or "Guest"
                 rsvp_url = rsvp_info.rsvp_link if rsvp_info else ""
                 email_address = user.email if user else ""
