@@ -11,6 +11,7 @@ from src.guests.features.create_guest.command import (
     CommandStatus,
     CreateGuestCommand,
     CreateGuestCommandResult,
+    CreateGuestSeriesResult,
 )
 from src.guests.features.create_guest.handler import CreateGuestHandler
 from src.guests.features.create_guest.write_model import (
@@ -251,8 +252,8 @@ class TestErrorHandling:
         assert result.email == email
         assert "Database connection failed" in result.message
 
-    async def test_execute_series_not_implemented(self, session):
-        """Test that series commands raise NotImplementedError."""
+    async def test_execute_series_implemented(self, session):
+        """Test that series commands now work (were previously NotImplementedError)."""
         from src.guests.features.create_guest.command import CreateGuestSeriesCommand
 
         handler = CreateGuestHandler(
@@ -261,10 +262,14 @@ class TestErrorHandling:
         )
         command = CreateGuestSeriesCommand(
             commands=[
-                CreateGuestCommand(email="test1@example.com", first_name="John", last_name="Doe"),
-                CreateGuestCommand(email="test2@example.com", first_name="Jane", last_name="Smith"),
+                CreateGuestCommand(email=unique_email(), first_name="John", last_name="Doe"),
+                CreateGuestCommand(email=unique_email(), first_name="Jane", last_name="Smith"),
             ]
         )
 
-        with pytest.raises(NotImplementedError):
-            await handler.execute(command)
+        result = await handler.execute(command)
+
+        assert isinstance(result, CreateGuestSeriesResult)
+        assert result.total == 2
+        assert result.created == 2
+        assert result.errors == 0

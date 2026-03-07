@@ -1,7 +1,8 @@
 """Tests for CreateGuestFactory and command classes."""
 
-import pytest
 from uuid import uuid4
+
+import pytest
 
 from src.guests.features.create_guest.command import (
     CommandStatus,

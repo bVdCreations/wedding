@@ -85,5 +85,58 @@ class CreateGuestHandler:
         command: CreateGuestSeriesCommand,
         session: AsyncSession,
     ) -> CreateGuestSeriesResult:
-        """Execute series - to be implemented in Phase 3."""
-        raise NotImplementedError("Series execution not implemented yet")
+        """Execute series in a single transaction.
+
+        - Flush after each command
+        - Commit only if ALL succeed
+        - Rollback ALL if any fails
+        """
+        results = []
+        try:
+            for cmd in command.commands:
+                result = await self._execute_single(cmd, session)
+                results.append(result)
+
+                if result.status == CommandStatus.ERROR:
+                    await session.rollback()
+                    return CreateGuestSeriesResult(
+                        total=len(command.commands),
+                        created=0,
+                        skipped=0,
+                        errors=len(command.commands),
+                        emails_sent=0,
+                        emails_failed=0,
+                        results=results,
+                    )
+
+            await session.commit()
+
+            return CreateGuestSeriesResult(
+                total=len(results),
+                created=sum(1 for r in results if r.status == CommandStatus.CREATED),
+                skipped=sum(1 for r in results if r.status == CommandStatus.SKIPPED),
+                errors=sum(1 for r in results if r.status == CommandStatus.ERROR),
+                emails_sent=0,
+                emails_failed=0,
+                results=results,
+            )
+
+        except Exception as e:
+            await session.rollback()
+            for i in range(len(results), len(command.commands)):
+                results.append(
+                    CreateGuestCommandResult(
+                        status=CommandStatus.ERROR,
+                        email=command.commands[i].email,
+                        message=f"Transaction failed: {str(e)}",
+                    )
+                )
+            return CreateGuestSeriesResult(
+                total=len(command.commands),
+                created=0,
+                skipped=0,
+                errors=len(command.commands),
+                emails_sent=0,
+                emails_failed=0,
+                results=results,
+            )
