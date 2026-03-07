@@ -47,6 +47,9 @@ class GuestCreateWriteModel(ABC):
         """
         raise NotImplementedError
 
+    def overwrite_session(self, session: AsyncSession) -> None:
+        pass
+
 
 class SqlGuestCreateWriteModel(GuestCreateWriteModel):
     """SQL implementation of guest creation write operations."""
@@ -61,6 +64,9 @@ class SqlGuestCreateWriteModel(GuestCreateWriteModel):
         self.session_overwrite = session_overwrite
         self.email_service = email_service
         self.seen = set()
+
+    def overwrite_session(self, session: AsyncSession) -> None:
+        self.session_overwrite = session
 
     async def create_guest(
         self,

@@ -18,13 +18,11 @@ class TestCreateGuestCommand:
 
     def test_create_command_with_all_fields(self):
         """Test creating command with all fields."""
-        user_id = uuid4()
         cmd = CreateGuestCommand(
             email="test@example.com",
             first_name="John",
             last_name="Doe",
             lang="en",
-            user_id=user_id,
             send_email=True,
         )
 
@@ -32,7 +30,6 @@ class TestCreateGuestCommand:
         assert cmd.first_name == "John"
         assert cmd.last_name == "Doe"
         assert cmd.lang == "en"
-        assert cmd.user_id == user_id
         assert cmd.send_email is True
 
     def test_create_command_with_defaults(self):
@@ -43,7 +40,6 @@ class TestCreateGuestCommand:
         assert cmd.first_name == ""
         assert cmd.last_name == ""
         assert cmd.lang == "en"
-        assert cmd.user_id is None
         assert cmd.send_email is False
 
 
@@ -168,17 +164,17 @@ class TestCreateGuestFactory:
             CreateGuestFactory.create_commands(rows)
 
     def test_create_commands_with_empty_id(self):
-        """Test that empty id becomes None."""
+        """Test that empty id is handled (not passed to command)."""
         rows = [
             {"email": "test@example.com", "id": ""},
         ]
 
         series = CreateGuestFactory.create_commands(rows)
 
-        assert series.commands[0].user_id is None
+        assert series.commands[0].email == "test@example.com"
 
     def test_create_commands_with_valid_uuid(self):
-        """Test that valid UUID is parsed correctly."""
+        """Test that valid UUID is parsed but not stored in command."""
         user_id = uuid4()
         rows = [
             {"email": "test@example.com", "id": str(user_id)},
@@ -186,7 +182,7 @@ class TestCreateGuestFactory:
 
         series = CreateGuestFactory.create_commands(rows)
 
-        assert series.commands[0].user_id == user_id
+        assert series.commands[0].email == "test@example.com"
 
     def test_create_commands_with_missing_optional_fields(self):
         """Test that missing optional fields get defaults."""
@@ -201,15 +197,13 @@ class TestCreateGuestFactory:
         assert cmd.first_name == ""
         assert cmd.last_name == ""
         assert cmd.lang == "en"
-        assert cmd.user_id is None
         assert cmd.send_email is False
 
     def test_create_commands_with_all_fields(self):
         """Test that all fields are correctly mapped."""
-        user_id = uuid4()
         rows = [
             {
-                "id": str(user_id),
+                "id": str(uuid4()),
                 "email": "test@example.com",
                 "first_name": "John",
                 "last_name": "Doe",
@@ -220,7 +214,6 @@ class TestCreateGuestFactory:
         series = CreateGuestFactory.create_commands(rows)
 
         cmd = series.commands[0]
-        assert cmd.user_id == user_id
         assert cmd.email == "test@example.com"
         assert cmd.first_name == "John"
         assert cmd.last_name == "Doe"
