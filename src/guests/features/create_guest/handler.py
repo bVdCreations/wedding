@@ -1,5 +1,7 @@
 """Handler for CreateGuestCommand execution."""
 
+from functools import singledispatchmethod
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import async_session_manager
@@ -23,18 +25,29 @@ class CreateGuestHandler:
         self.session_overwrite = session_overwrite
         self._create_guest_write_model = create_guest_write_model
 
-    async def execute(
+    @singledispatchmethod
+    async def execute(self, command):
+        raise NotImplementedError(f"No handler for {type(command)}")
+
+    @execute.register
+    async def _(
         self,
-        command: CreateGuestCommand | CreateGuestSeriesCommand,
-    ) -> CreateGuestCommandResult | CreateGuestSeriesResult:
-        """Handle both single command and series."""
+        command: CreateGuestCommand,
+    ) -> CreateGuestCommandResult:
         async with async_session_manager(
             session_overwrite=self.session_overwrite, auto_commit=False
         ) as db_session:
-            if isinstance(command, CreateGuestSeriesCommand):
-                return await self._execute_series(command, db_session)
-
             return await self._execute_single(command, db_session)
+
+    @execute.register
+    async def _(
+        self,
+        command: CreateGuestSeriesCommand,
+    ) -> CreateGuestSeriesResult:
+        async with async_session_manager(
+            session_overwrite=self.session_overwrite, auto_commit=False
+        ) as db_session:
+            return await self._execute_series(command, db_session)
 
     async def _execute_single(
         self,
