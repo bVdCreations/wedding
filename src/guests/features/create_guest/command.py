@@ -13,6 +13,18 @@ class CommandStatus(Enum):
 
 
 @dataclass
+class EmailStatus(str, Enum):
+    SENT = "sent"
+    FAILED = "failed"
+
+
+@dataclass
+class EmailResult:
+    status: EmailStatus
+    error: str | None = None
+
+
+@dataclass
 class CreateGuestCommandResult:
     status: CommandStatus
     email: str

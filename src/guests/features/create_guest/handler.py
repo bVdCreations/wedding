@@ -1,10 +1,13 @@
 """Handler for CreateGuestCommand execution."""
 
+from datetime import UTC, datetime
 from functools import singledispatchmethod
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import async_session_manager
+from src.email_service import get_email_service
 from src.guests.dtos import GuestAlreadyExistsError, Language
 from src.guests.features.create_guest.command import (
     CommandStatus,
@@ -12,8 +15,12 @@ from src.guests.features.create_guest.command import (
     CreateGuestCommandResult,
     CreateGuestSeriesCommand,
     CreateGuestSeriesResult,
+    EmailResult,
+    EmailStatus,
 )
 from src.guests.features.create_guest.write_model import GuestCreateWriteModel
+from src.guests.repository.orm_models import Guest, RSVPInfo
+from src.models.user import User
 
 
 class CreateGuestHandler:
@@ -98,11 +105,18 @@ class CreateGuestHandler:
         command: CreateGuestSeriesCommand,
         session: AsyncSession,
     ) -> CreateGuestSeriesResult:
-        """Execute series in a single transaction.
+        """Execute series in two phases:
 
+        Phase 1: Create all guests in a single transaction
         - Flush after each command
         - Commit only if ALL succeed
-        - Rollback ALL if any fails
+        - If any fails → rollback ALL
+
+        Phase 2: Send emails (only if Phase 1 succeeded)
+        - For each command with send_email=True
+        - Update email_sent_on on RSVPInfo, flush
+        - Send invitation email
+        - Commit on success, rollback email_sent_on on failure
         """
         results = []
         try:
@@ -124,16 +138,6 @@ class CreateGuestHandler:
 
             await session.commit()
 
-            return CreateGuestSeriesResult(
-                total=len(results),
-                created=sum(1 for r in results if r.status == CommandStatus.CREATED),
-                skipped=sum(1 for r in results if r.status == CommandStatus.SKIPPED),
-                errors=sum(1 for r in results if r.status == CommandStatus.ERROR),
-                emails_sent=0,
-                emails_failed=0,
-                results=results,
-            )
-
         except Exception as e:
             await session.rollback()
             for i in range(len(results), len(command.commands)):
@@ -153,3 +157,85 @@ class CreateGuestHandler:
                 emails_failed=0,
                 results=results,
             )
+
+        emails_sent = 0
+        emails_failed = 0
+
+        for i, result in enumerate(results):
+            cmd = command.commands[i]
+
+            if not cmd.send_email:
+                continue
+
+            if result.status != CommandStatus.CREATED:
+                continue
+
+            email_result = await self._send_email(result)
+
+            result.email_status = email_result.status.value
+            result.email_error = email_result.error
+
+            if email_result.status is EmailStatus.SENT:
+                emails_sent += 1
+            else:
+                emails_failed += 1
+
+        return CreateGuestSeriesResult(
+            total=len(results),
+            created=sum(1 for r in results if r.status == CommandStatus.CREATED),
+            skipped=sum(1 for r in results if r.status == CommandStatus.SKIPPED),
+            errors=sum(1 for r in results if r.status == CommandStatus.ERROR),
+            emails_sent=emails_sent,
+            emails_failed=emails_failed,
+            results=results,
+        )
+
+    async def _send_email(
+        self,
+        result: CreateGuestCommandResult,
+    ) -> EmailResult:
+        """Send invitation email and update RSVPInfo.email_sent_on."""
+        async with async_session_manager() as email_session:
+            try:
+                rsvp_info = await email_session.execute(
+                    select(RSVPInfo).where(RSVPInfo.guest_id == result.guest_id)
+                )
+                rsvp_info = rsvp_info.scalar_one_or_none()
+
+                guest = await email_session.execute(
+                    select(Guest).where(Guest.uuid == result.guest_id)
+                )
+                guest = guest.scalar_one_or_none()
+
+                user = None
+                if guest and guest.user_id:
+                    user = await email_session.execute(
+                        select(User).where(User.uuid == guest.user_id)
+                    )
+                    user = user.scalar_one_or_none()
+
+                if not rsvp_info:
+                    raise Exception("RSVPInfo not found")
+
+                guest_name = f"{guest.first_name} {guest.last_name}".strip() or "Guest"
+                rsvp_url = rsvp_info.rsvp_link if rsvp_info else ""
+                email_address = user.email if user else ""
+                language = Language(guest.preferred_language) if guest else Language.EN
+
+                email_service = get_email_service()
+                await email_service.send_invitation(
+                    to_address=email_address,
+                    guest_name=guest_name,
+                    rsvp_url=rsvp_url,
+                    language=language,
+                    guest_id=result.guest_id,
+                )
+
+                rsvp_info.email_sent_on = datetime.now(UTC)
+                await email_session.commit()
+
+            except Exception as e:
+                await email_session.rollback()
+                return EmailResult(status=EmailStatus.FAILED, error=str(e))
+
+            return EmailResult(status=EmailStatus.SENT)
