@@ -1,16 +1,16 @@
-- [ ] manual testing single guest
-  - [ ] saved
-    - [ ] name is saved
-    - [ ] alegries is saved
-    - [ ] dietary requirements is saved
-    - [ ] attending is saved
-    - [ ] plus one is saved
-  - [ ] retrieved
-    - [ ] name is retrieved
-    - [ ] alegries is retrieved
-    - [ ] dietary requirements is retrieved
-    - [ ] attending is retrieved
-    - [ ] plus one is retrieved
+- [x] manual testing single guest
+  - [x] saved
+    - [x] name is saved
+    - [x] alegries is saved
+    - [x] dietary requirements is saved
+    - [x] attending is saved
+    - [x] plus one is saved
+  - [x] retrieved
+    - [x] name is retrieved
+    - [x] alegries is retrieved
+    - [x] dietary requirements is retrieved
+    - [x] attending is retrieved
+    - [x] plus one is retrieved
 
 - [ ] manual testing plus-one guest
   - [ ] saved
@@ -39,6 +39,11 @@
 - [x] update text in the frontend page
 - [ ] add all guest to the database
 - [x] setup sentry
+- [ ] emails
+  - [ ] confimation email needs all info , missing , bus , plus one and allergies
+- [ ] reply before in the emails
+- [ ] correct scedule in emails
+- [ ] get direction button needs to more seeable
 
 # later
 
