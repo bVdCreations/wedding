@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import select
 
 from src.config.database import async_session_maker
-from src.email_service.base import EmailServiceBase
+from src.email_service.dtos import EmailResult, EmailStatus
 from src.guests.dtos import RSVPDTO, GuestDTO, GuestStatus, Language
 from src.guests.features.create_guest.command import (
     CommandStatus,
@@ -31,6 +31,17 @@ def unique_email():
 class MockEmailService:
     async def send_invitation_for_guest(self, guest_id):
         pass
+
+
+class TrackingMockEmailService:
+    """Mock email service that tracks which guests received emails."""
+
+    def __init__(self):
+        self.sent_to_guest_ids: list = []
+
+    async def send_invitation_for_guest(self, guest_id):
+        self.sent_to_guest_ids.append(guest_id)
+        return EmailResult(status=EmailStatus.SENT, error=None)
 
 
 @pytest.fixture
@@ -292,3 +303,185 @@ class TestExecuteSeries:
         )
         guests = guests.scalars().all()
         assert len(guests) == 3
+
+    async def test_execute_series_skipped_guest_no_email(self, session):
+        """Test that skipped guests (existing users with guest records) do NOT receive emails."""
+        email1 = unique_email()
+        email2 = unique_email()
+
+        existing_user = User(
+            uuid=uuid4(),
+            email=email1,
+            hashed_password=None,
+            is_active=True,
+            is_superuser=False,
+        )
+        session.add(existing_user)
+        await session.flush()
+
+        existing_guest = Guest(
+            user_id=existing_user.uuid,
+            first_name="Existing",
+            last_name="Guest",
+            preferred_language="en",
+        )
+        session.add(existing_guest)
+        await session.flush()
+
+        tracking_email_service = TrackingMockEmailService()
+        handler = CreateGuestHandler(
+            session_overwrite=session,
+            create_guest_write_model=SqlGuestCreateWriteModel(session_overwrite=session),
+            email_service=tracking_email_service,
+        )
+        command = CreateGuestSeriesCommand(
+            commands=[
+                CreateGuestCommand(email=email1, first_name="Existing", last_name="Guest"),
+                CreateGuestCommand(
+                    email=email2, first_name="New", last_name="Guest", send_email=True
+                ),
+            ]
+        )
+
+        result = await handler.execute(command)
+
+        assert isinstance(result, CreateGuestSeriesResult)
+        assert result.total == 2
+        assert result.created == 1
+        assert result.skipped == 1
+        assert result.errors == 0
+        assert result.emails_sent == 1
+
+        skipped_result = next(r for r in result.results if r.status == CommandStatus.SKIPPED)
+        assert skipped_result.email == email1
+        assert skipped_result.message == f"User with email '{email1}' already has a guest account"
+        assert skipped_result.email_status is None
+        assert skipped_result.email_error is None
+
+        created_result = next(r for r in result.results if r.status == CommandStatus.CREATED)
+        assert created_result.email == email2
+        assert created_result.guest_id is not None
+        assert skipped_result.email_status is None
+        assert skipped_result.email_error is None
+
+    async def test_execute_series_created_guest_gets_email(self, session):
+        """Test that newly created guests with send_email=True DO receive emails."""
+        email1 = unique_email()
+        email2 = unique_email()
+
+        tracking_email_service = TrackingMockEmailService()
+        handler = CreateGuestHandler(
+            session_overwrite=session,
+            create_guest_write_model=SqlGuestCreateWriteModel(session_overwrite=session),
+            email_service=tracking_email_service,
+        )
+        command = CreateGuestSeriesCommand(
+            commands=[
+                CreateGuestCommand(
+                    email=email1, first_name="John", last_name="Doe", send_email=True
+                ),
+                CreateGuestCommand(
+                    email=email2, first_name="Jane", last_name="Smith", send_email=True
+                ),
+            ]
+        )
+
+        result = await handler.execute(command)
+
+        assert isinstance(result, CreateGuestSeriesResult)
+        assert result.total == 2
+        assert result.created == 2
+        assert result.skipped == 0
+        assert result.errors == 0
+        assert result.emails_sent == 2
+        assert len(tracking_email_service.sent_to_guest_ids) == 2
+
+    async def test_execute_series_mixed_email_behavior(self, session):
+        """Test mixed scenario - created guests get emails, skipped guests do not."""
+        email1 = unique_email()
+        email2 = unique_email()
+        email3 = unique_email()
+
+        existing_user = User(
+            uuid=uuid4(),
+            email=email2,
+            hashed_password=None,
+            is_active=True,
+            is_superuser=False,
+        )
+        session.add(existing_user)
+        await session.flush()
+
+        existing_guest = Guest(
+            user_id=existing_user.uuid,
+            first_name="Existing",
+            last_name="Guest",
+            preferred_language="en",
+        )
+        session.add(existing_guest)
+        await session.flush()
+
+        tracking_email_service = TrackingMockEmailService()
+        handler = CreateGuestHandler(
+            session_overwrite=session,
+            create_guest_write_model=SqlGuestCreateWriteModel(session_overwrite=session),
+            email_service=tracking_email_service,
+        )
+        command = CreateGuestSeriesCommand(
+            commands=[
+                CreateGuestCommand(
+                    email=email1, first_name="New", last_name="Guest1", send_email=True
+                ),
+                CreateGuestCommand(email=email2, first_name="Existing", last_name="Guest"),
+                CreateGuestCommand(
+                    email=email3, first_name="New", last_name="Guest2", send_email=False
+                ),
+            ]
+        )
+
+        result = await handler.execute(command)
+
+        assert isinstance(result, CreateGuestSeriesResult)
+        assert result.total == 3
+        assert result.created == 2
+        assert result.skipped == 1
+        assert result.errors == 0
+        assert result.emails_sent == 1
+
+        created_results = [r for r in result.results if r.status == CommandStatus.CREATED]
+        assert len(created_results) == 2
+
+        skipped_result = next(r for r in result.results if r.status == CommandStatus.SKIPPED)
+        assert skipped_result.email == email2
+
+    async def test_execute_series_created_with_send_email_false(self, session):
+        """Test that send_email=False prevents email from being sent to created guests."""
+        email1 = unique_email()
+        email2 = unique_email()
+
+        tracking_email_service = TrackingMockEmailService()
+        handler = CreateGuestHandler(
+            session_overwrite=session,
+            create_guest_write_model=SqlGuestCreateWriteModel(session_overwrite=session),
+            email_service=tracking_email_service,
+        )
+        command = CreateGuestSeriesCommand(
+            commands=[
+                CreateGuestCommand(
+                    email=email1, first_name="John", last_name="Doe", send_email=False
+                ),
+                CreateGuestCommand(
+                    email=email2, first_name="Jane", last_name="Smith", send_email=False
+                ),
+            ]
+        )
+
+        result = await handler.execute(command)
+
+        assert isinstance(result, CreateGuestSeriesResult)
+        assert result.total == 2
+        assert result.created == 2
+        assert result.skipped == 0
+        assert result.errors == 0
+        assert result.emails_sent == 0
+        assert len(tracking_email_service.sent_to_guest_ids) == 0
