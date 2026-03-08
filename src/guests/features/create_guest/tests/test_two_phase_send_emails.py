@@ -37,7 +37,42 @@ async def session():
 class TestTwoPhaseExecution:
     """Tests for two-phase execution (Phase 1 + Phase 2)."""
 
-    class MockEmailService:
+    class MockEmailService(EmailServiceBase):
+        async def send_invitation(
+            self,
+            to_address,
+            guest_name,
+            rsvp_url,
+            language=None,
+            guest_id=None,
+            user_id=None,
+        ):
+            pass
+
+        async def send_confirmation(
+            self,
+            to_address,
+            guest_name,
+            attending,
+            dietary,
+            language=None,
+            guest_id=None,
+            user_id=None,
+        ):
+            pass
+
+        async def send_invite_one_plus_one(
+            self,
+            to_address,
+            guest_name,
+            inviter_name,
+            rsvp_url,
+            language=None,
+            guest_id=None,
+            user_id=None,
+        ):
+            pass
+
         async def send_invitation_for_guest(self, guest_id):
             return EmailResult(status=EmailStatus.SENT)
 
@@ -83,19 +118,43 @@ class TestTwoPhaseExecution:
 
         call_count = [0]
 
-        class MockEmailServiceFailingOnSecond:
+        class MockEmailServiceFailingOnSecond(EmailServiceBase):
             async def send_invitation(
                 self,
                 to_address,
                 guest_name,
                 rsvp_url,
-                language,
+                language=None,
                 guest_id=None,
                 user_id=None,
             ):
                 call_count[0] += 1
                 if call_count[0] == 2:
                     raise RuntimeError("Simulated email failure")
+
+            async def send_confirmation(
+                self,
+                to_address,
+                guest_name,
+                attending,
+                dietary,
+                language=None,
+                guest_id=None,
+                user_id=None,
+            ):
+                pass
+
+            async def send_invite_one_plus_one(
+                self,
+                to_address,
+                guest_name,
+                inviter_name,
+                rsvp_url,
+                language=None,
+                guest_id=None,
+                user_id=None,
+            ):
+                pass
 
             async def send_invitation_for_guest(self, guest_id):
                 call_count[0] += 1
@@ -229,17 +288,41 @@ class TestTwoPhaseExecution:
     async def test_phase2_exception_keeps_phase1(self, session):
         """Test that Phase 2 exceptions don't rollback Phase 1 committed guests."""
 
-        class MockEmailServiceAlwaysFails:
+        class MockEmailServiceAlwaysFails(EmailServiceBase):
             async def send_invitation(
                 self,
                 to_address,
                 guest_name,
                 rsvp_url,
-                language,
+                language=None,
                 guest_id=None,
                 user_id=None,
             ):
                 raise RuntimeError("Email service down")
+
+            async def send_confirmation(
+                self,
+                to_address,
+                guest_name,
+                attending,
+                dietary,
+                language=None,
+                guest_id=None,
+                user_id=None,
+            ):
+                pass
+
+            async def send_invite_one_plus_one(
+                self,
+                to_address,
+                guest_name,
+                inviter_name,
+                rsvp_url,
+                language=None,
+                guest_id=None,
+                user_id=None,
+            ):
+                pass
 
             async def send_invitation_for_guest(self, guest_id):
                 return EmailResult(status=EmailStatus.FAILED, error="Email service down")

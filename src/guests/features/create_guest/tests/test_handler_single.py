@@ -28,8 +28,40 @@ def unique_email():
     return f"test-{uuid4().hex[:8]}@example.com"
 
 
-class MockEmailService:
-    async def send_invitation_for_guest(self, guest_id):
+class MockEmailService(EmailServiceBase):
+    async def send_invitation(
+        self,
+        to_address,
+        guest_name,
+        rsvp_url,
+        language=None,
+        guest_id=None,
+        user_id=None,
+    ):
+        pass
+
+    async def send_confirmation(
+        self,
+        to_address,
+        guest_name,
+        attending,
+        dietary,
+        language=None,
+        guest_id=None,
+        user_id=None,
+    ):
+        pass
+
+    async def send_invite_one_plus_one(
+        self,
+        to_address,
+        guest_name,
+        inviter_name,
+        rsvp_url,
+        language=None,
+        guest_id=None,
+        user_id=None,
+    ):
         pass
 
 

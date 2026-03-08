@@ -6,6 +6,7 @@ import pytest
 from sqlalchemy import select
 
 from src.config.database import async_session_maker
+from src.email_service.base import EmailServiceBase
 from src.email_service.dtos import EmailResult, EmailStatus
 from src.guests.dtos import RSVPDTO, GuestDTO, GuestStatus, Language
 from src.guests.features.create_guest.command import (
@@ -28,16 +29,83 @@ def unique_email():
     return f"test-{uuid4().hex[:8]}@example.com"
 
 
-class MockEmailService:
-    async def send_invitation_for_guest(self, guest_id):
+class MockEmailService(EmailServiceBase):
+    async def send_invitation(
+        self,
+        to_address,
+        guest_name,
+        rsvp_url,
+        language=None,
+        guest_id=None,
+        user_id=None,
+    ):
+        pass
+
+    async def send_confirmation(
+        self,
+        to_address,
+        guest_name,
+        attending,
+        dietary,
+        language=None,
+        guest_id=None,
+        user_id=None,
+    ):
+        pass
+
+    async def send_invite_one_plus_one(
+        self,
+        to_address,
+        guest_name,
+        inviter_name,
+        rsvp_url,
+        language=None,
+        guest_id=None,
+        user_id=None,
+    ):
         pass
 
 
-class TrackingMockEmailService:
+class TrackingMockEmailService(EmailServiceBase):
     """Mock email service that tracks which guests received emails."""
 
     def __init__(self):
         self.sent_to_guest_ids: list = []
+
+    async def send_invitation(
+        self,
+        to_address,
+        guest_name,
+        rsvp_url,
+        language=None,
+        guest_id=None,
+        user_id=None,
+    ):
+        pass
+
+    async def send_confirmation(
+        self,
+        to_address,
+        guest_name,
+        attending,
+        dietary,
+        language=None,
+        guest_id=None,
+        user_id=None,
+    ):
+        pass
+
+    async def send_invite_one_plus_one(
+        self,
+        to_address,
+        guest_name,
+        inviter_name,
+        rsvp_url,
+        language=None,
+        guest_id=None,
+        user_id=None,
+    ):
+        pass
 
     async def send_invitation_for_guest(self, guest_id):
         self.sent_to_guest_ids.append(guest_id)
