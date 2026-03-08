@@ -1,7 +1,12 @@
 """CLI commands for wedding RSVP management."""
 
 import asyncio
+import csv
 from enum import Enum
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
+
+from src.guests.features.create_guest.cli import ImportGuests
 from uuid import UUID
 
 import typer
@@ -12,6 +17,12 @@ from src.email_service import get_email_service
 from src.email_service.smtp_service import SMTPEmailService
 from src.guests.dtos import Language, PlusOneDTO
 from src.guests.features.create_child_guest.write_model import SqlChildGuestCreateWriteModel
+from src.guests.features.create_guest.command import (
+    CommandStatus,
+    CreateGuestFactory,
+    CreateGuestSeriesResult,
+)
+from src.guests.features.create_guest.handler import CreateGuestHandler
 from src.guests.features.create_guest.write_model import SqlGuestCreateWriteModel
 from src.guests.features.create_plus_one_guest.write_model import SqlPlusOneGuestWriteModel
 from src.guests.repository.orm_models import Family, Guest
@@ -658,6 +669,38 @@ def send_test_emails(
     sent_count = asyncio.run(_send_all_test_emails(lang, etype))
 
     typer.secho(f"\nSuccessfully sent {sent_count} email(s) to Mailhog!", fg=typer.colors.GREEN)
+
+
+@app.command()
+def import_guests(
+    csv_file: str = typer.Argument(..., help="Path to CSV file"),
+    dry_run: bool = typer.Option(False, "--dry-run", "-n", help="Preview without creating"),
+    send_emails: bool = typer.Option(False, "--send-emails", "-e", help="Send invitation emails"),
+):
+    """Import guests from a CSV file.
+
+    CSV format: guest_id,email,first_name,last_name,lang
+
+    Examples:
+        python cli.py import-guests guests.csv
+        python cli.py import-guests guests.csv --dry-run
+        python cli.py import-guests guests.csv --send-emails
+    """
+    path = Path(csv_file)
+
+    write_model = SqlGuestCreateWriteModel()
+    email_service = get_email_service()
+    handler = CreateGuestHandler(
+        create_guest_write_model=write_model,
+        email_service=email_service,
+    )
+
+    try:
+        import_guests = ImportGuests(handler, typer)
+        asyncio.run(import_guests(path, dry_run, send_emails))
+    except Exception as e:
+        typer.secho(f"Error importing guests: {e}", fg=typer.colors.RED)
+        raise typer.Exit(1)
 
 
 if __name__ == "__main__":

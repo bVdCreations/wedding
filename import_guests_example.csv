@@ -1,0 +1,5 @@
+guest_id,email,first_name,last_name,lang
+,john.doe@example.com,John,Doe,en
+,jane.smith@example.com,Jane,Smith,es
+,pieter.janssen@example.com,Pieter,Janssen,nl
+,marie.durand@example.com,Marie,Durand,es
