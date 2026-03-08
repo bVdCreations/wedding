@@ -1,4 +1,4 @@
-.PHONY: start stop start-backend start-db start-frontend install pre-commit pre-commit-rm test test-e2e lint format fake-guest fake-plus-one preview
+.PHONY: start stop start-backend start-db start-frontend install pre-commit pre-commit-rm test test-e2e lint format fake-guest fake-plus-one preview import-guests-dev import-guests-prod
 
 # Start all services with Docker Compose
 start:
@@ -89,3 +89,9 @@ down:
 
 build:
 	docker compose build
+
+import-guests-dev:
+	set -a && . ./.env && set +a && python -m cli import_guests_example.csv --send-emails
+
+import-guests-prod:
+	set -a && . ./.env.prod && set +a && python -m cli import_guests_example.csv --send-emails
