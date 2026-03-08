@@ -23,6 +23,8 @@ class MockEmailService(EmailServiceBase):
         guest_name: str,
         attending: str,
         dietary: str,
+        allergies: str = "",
+        taking_bus: bool = False,
         language: Language = Language.EN,
         guest_id: UUID | None = None,
         user_id: UUID | None = None,
@@ -437,6 +439,8 @@ class SpyEmailService(EmailServiceBase):
         guest_name: str,
         attending: str,
         dietary: str,
+        allergies: str = "",
+        taking_bus: bool = False,
         language: Language = Language.EN,
         guest_id=None,
         user_id=None,
@@ -448,6 +452,8 @@ class SpyEmailService(EmailServiceBase):
                 "guest_name": guest_name,
                 "attending": attending,
                 "dietary": dietary,
+                "allergies": allergies,
+                "taking_bus": taking_bus,
                 "language": language,
             }
         )

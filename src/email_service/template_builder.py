@@ -121,6 +121,8 @@ class EmailTemplates:
         guest_name: str,
         attending: str,
         dietary: str,
+        allergies: str = "",
+        taking_bus: bool = False,
     ) -> EmailContent:
         lang_suffix = language.value.upper()
         subject = getattr(
@@ -133,11 +135,16 @@ class EmailTemplates:
             templates, f"CONFIRMATION_TEXT_{lang_suffix}", templates.CONFIRMATION_TEXT_EN
         )
 
+        taking_bus_str = "Yes" if taking_bus else "No"
+        allergies_str = allergies if allergies else "None"
+
         config = self._config
         html_body = html.format(
             guest_name=guest_name,
             attending=attending,
             dietary=dietary,
+            allergies=allergies_str,
+            taking_bus=taking_bus_str,
             couple_names=config.couple_names,
             ceremony_date=self._format_date(config.ceremony_date, language),
             ceremony_time=config.ceremony_time,
@@ -151,6 +158,8 @@ class EmailTemplates:
             guest_name=guest_name,
             attending=attending,
             dietary=dietary,
+            allergies=allergies_str,
+            taking_bus=taking_bus_str,
             couple_names=config.couple_names,
             ceremony_date=self._format_date(config.ceremony_date, language),
             ceremony_time=config.ceremony_time,

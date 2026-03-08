@@ -114,12 +114,14 @@ class ResendEmailService(EmailServiceBase):
         guest_name: str,
         attending: str,
         dietary: str,
+        allergies: str = "",
+        taking_bus: bool = False,
         language: Language = Language.EN,
         guest_id: UUID | None = None,
         user_id: UUID | None = None,
     ) -> None:
         content = EmailTemplates().get_confirmation_templates(
-            language, guest_name, attending, dietary
+            language, guest_name, attending, dietary, allergies, taking_bus
         )
 
         await self._send(

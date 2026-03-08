@@ -34,6 +34,8 @@ class EmailServiceBase(ABC):
         guest_name: str,
         attending: str,
         dietary: str,
+        allergies: str = "",
+        taking_bus: bool = False,
         language: Language = Language.EN,
         guest_id: UUID | None = None,
         user_id: UUID | None = None,

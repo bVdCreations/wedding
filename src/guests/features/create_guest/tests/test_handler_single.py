@@ -46,6 +46,8 @@ class MockEmailService(EmailServiceBase):
         guest_name,
         attending,
         dietary,
+        allergies="",
+        taking_bus=False,
         language=None,
         guest_id=None,
         user_id=None,

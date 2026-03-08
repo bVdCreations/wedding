@@ -136,6 +136,8 @@ CONFIRMATION_HTML_EN = """<!DOCTYPE html>
                                     <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Your Response</h2>
                                     <p style="margin: 8px 0;"><strong>Attending:</strong> {attending}</p>
                                     <p style="margin: 8px 0;"><strong>Dietary Requirements:</strong> {dietary}</p>
+                                    <p style="margin: 8px 0;"><strong>Allergies:</strong> {allergies}</p>
+                                    <p style="margin: 8px 0;"><strong>Taking Bus:</strong> {taking_bus}</p>
                                 </td>
                             </tr>
                         </table>
@@ -177,6 +179,8 @@ Thank you for responding to our wedding invitation!
 Your Response:
 - Attending: {attending}
 - Dietary Requirements: {dietary}
+- Allergies: {allergies}
+- Taking Bus: {taking_bus}
 
 Wedding Details:
 - Date: {ceremony_date}
@@ -334,6 +338,8 @@ CONFIRMATION_HTML_ES = """<!DOCTYPE html>
                                     <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Tu Respuesta</h2>
                                     <p style="margin: 8px 0;"><strong>Asistencia:</strong> {attending}</p>
                                     <p style="margin: 8px 0;"><strong>Requisitos Dietéticos:</strong> {dietary}</p>
+                                    <p style="margin: 8px 0;"><strong>Alergias:</strong> {allergies}</p>
+                                    <p style="margin: 8px 0;"><strong>Autobús:</strong> {taking_bus}</p>
                                 </td>
                             </tr>
                         </table>
@@ -375,6 +381,8 @@ CONFIRMATION_TEXT_ES = """Querido/a {guest_name},
 Tu Respuesta:
 - Asistencia: {attending}
 - Requisitos Dietéticos: {dietary}
+- Alergias: {allergies}
+- Autobús: {taking_bus}
 
 Detalles de la Boda:
 - Fecha: {ceremony_date}
@@ -532,6 +540,8 @@ CONFIRMATION_HTML_NL = """<!DOCTYPE html>
                                     <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Jouw Reactie</h2>
                                     <p style="margin: 8px 0;"><strong>Aanwezigheid:</strong> {attending}</p>
                                     <p style="margin: 8px 0;"><strong>Dieetwensen:</strong> {dietary}</p>
+                                    <p style="margin: 8px 0;"><strong>Allergieën:</strong> {allergies}</p>
+                                    <p style="margin: 8px 0;"><strong>Bus:</strong> {taking_bus}</p>
                                 </td>
                             </tr>
                         </table>
@@ -573,6 +583,8 @@ Bedankt voor je reactie op onze bruiloftuitnodiging!
 Jouw Reactie:
 - Aanwezigheid: {attending}
 - Dieetwensen: {dietary}
+- Allergieën: {allergies}
+- Bus: {taking_bus}
 
 Bruiloft Details:
 - Datum: {ceremony_date}

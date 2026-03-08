@@ -307,6 +307,8 @@ class SqlRSVPWriteModel(RSVPWriteModel):
                     guest_name=guest_name,
                     attending="Yes" if attending else "No",
                     dietary=dietary_str,
+                    allergies=guest.allergies or "",
+                    taking_bus=rsvp_info.needs_transport,
                     language=preferred_language,
                     guest_id=guest.uuid,
                     user_id=guest.user_id,
