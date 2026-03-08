@@ -28,9 +28,7 @@ INVITATION_HTML_EN = """<!DOCTYPE html>
                             <tr>
                                 <td style="padding: 25px;">
                                     <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 20px 0;">Wedding Details</h2>
-                                    <p style="margin: 8px 0;"><strong>Date:</strong> {ceremony_date}</p>
-                                    <p style="margin: 8px 0;"><strong>Time:</strong> {ceremony_time}</p>
-                                    <p style="margin: 8px 0;"><strong>Venue:</strong> {venue_name}</p>
+                                    <p style="margin: 8px 0;"><strong>{ceremony_date}</strong> - {ceremony_time} - {venue_name}</p>
                                     <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
                                     <p style="margin: 12px 0 0 0; font-size: 14px; color: #888;">Find all the details on our website: <a href="{website_url}" style="color: #c9a66b; text-decoration: underline; font-weight: bold;">gemma-bastiaan.wedding</a></p>
                                 </td>
@@ -146,9 +144,7 @@ CONFIRMATION_HTML_EN = """<!DOCTYPE html>
                             <tr>
                                 <td style="padding: 25px;">
                                     <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Wedding Details</h2>
-                                    <p style="margin: 8px 0;"><strong>Date:</strong> {ceremony_date}</p>
-                                    <p style="margin: 8px 0;"><strong>Time:</strong> {ceremony_time}</p>
-                                    <p style="margin: 8px 0;"><strong>Venue:</strong> {venue_name}</p>
+                                    <p style="margin: 8px 0;"><strong>{ceremony_date}</strong> - {ceremony_time} - {venue_name}</p>
                                     <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
                                     <p style="margin: 12px 0 0 0; font-size: 14px; color: #888;">Find all the details on our website: <a href="{website_url}" style="color: #c9a66b; text-decoration: underline; font-weight: bold;">gemma-bastiaan.wedding</a></p>
                                 </td>
@@ -230,9 +226,7 @@ INVITATION_HTML_ES = """<!DOCTYPE html>
                             <tr>
                                 <td style="padding: 25px;">
                                     <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 20px 0;">Detalles de la Boda</h2>
-                                    <p style="margin: 8px 0;"><strong>Fecha:</strong> {ceremony_date}</p>
-                                    <p style="margin: 8px 0;"><strong>Hora:</strong> {ceremony_time}</p>
-                                    <p style="margin: 8px 0;"><strong>Lugar:</strong> {venue_name}</p>
+                                    <p style="margin: 8px 0;"><strong>{ceremony_date}</strong> - {ceremony_time} - {venue_name}</p>
                                     <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
                                     <p style="margin: 12px 0 0 0; font-size: 14px; color: #888;">Consulta todos los detalles en nuestra web: <a href="{website_url}" style="color: #c9a66b; text-decoration: underline; font-weight: bold;">gemma-bastiaan.wedding</a></p>
                                 </td>
@@ -348,9 +342,7 @@ CONFIRMATION_HTML_ES = """<!DOCTYPE html>
                             <tr>
                                 <td style="padding: 25px;">
                                     <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Detalles de la Boda</h2>
-                                    <p style="margin: 8px 0;"><strong>Fecha:</strong> {ceremony_date}</p>
-                                    <p style="margin: 8px 0;"><strong>Hora:</strong> {ceremony_time}</p>
-                                    <p style="margin: 8px 0;"><strong>Lugar:</strong> {venue_name}</p>
+                                    <p style="margin: 8px 0;"><strong>{ceremony_date}</strong> - {ceremony_time} - {venue_name}</p>
                                     <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
                                     <p style="margin: 12px 0 0 0; font-size: 14px; color: #888;">Consulta todos los detalles en nuestra web: <a href="{website_url}" style="color: #c9a66b; text-decoration: underline; font-weight: bold;">gemma-bastiaan.wedding</a></p>
                                 </td>
@@ -432,9 +424,7 @@ INVITATION_HTML_NL = """<!DOCTYPE html>
                             <tr>
                                 <td style="padding: 25px;">
                                     <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 20px 0;">Bruiloft Details</h2>
-                                    <p style="margin: 8px 0;"><strong>Datum:</strong> {ceremony_date}</p>
-                                    <p style="margin: 8px 0;"><strong>Tijd:</strong> {ceremony_time}</p>
-                                    <p style="margin: 8px 0;"><strong>Locatie:</strong> {venue_name}</p>
+                                    <p style="margin: 8px 0;"><strong>{ceremony_date}</strong> - {ceremony_time} - {venue_name}</p>
                                     <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
                                     <p style="margin: 12px 0 0 0; font-size: 14px; color: #888;">Bekijk alle details op onze website: <a href="{website_url}" style="color: #c9a66b; text-decoration: underline; font-weight: bold;">gemma-bastiaan.wedding</a></p>
                                 </td>
@@ -550,9 +540,7 @@ CONFIRMATION_HTML_NL = """<!DOCTYPE html>
                             <tr>
                                 <td style="padding: 25px;">
                                     <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Bruiloft Details</h2>
-                                    <p style="margin: 8px 0;"><strong>Datum:</strong> {ceremony_date}</p>
-                                    <p style="margin: 8px 0;"><strong>Tijd:</strong> {ceremony_time}</p>
-                                    <p style="margin: 8px 0;"><strong>Locatie:</strong> {venue_name}</p>
+                                    <p style="margin: 8px 0;"><strong>{ceremony_date}</strong> - {ceremony_time} - {venue_name}</p>
                                     <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
                                     <p style="margin: 12px 0 0 0; font-size: 14px; color: #888;">Bekijk alle details op onze website: <a href="{website_url}" style="color: #c9a66b; text-decoration: underline; font-weight: bold;">gemma-bastiaan.wedding</a></p>
                                 </td>
@@ -634,9 +622,7 @@ PLUS_ONE_INVITATION_HTML_EN = """<!DOCTYPE html>
                             <tr>
                                 <td style="padding: 25px;">
                                     <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 20px 0;">Wedding Details</h2>
-                                    <p style="margin: 8px 0;"><strong>Date:</strong> {ceremony_date}</p>
-                                    <p style="margin: 8px 0;"><strong>Time:</strong> {ceremony_time}</p>
-                                    <p style="margin: 8px 0;"><strong>Venue:</strong> {venue_name}</p>
+                                    <p style="margin: 8px 0;"><strong>{ceremony_date}</strong> - {ceremony_time} - {venue_name}</p>
                                     <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
                                     <p style="margin: 12px 0 0 0; font-size: 14px; color: #888;">Find all the details on our website: <a href="{website_url}" style="color: #c9a66b; text-decoration: underline; font-weight: bold;">gemma-bastiaan.wedding</a></p>
                                 </td>
@@ -742,9 +728,7 @@ PLUS_ONE_INVITATION_HTML_ES = """<!DOCTYPE html>
                             <tr>
                                 <td style="padding: 25px;">
                                     <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 20px 0;">Detalles de la Boda</h2>
-                                    <p style="margin: 8px 0;"><strong>Fecha:</strong> {ceremony_date}</p>
-                                    <p style="margin: 8px 0;"><strong>Hora:</strong> {ceremony_time}</p>
-                                    <p style="margin: 8px 0;"><strong>Lugar:</strong> {venue_name}</p>
+                                    <p style="margin: 8px 0;"><strong>{ceremony_date}</strong> - {ceremony_time} - {venue_name}</p>
                                     <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
                                     <p style="margin: 12px 0 0 0; font-size: 14px; color: #888;">Consulta todos los detalles en nuestra web: <a href="{website_url}" style="color: #c9a66b; text-decoration: underline; font-weight: bold;">gemma-bastiaan.wedding</a></p>
                                 </td>
@@ -850,9 +834,7 @@ PLUS_ONE_INVITATION_HTML_NL = """<!DOCTYPE html>
                             <tr>
                                 <td style="padding: 25px;">
                                     <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 20px 0;">Bruiloft Details</h2>
-                                    <p style="margin: 8px 0;"><strong>Datum:</strong> {ceremony_date}</p>
-                                    <p style="margin: 8px 0;"><strong>Tijd:</strong> {ceremony_time}</p>
-                                    <p style="margin: 8px 0;"><strong>Locatie:</strong> {venue_name}</p>
+                                    <p style="margin: 8px 0;"><strong>{ceremony_date}</strong> - {ceremony_time} - {venue_name}</p>
                                     <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
                                     <p style="margin: 12px 0 0 0; font-size: 14px; color: #888;">Bekijk alle details op onze website: <a href="{website_url}" style="color: #c9a66b; text-decoration: underline; font-weight: bold;">gemma-bastiaan.wedding</a></p>
                                 </td>
