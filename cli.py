@@ -1,13 +1,9 @@
 """CLI commands for wedding RSVP management."""
 
 import asyncio
-import csv
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
-
-from src.guests.features.create_guest.cli import ImportGuests
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import typer
 from sqlalchemy import select
@@ -17,11 +13,7 @@ from src.email_service import get_email_service
 from src.email_service.smtp_service import SMTPEmailService
 from src.guests.dtos import Language, PlusOneDTO
 from src.guests.features.create_child_guest.write_model import SqlChildGuestCreateWriteModel
-from src.guests.features.create_guest.command import (
-    CommandStatus,
-    CreateGuestFactory,
-    CreateGuestSeriesResult,
-)
+from src.guests.features.create_guest.cli import ImportGuests
 from src.guests.features.create_guest.handler import CreateGuestHandler
 from src.guests.features.create_guest.write_model import SqlGuestCreateWriteModel
 from src.guests.features.create_plus_one_guest.write_model import SqlPlusOneGuestWriteModel
@@ -59,6 +51,7 @@ async def _create_guest_and_send_email(language: Language = Language.EN):
         to_address=email,
         guest_name=f"{first_name} {last_name}",
         rsvp_url=guest.rsvp.link,
+        guest_id=guest.id,
         language=language,
     )
 
@@ -504,6 +497,7 @@ async def _send_test_email(
             to_address=to_email,
             guest_name=guest_name,
             rsvp_url="https://example.com/rsvp/test-token",
+            guest_id=uuid4(),
             language=language,
         )
     elif email_type == EmailType.CONFIRMATION:
@@ -597,6 +591,7 @@ async def _send_all_test_emails(
                     to_address=to_email,
                     guest_name=guest_name,
                     rsvp_url=rsvp_url,
+                    guest_id=uuid4(),
                     language=lang,
                 )
             elif etype == EmailType.CONFIRMATION:

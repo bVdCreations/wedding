@@ -21,8 +21,8 @@ class EmailServiceBase(ABC):
         to_address: str,
         guest_name: str,
         rsvp_url: str,
+        guest_id: UUID,
         language: Language = Language.EN,
-        guest_id: UUID | None = None,
         user_id: UUID | None = None,
     ) -> None:
         pass
@@ -92,8 +92,8 @@ class EmailServiceBase(ABC):
                     to_address=email_address,
                     guest_name=guest_name,
                     rsvp_url=rsvp_url,
-                    language=language,
                     guest_id=guest_id,
+                    language=language,
                 )
             except Exception as e:
                 await email_session.rollback()

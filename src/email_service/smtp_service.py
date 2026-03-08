@@ -54,8 +54,8 @@ class SMTPEmailService(EmailServiceBase):
         to_address: str,
         guest_name: str,
         rsvp_url: str,
+        guest_id: UUID,
         language: Language = Language.EN,
-        guest_id: UUID | None = None,
         user_id: UUID | None = None,
     ) -> None:
         content = EmailTemplates().get_invitation_templates(language, guest_name, rsvp_url)
