@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import date
 
 from src.email_service import templates
 from src.email_service.config import WeddingConfig
@@ -14,6 +15,63 @@ class EmailContent:
 
 class EmailTemplates:
     _config: WeddingConfig = WeddingConfig()
+
+    def _format_date(self, d: date, language: Language) -> str:
+        """Format a date according to the guest's language."""
+        month_names_en = [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+        ]
+        month_names_es = [
+            "enero",
+            "febrero",
+            "marzo",
+            "abril",
+            "mayo",
+            "junio",
+            "julio",
+            "agosto",
+            "septiembre",
+            "octubre",
+            "noviembre",
+            "diciembre",
+        ]
+        month_names_nl = [
+            "januari",
+            "februari",
+            "maart",
+            "april",
+            "mei",
+            "juni",
+            "juli",
+            "augustus",
+            "september",
+            "oktober",
+            "november",
+            "december",
+        ]
+
+        day = d.day
+        year = d.year
+
+        if language == Language.EN:
+            return f"{month_names_en[d.month - 1]} {day}, {year}"
+        elif language == Language.ES:
+            return f"{day} de {month_names_es[d.month - 1]} de {year}"
+        elif language == Language.NL:
+            return f"{day} {month_names_nl[d.month - 1]} {year}"
+        else:
+            return f"{month_names_en[d.month - 1]} {day}, {year}"
 
     def get_invitation_templates(
         self,
@@ -33,11 +91,11 @@ class EmailTemplates:
             guest_name=guest_name,
             rsvp_url=rsvp_url,
             couple_names=config.couple_names,
-            ceremony_date=config.ceremony_date,
+            ceremony_date=self._format_date(config.ceremony_date, language),
             ceremony_time=config.ceremony_time,
             venue_name=config.venue_name,
             venue_address=config.venue_address,
-            rsvp_deadline=config.rsvp_deadline,
+            rsvp_deadline=self._format_date(config.rsvp_deadline, language),
             contact_email=config.contact_email,
             google_maps_url=config.google_maps_url,
         )
@@ -45,11 +103,11 @@ class EmailTemplates:
             guest_name=guest_name,
             rsvp_url=rsvp_url,
             couple_names=config.couple_names,
-            ceremony_date=config.ceremony_date,
+            ceremony_date=self._format_date(config.ceremony_date, language),
             ceremony_time=config.ceremony_time,
             venue_name=config.venue_name,
             venue_address=config.venue_address,
-            rsvp_deadline=config.rsvp_deadline,
+            rsvp_deadline=self._format_date(config.rsvp_deadline, language),
             contact_email=config.contact_email,
             google_maps_url=config.google_maps_url,
         )
@@ -79,7 +137,7 @@ class EmailTemplates:
             attending=attending,
             dietary=dietary,
             couple_names=config.couple_names,
-            ceremony_date=config.ceremony_date,
+            ceremony_date=self._format_date(config.ceremony_date, language),
             ceremony_time=config.ceremony_time,
             venue_name=config.venue_name,
             venue_address=config.venue_address,
@@ -91,7 +149,7 @@ class EmailTemplates:
             attending=attending,
             dietary=dietary,
             couple_names=config.couple_names,
-            ceremony_date=config.ceremony_date,
+            ceremony_date=self._format_date(config.ceremony_date, language),
             ceremony_time=config.ceremony_time,
             venue_name=config.venue_name,
             venue_address=config.venue_address,
@@ -130,11 +188,11 @@ class EmailTemplates:
             inviter_name=inviter_name,
             rsvp_url=rsvp_url,
             couple_names=config.couple_names,
-            ceremony_date=config.ceremony_date,
+            ceremony_date=self._format_date(config.ceremony_date, language),
             ceremony_time=config.ceremony_time,
             venue_name=config.venue_name,
             venue_address=config.venue_address,
-            rsvp_deadline=config.rsvp_deadline,
+            rsvp_deadline=self._format_date(config.rsvp_deadline, language),
             contact_email=config.contact_email,
             google_maps_url=config.google_maps_url,
         )
@@ -143,11 +201,11 @@ class EmailTemplates:
             inviter_name=inviter_name,
             rsvp_url=rsvp_url,
             couple_names=config.couple_names,
-            ceremony_date=config.ceremony_date,
+            ceremony_date=self._format_date(config.ceremony_date, language),
             ceremony_time=config.ceremony_time,
             venue_name=config.venue_name,
             venue_address=config.venue_address,
-            rsvp_deadline=config.rsvp_deadline,
+            rsvp_deadline=self._format_date(config.rsvp_deadline, language),
             contact_email=config.contact_email,
             google_maps_url=config.google_maps_url,
         )
