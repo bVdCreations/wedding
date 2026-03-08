@@ -43,8 +43,8 @@ class TestTwoPhaseExecution:
             to_address,
             guest_name,
             rsvp_url,
+            guest_id,
             language=None,
-            guest_id=None,
             user_id=None,
         ):
             pass
@@ -124,8 +124,8 @@ class TestTwoPhaseExecution:
                 to_address,
                 guest_name,
                 rsvp_url,
+                guest_id,
                 language=None,
-                guest_id=None,
                 user_id=None,
             ):
                 call_count[0] += 1
@@ -294,8 +294,8 @@ class TestTwoPhaseExecution:
                 to_address,
                 guest_name,
                 rsvp_url,
+                guest_id,
                 language=None,
-                guest_id=None,
                 user_id=None,
             ):
                 raise RuntimeError("Email service down")

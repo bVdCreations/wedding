@@ -35,8 +35,8 @@ class MockEmailService(EmailServiceBase):
         to_address: str,
         guest_name: str,
         rsvp_url: str,
+        guest_id: UUID,
         language: Language = Language.EN,
-        guest_id: UUID | None = None,
         user_id: UUID | None = None,
     ) -> None:
         """Mock send invitation - does nothing."""
@@ -457,8 +457,8 @@ class SpyEmailService(EmailServiceBase):
         to_address: str,
         guest_name: str,
         rsvp_url: str,
+        guest_id,
         language: Language = Language.EN,
-        guest_id=None,
         user_id=None,
     ) -> None:
         """Mock send invitation - does nothing."""

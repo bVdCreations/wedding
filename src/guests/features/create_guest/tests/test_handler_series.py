@@ -35,8 +35,8 @@ class MockEmailService(EmailServiceBase):
         to_address,
         guest_name,
         rsvp_url,
+        guest_id,
         language=None,
-        guest_id=None,
         user_id=None,
     ):
         pass
@@ -77,8 +77,8 @@ class TrackingMockEmailService(EmailServiceBase):
         to_address,
         guest_name,
         rsvp_url,
+        guest_id,
         language=None,
-        guest_id=None,
         user_id=None,
     ):
         pass

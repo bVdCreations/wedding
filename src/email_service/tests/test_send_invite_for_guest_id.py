@@ -66,8 +66,8 @@ class MockResendEmailService(ResendEmailService):
         to_address: str,
         guest_name: str,
         rsvp_url: str,
+        guest_id,
         language=None,
-        guest_id=None,
         user_id=None,
     ):
         self.send_invitation_called = True

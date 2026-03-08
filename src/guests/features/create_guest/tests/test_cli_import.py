@@ -2,21 +2,21 @@
 
 import tempfile
 from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
-from unittest.mock import MagicMock, AsyncMock
 
 import pytest
 
+from src.guests.features.create_guest.cli import ImportGuests, TyperProtocol
 from src.guests.features.create_guest.command import (
     CommandStatus,
     CreateGuestCommandResult,
     CreateGuestSeriesResult,
 )
 from src.guests.features.create_guest.handler import CreateGuestHandler
-from src.guests.features.create_guest.cli import ImportGuests
 
 
-class MockTyper:
+class MockTyper(TyperProtocol):
     """Mock typer for testing output."""
 
     def __init__(self):
@@ -34,18 +34,19 @@ class MockTyper:
         self.exit_code = None
         self.paused = False
 
-    def echo(self, msg=""):
+    def echo(self, msg: str = "") -> None:
         self.output.append(msg)
 
-    def secho(self, msg, fg=None):
+    def secho(self, msg: str, fg: str | None = None) -> None:
         self.output.append(f"[{fg}] {msg}")
 
-    def pause(self):
+    def pause(self) -> None:
         self.paused = True
 
-    def Exit(self, code=0):
-        self.exit_code = code
-        raise SystemExit(code)
+    class Exit(SystemExit):
+        def __init__(self, code: int = 0) -> None:
+            self.code = code
+            super().__init__(code)
 
 
 @pytest.fixture
@@ -172,11 +173,11 @@ class TestImportGuestsSuccess:
             results=[
                 CreateGuestCommandResult(
                     status=CommandStatus.CREATED,
-                    email=f"{l}@test.com",
+                    email=f"{letter}@test.com",
                     message="OK",
                     guest_id=uuid4(),
                 )
-                for l in ["a", "b", "c"]
+                for letter in ["a", "b", "c"]
             ],
         )
 

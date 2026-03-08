@@ -2,9 +2,7 @@
 
 import csv
 from pathlib import Path
-from typing import Any, Protocol
-
-import typer
+from typing import Protocol
 
 from src.guests.features.create_guest.command import (
     CommandStatus,
@@ -29,7 +27,9 @@ class TyperProtocol(Protocol):
     def echo(self, msg: str = "") -> None: ...
     def secho(self, msg: str, fg: str | None = None) -> None: ...
     def pause(self) -> None: ...
-    def Exit(self, code: int = 0) -> Any: ...
+
+    class Exit(SystemExit):
+        def __init__(self, code: int = 0) -> None: ...
 
 
 class ImportGuests:
@@ -38,11 +38,11 @@ class ImportGuests:
     def __init__(
         self,
         handler: CreateGuestHandler,
-        typer_instance: TyperProtocol | None = None,
+        typer_instance: "TyperProtocol",
         overwrite_ask_confirmation: bool = False,
     ):
         self._handler = handler
-        self._typer = typer_instance or typer
+        self._typer = typer_instance
         self._overwrite_ask_confirmation = overwrite_ask_confirmation
 
     async def __call__(
@@ -122,29 +122,29 @@ class ImportGuests:
 
     def _output_result(self, result: CreateGuestSeriesResult, send_emails: bool) -> None:
         """Output import results."""
-        typer = self._typer
+        t = self._typer
 
-        typer.echo()
-        typer.secho(f"Total: {result.total}", fg=typer.colors.BLUE)
-        typer.secho(f"Created: {result.created}", fg=typer.colors.GREEN)
-        typer.secho(f"Skipped: {result.skipped}", fg=typer.colors.YELLOW)
-        typer.secho(f"Errors: {result.errors}", fg=typer.colors.RED)
+        t.echo()
+        t.secho(f"Total: {result.total}", fg=t.colors.BLUE)
+        t.secho(f"Created: {result.created}", fg=t.colors.GREEN)
+        t.secho(f"Skipped: {result.skipped}", fg=t.colors.YELLOW)
+        t.secho(f"Errors: {result.errors}", fg=t.colors.RED)
 
         if send_emails:
-            typer.secho(f"Emails sent: {result.emails_sent}", fg=typer.colors.GREEN)
-            typer.secho(f"Emails failed: {result.emails_failed}", fg=typer.colors.RED)
+            t.secho(f"Emails sent: {result.emails_sent}", fg=t.colors.GREEN)
+            t.secho(f"Emails failed: {result.emails_failed}", fg=t.colors.RED)
 
-        typer.echo()
-        typer.secho("Results:", fg=typer.colors.BLUE)
+        t.echo()
+        t.secho("Results:", fg=t.colors.BLUE)
         for r in result.results:
             if r.status == CommandStatus.CREATED:
-                fg = typer.colors.GREEN
+                fg = t.colors.GREEN
                 status_label = "CREATED"
             elif r.status == CommandStatus.SKIPPED:
-                fg = typer.colors.YELLOW
+                fg = t.colors.YELLOW
                 status_label = "SKIPPED"
             else:
-                fg = typer.colors.RED
+                fg = t.colors.RED
                 status_label = "ERROR"
 
-            typer.secho(f"  [{status_label}] {r.email}: {r.message}", fg=fg)
+            t.secho(f"  [{status_label}] {r.email}: {r.message}", fg=fg)
