@@ -11,6 +11,8 @@ from src.guests.dtos import RSVPDTO, GuestDTO, GuestStatus, Language
 from src.guests.features.create_guest.command import (
     CreateGuestCommand,
     CreateGuestSeriesCommand,
+    EmailResult,
+    EmailStatus,
 )
 from src.guests.features.create_guest.handler import CreateGuestHandler
 from src.guests.features.create_guest.write_model import (
@@ -36,11 +38,16 @@ async def session():
 class TestTwoPhaseExecution:
     """Tests for two-phase execution (Phase 1 + Phase 2)."""
 
+    class MockEmailService:
+        async def send_invitation_for_guest(self, guest_id):
+            return EmailResult(status=EmailStatus.SENT)
+
     async def test_phase1_success_phase2_send_emails(self, session):
         """Test that emails are sent when send_email=True."""
         handler = CreateGuestHandler(
             session_overwrite=session,
             create_guest_write_model=SqlGuestCreateWriteModel(session_overwrite=session),
+            email_service=TestTwoPhaseExecution.MockEmailService(),
         )
 
         email1 = unique_email()
@@ -91,9 +98,16 @@ class TestTwoPhaseExecution:
                 if call_count[0] == 2:
                     raise RuntimeError("Simulated email failure")
 
+            async def send_invitation_for_guest(self, guest_id):
+                call_count[0] += 1
+                if call_count[0] == 2:
+                    raise RuntimeError("Simulated email failure")
+                return EmailResult(status=EmailStatus.SENT)
+
         handler = CreateGuestHandler(
             session_overwrite=session,
             create_guest_write_model=SqlGuestCreateWriteModel(session_overwrite=session),
+            email_service=MockEmailServiceFailingOnSecond(),
         )
 
         email1 = unique_email()
@@ -114,36 +128,25 @@ class TestTwoPhaseExecution:
             ]
         )
 
-        import src.guests.features.create_guest.handler as handler_module
+        result = await handler.execute(command)
 
-        original_get_email_service = handler_module.get_email_service
+        assert result.total == 3
+        assert result.created == 3
+        assert result.emails_sent == 2
+        assert result.emails_failed == 1
 
-        def mock_get_email_service() -> EmailServiceBase:
-            return MockEmailServiceFailingOnSecond()  # type: ignore[return-value]
-
-        handler_module.get_email_service = mock_get_email_service  # type: ignore[assignment]
-
-        try:
-            result = await handler.execute(command)
-
-            assert result.total == 3
-            assert result.created == 3
-            assert result.emails_sent == 2
-            assert result.emails_failed == 1
-
-            results_with_email = [r for r in result.results if r.email_status is not None]
-            sent_count = sum(1 for r in results_with_email if r.email_status == "sent")
-            failed_count = sum(1 for r in results_with_email if r.email_status == "failed")
-            assert sent_count == 2
-            assert failed_count == 1
-        finally:
-            handler_module.get_email_service = original_get_email_service
+        results_with_email = [r for r in result.results if r.email_status is not None]
+        sent_count = sum(1 for r in results_with_email if r.email_status == "sent")
+        failed_count = sum(1 for r in results_with_email if r.email_status == "failed")
+        assert sent_count == 2
+        assert failed_count == 1
 
     async def test_phase1_success_phase2_no_emails(self, session):
         """Test that no emails are sent when send_email=False."""
         handler = CreateGuestHandler(
             session_overwrite=session,
             create_guest_write_model=SqlGuestCreateWriteModel(session_overwrite=session),
+            email_service=TestTwoPhaseExecution.MockEmailService(),
         )
 
         email1 = unique_email()
@@ -199,6 +202,7 @@ class TestTwoPhaseExecution:
         handler = CreateGuestHandler(
             session_overwrite=session,
             create_guest_write_model=MockWriteModelFailingOnSecond(),
+            email_service=TestTwoPhaseExecution.MockEmailService(),
         )
 
         email1 = unique_email()
@@ -238,9 +242,13 @@ class TestTwoPhaseExecution:
             ):
                 raise RuntimeError("Email service down")
 
+            async def send_invitation_for_guest(self, guest_id):
+                raise RuntimeError("Email service down")
+
         handler = CreateGuestHandler(
             session_overwrite=session,
             create_guest_write_model=SqlGuestCreateWriteModel(session_overwrite=session),
+            email_service=MockEmailServiceAlwaysFails(),
         )
 
         email1 = unique_email()
@@ -257,27 +265,14 @@ class TestTwoPhaseExecution:
             ]
         )
 
-        import src.guests.features.create_guest.handler as handler_module
+        result = await handler.execute(command)
 
-        original_get_email_service = handler_module.get_email_service
+        assert result.total == 2
+        assert result.created == 2
+        assert result.errors == 0
+        assert result.emails_sent == 0
+        assert result.emails_failed == 2
 
-        def mock_get_email_service() -> EmailServiceBase:
-            return MockEmailServiceAlwaysFails()  # type: ignore[return-value]
-
-        handler_module.get_email_service = mock_get_email_service  # type: ignore[assignment]
-
-        try:
-            result = await handler.execute(command)
-
-            assert result.total == 2
-            assert result.created == 2
-            assert result.errors == 0
-            assert result.emails_sent == 0
-            assert result.emails_failed == 2
-
-            users = await session.execute(select(User).where(User.email.in_([email1, email2])))
-            users = users.scalars().all()
-            assert len(users) == 2
-
-        finally:
-            handler_module.get_email_service = original_get_email_service
+        users = await session.execute(select(User).where(User.email.in_([email1, email2])))
+        users = users.scalars().all()
+        assert len(users) == 2

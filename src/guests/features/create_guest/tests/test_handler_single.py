@@ -6,6 +6,7 @@ import pytest
 from sqlalchemy import select
 
 from src.config.database import async_session_maker
+from src.email_service.base import EmailServiceBase
 from src.guests.dtos import GuestDTO, Language
 from src.guests.features.create_guest.command import (
     CommandStatus,
@@ -27,6 +28,11 @@ def unique_email():
     return f"test-{uuid4().hex[:8]}@example.com"
 
 
+class MockEmailService:
+    async def send_invitation_for_guest(self, guest_id):
+        pass
+
+
 @pytest.fixture
 async def session():
     """Create a session for tests."""
@@ -44,6 +50,7 @@ class TestExecuteSingleCommand:
         handler = CreateGuestHandler(
             session_overwrite=session,
             create_guest_write_model=SqlGuestCreateWriteModel(session_overwrite=session),
+            email_service=MockEmailService(),
         )
         command = CreateGuestCommand(
             email=email,
@@ -86,6 +93,7 @@ class TestExecuteSingleCommand:
         handler = CreateGuestHandler(
             session_overwrite=session,
             create_guest_write_model=SqlGuestCreateWriteModel(session_overwrite=session),
+            email_service=MockEmailService(),
         )
         command = CreateGuestCommand(
             email=email,
@@ -135,6 +143,7 @@ class TestExecuteSingleCommand:
         handler = CreateGuestHandler(
             session_overwrite=session,
             create_guest_write_model=SqlGuestCreateWriteModel(session_overwrite=session),
+            email_service=MockEmailService(),
         )
         command = CreateGuestCommand(
             email=email,
@@ -163,6 +172,7 @@ class TestExecuteSingleCommand:
         handler = CreateGuestHandler(
             session_overwrite=session,
             create_guest_write_model=SqlGuestCreateWriteModel(session_overwrite=session),
+            email_service=MockEmailService(),
         )
         command = CreateGuestCommand(
             email=email,
@@ -191,6 +201,7 @@ class TestExecuteSingleCommand:
         handler = CreateGuestHandler(
             session_overwrite=session,
             create_guest_write_model=SqlGuestCreateWriteModel(session_overwrite=session),
+            email_service=MockEmailService(),
         )
         command = CreateGuestCommand(
             email=email,
@@ -237,6 +248,7 @@ class TestErrorHandling:
         handler = CreateGuestHandler(
             session_overwrite=session,
             create_guest_write_model=MockWriteModel(),
+            email_service=MockEmailService(),
         )
 
         command = CreateGuestCommand(
@@ -259,6 +271,7 @@ class TestErrorHandling:
         handler = CreateGuestHandler(
             session_overwrite=session,
             create_guest_write_model=SqlGuestCreateWriteModel(session_overwrite=session),
+            email_service=MockEmailService(),
         )
         command = CreateGuestSeriesCommand(
             commands=[

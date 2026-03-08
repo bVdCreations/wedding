@@ -1,13 +1,11 @@
 """Handler for CreateGuestCommand execution."""
 
-from datetime import UTC, datetime
 from functools import singledispatchmethod
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import async_session_manager
-from src.email_service import get_email_service
+from src.email_service.base import EmailServiceBase
 from src.guests.dtos import GuestAlreadyExistsError, Language
 from src.guests.features.create_guest.command import (
     CommandStatus,
@@ -19,18 +17,18 @@ from src.guests.features.create_guest.command import (
     EmailStatus,
 )
 from src.guests.features.create_guest.write_model import GuestCreateWriteModel
-from src.guests.repository.orm_models import Guest, RSVPInfo
-from src.models.user import User
 
 
 class CreateGuestHandler:
     def __init__(
         self,
         create_guest_write_model: GuestCreateWriteModel,
+        email_service: EmailServiceBase,
         session_overwrite: AsyncSession | None = None,
     ):
         self.session_overwrite = session_overwrite
         self._create_guest_write_model = create_guest_write_model
+        self._email_service = email_service
 
     @singledispatchmethod
     async def execute(self, command):
@@ -194,51 +192,15 @@ class CreateGuestHandler:
         self,
         result: CreateGuestCommandResult,
     ) -> EmailResult:
-        """Send invitation email and update RSVPInfo.email_sent_on."""
-        async with async_session_manager() as email_session:
-            try:
-                rsvp_info = await email_session.execute(
-                    select(RSVPInfo).where(RSVPInfo.guest_id == result.guest_id)
-                )
-                rsvp_info = rsvp_info.scalar_one_or_none()
-
-                guest = await email_session.execute(
-                    select(Guest).where(Guest.uuid == result.guest_id)
-                )
-                guest = guest.scalar_one_or_none()
-
-                user = None
-                if guest and guest.user_id:
-                    user = await email_session.execute(
-                        select(User).where(User.uuid == guest.user_id)
-                    )
-                    user = user.scalar_one_or_none()
-
-                if not rsvp_info:
-                    raise Exception("RSVPInfo not found")
-
-                if not guest:
-                    raise Exception("Guest not found")
-
-                guest_name = f"{guest.first_name} {guest.last_name}".strip() or "Guest"
-                rsvp_url = rsvp_info.rsvp_link if rsvp_info else ""
-                email_address = user.email if user else ""
-                language = Language(guest.preferred_language) if guest else Language.EN
-
-                email_service = get_email_service()
-                await email_service.send_invitation(
-                    to_address=email_address,
-                    guest_name=guest_name,
-                    rsvp_url=rsvp_url,
-                    language=language,
-                    guest_id=result.guest_id,
-                )
-
-                rsvp_info.email_sent_on = datetime.now(UTC)
-                await email_session.commit()
-
-            except Exception as e:
-                await email_session.rollback()
-                return EmailResult(status=EmailStatus.FAILED, error=str(e))
-
-            return EmailResult(status=EmailStatus.SENT)
+        if result.guest_id is None:
+            return EmailResult(status=EmailStatus.FAILED, error="guest_id is None")
+        try:
+            email_result = await self._email_service.send_invitation_for_guest(result.guest_id)
+        except Exception as e:
+            return EmailResult(status=EmailStatus.FAILED, error=str(e))
+        if email_result is None:
+            return EmailResult(status=EmailStatus.FAILED, error="email_result is None")
+        return EmailResult(
+            status=EmailStatus(email_result.status.value),
+            error=email_result.error,
+        )
