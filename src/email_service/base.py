@@ -55,9 +55,11 @@ class EmailServiceBase(ABC):
 
     async def send_invitation_for_guest(
         self,
-        guest_id: UUID,
+        guest_id: UUID | None,
     ) -> EmailResult:
         """Send invitation email for a guest and update RSVPInfo.email_sent_on."""
+        if guest_id is None:
+            return EmailResult(status=EmailStatus.FAILED, error="guest_id is None")
         async with async_session_manager(
             session_overwrite=self._session_overwrite
         ) as email_session:

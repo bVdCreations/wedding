@@ -190,15 +190,4 @@ class CreateGuestHandler:
         self,
         result: CreateGuestCommandResult,
     ) -> EmailResult:
-        if result.guest_id is None:
-            return EmailResult(status=EmailStatus.FAILED, error="guest_id is None")
-        try:
-            email_result = await self._email_service.send_invitation_for_guest(result.guest_id)
-        except Exception as e:
-            return EmailResult(status=EmailStatus.FAILED, error=str(e))
-        if email_result is None:
-            return EmailResult(status=EmailStatus.FAILED, error="email_result is None")
-        return EmailResult(
-            status=EmailStatus(email_result.status.value),
-            error=email_result.error,
-        )
+        return await self._email_service.send_invitation_for_guest(result.guest_id)

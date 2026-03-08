@@ -100,7 +100,7 @@ class TestTwoPhaseExecution:
             async def send_invitation_for_guest(self, guest_id):
                 call_count[0] += 1
                 if call_count[0] == 2:
-                    raise RuntimeError("Simulated email failure")
+                    return EmailResult(status=EmailStatus.FAILED, error="Simulated email failure")
                 return EmailResult(status=EmailStatus.SENT)
 
         handler = CreateGuestHandler(
@@ -242,7 +242,7 @@ class TestTwoPhaseExecution:
                 raise RuntimeError("Email service down")
 
             async def send_invitation_for_guest(self, guest_id):
-                raise RuntimeError("Email service down")
+                return EmailResult(status=EmailStatus.FAILED, error="Email service down")
 
         handler = CreateGuestHandler(
             session_overwrite=session,

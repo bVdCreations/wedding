@@ -211,3 +211,16 @@ async def test_send_invitation_for_guest_send_fails():
         rsvp = await session.execute(select(RSVPInfo).where(RSVPInfo.guest_id == guest_uuid))
         rsvp_info = rsvp.scalar_one()
         assert rsvp_info.email_sent_on is None
+
+
+@pytest.mark.asyncio
+async def test_send_invitation_for_guest_none_guest_id():
+    """Test when guest_id is None."""
+    async with async_session_manager() as session:
+        service = MockResendEmailService()
+        service.set_session_overwrite(session)
+
+        result = await service.send_invitation_for_guest(guest_id=None)
+
+        assert result.status == EmailStatus.FAILED
+        assert "guest_id is None" in (result.error or "")
