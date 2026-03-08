@@ -12,3 +12,4 @@ class WeddingConfig(BaseModel):
     contact_email: str = "info@gemma-bastiaan.wedding"
     rsvp_deadline: date = date(2026, 4, 2)
     google_maps_url: str = "https://www.google.com/maps/dir/?api=1&destination=Rancho+del+Ingles,+Camino+del+Convento,+Alhaurin+de+la+Torre,+Malaga"
+    website_url: str = "https://gemma-bastiaan.wedding"

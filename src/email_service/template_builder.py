@@ -98,6 +98,7 @@ class EmailTemplates:
             rsvp_deadline=self._format_date(config.rsvp_deadline, language),
             contact_email=config.contact_email,
             google_maps_url=config.google_maps_url,
+            website_url=config.website_url,
         )
         text_body = text.format(
             guest_name=guest_name,
@@ -110,6 +111,7 @@ class EmailTemplates:
             rsvp_deadline=self._format_date(config.rsvp_deadline, language),
             contact_email=config.contact_email,
             google_maps_url=config.google_maps_url,
+            website_url=config.website_url,
         )
         return EmailContent(subject=subject, html_body=html_body, text_body=text_body)
 
@@ -143,6 +145,7 @@ class EmailTemplates:
             venue_address=config.venue_address,
             contact_email=config.contact_email,
             google_maps_url=config.google_maps_url,
+            website_url=config.website_url,
         )
         text_body = text.format(
             guest_name=guest_name,
@@ -155,6 +158,7 @@ class EmailTemplates:
             venue_address=config.venue_address,
             contact_email=config.contact_email,
             google_maps_url=config.google_maps_url,
+            website_url=config.website_url,
         )
         return EmailContent(subject=subject, html_body=html_body, text_body=text_body)
 
@@ -195,6 +199,7 @@ class EmailTemplates:
             rsvp_deadline=self._format_date(config.rsvp_deadline, language),
             contact_email=config.contact_email,
             google_maps_url=config.google_maps_url,
+            website_url=config.website_url,
         )
         text_body = text.format(
             guest_name=guest_name,
@@ -208,5 +213,6 @@ class EmailTemplates:
             rsvp_deadline=self._format_date(config.rsvp_deadline, language),
             contact_email=config.contact_email,
             google_maps_url=config.google_maps_url,
+            website_url=config.website_url,
         )
         return EmailContent(subject=subject, html_body=html_body, text_body=text_body)

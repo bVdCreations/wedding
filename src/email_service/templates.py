@@ -32,6 +32,7 @@ INVITATION_HTML_EN = """<!DOCTYPE html>
                                     <p style="margin: 8px 0;"><strong>Time:</strong> {ceremony_time}</p>
                                     <p style="margin: 8px 0;"><strong>Venue:</strong> {venue_name}</p>
                                     <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
+                                    <p style="margin: 12px 0 0 0; font-size: 14px; color: #888;">Find all the details on our website: <a href="{website_url}" style="color: #c9a66b; text-decoration: underline; font-weight: bold;">gemma-bastiaan.wedding</a></p>
                                 </td>
                             </tr>
                         </table>
@@ -87,6 +88,8 @@ Wedding Details:
 - Time: {ceremony_time}
 - Venue: {venue_name}
 - Address: {venue_address}
+
+Find all the details on our website: {website_url}
 
 Please let us know if you can attend by visiting:
 {rsvp_url}
@@ -147,6 +150,7 @@ CONFIRMATION_HTML_EN = """<!DOCTYPE html>
                                     <p style="margin: 8px 0;"><strong>Time:</strong> {ceremony_time}</p>
                                     <p style="margin: 8px 0;"><strong>Venue:</strong> {venue_name}</p>
                                     <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
+                                    <p style="margin: 12px 0 0 0; font-size: 14px; color: #888;">Find all the details on our website: <a href="{website_url}" style="color: #c9a66b; text-decoration: underline; font-weight: bold;">gemma-bastiaan.wedding</a></p>
                                 </td>
                             </tr>
                         </table>
@@ -183,6 +187,8 @@ Wedding Details:
 - Time: {ceremony_time}
 - Venue: {venue_name}
 - Address: {venue_address}
+
+Find all the details on our website: {website_url}
 
 We can't wait to celebrate with you!
 
@@ -228,6 +234,7 @@ INVITATION_HTML_ES = """<!DOCTYPE html>
                                     <p style="margin: 8px 0;"><strong>Hora:</strong> {ceremony_time}</p>
                                     <p style="margin: 8px 0;"><strong>Lugar:</strong> {venue_name}</p>
                                     <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
+                                    <p style="margin: 12px 0 0 0; font-size: 14px; color: #888;">Consulta todos los detalles en nuestra web: <a href="{website_url}" style="color: #c9a66b; text-decoration: underline; font-weight: bold;">gemma-bastiaan.wedding</a></p>
                                 </td>
                             </tr>
                         </table>
@@ -283,6 +290,8 @@ Detalles de la Boda:
 - Hora: {ceremony_time}
 - Lugar: {venue_name}
 - Dirección: {venue_address}
+
+Consulta todos los detalles en nuestra web: {website_url}
 
 Por favor, haznos saber si puedes asistir visitando:
 {rsvp_url}
@@ -343,6 +352,7 @@ CONFIRMATION_HTML_ES = """<!DOCTYPE html>
                                     <p style="margin: 8px 0;"><strong>Hora:</strong> {ceremony_time}</p>
                                     <p style="margin: 8px 0;"><strong>Lugar:</strong> {venue_name}</p>
                                     <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
+                                    <p style="margin: 12px 0 0 0; font-size: 14px; color: #888;">Consulta todos los detalles en nuestra web: <a href="{website_url}" style="color: #c9a66b; text-decoration: underline; font-weight: bold;">gemma-bastiaan.wedding</a></p>
                                 </td>
                             </tr>
                         </table>
@@ -379,6 +389,8 @@ Detalles de la Boda:
 - Hora: {ceremony_time}
 - Lugar: {venue_name}
 - Dirección: {venue_address}
+
+Consulta todos los detalles en nuestra web: {website_url}
 
 ¡Estamos deseando celebrar contigo!
 
@@ -424,6 +436,7 @@ INVITATION_HTML_NL = """<!DOCTYPE html>
                                     <p style="margin: 8px 0;"><strong>Tijd:</strong> {ceremony_time}</p>
                                     <p style="margin: 8px 0;"><strong>Locatie:</strong> {venue_name}</p>
                                     <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
+                                    <p style="margin: 12px 0 0 0; font-size: 14px; color: #888;">Bekijk alle details op onze website: <a href="{website_url}" style="color: #c9a66b; text-decoration: underline; font-weight: bold;">gemma-bastiaan.wedding</a></p>
                                 </td>
                             </tr>
                         </table>
@@ -479,6 +492,8 @@ Bruiloft Details:
 - Tijd: {ceremony_time}
 - Locatie: {venue_name}
 - Adres: {venue_address}
+
+Bekijk alle details op onze website: {website_url}
 
 Laat ons weten of je kunt komen door te bezoeken:
 {rsvp_url}
@@ -539,6 +554,7 @@ CONFIRMATION_HTML_NL = """<!DOCTYPE html>
                                     <p style="margin: 8px 0;"><strong>Tijd:</strong> {ceremony_time}</p>
                                     <p style="margin: 8px 0;"><strong>Locatie:</strong> {venue_name}</p>
                                     <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
+                                    <p style="margin: 12px 0 0 0; font-size: 14px; color: #888;">Bekijk alle details op onze website: <a href="{website_url}" style="color: #c9a66b; text-decoration: underline; font-weight: bold;">gemma-bastiaan.wedding</a></p>
                                 </td>
                             </tr>
                         </table>
@@ -575,6 +591,8 @@ Bruiloft Details:
 - Tijd: {ceremony_time}
 - Locatie: {venue_name}
 - Adres: {venue_address}
+
+Bekijk alle details op onze website: {website_url}
 
 We kunnen niet wachten om met je te vieren!
 
@@ -620,6 +638,7 @@ PLUS_ONE_INVITATION_HTML_EN = """<!DOCTYPE html>
                                     <p style="margin: 8px 0;"><strong>Time:</strong> {ceremony_time}</p>
                                     <p style="margin: 8px 0;"><strong>Venue:</strong> {venue_name}</p>
                                     <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
+                                    <p style="margin: 12px 0 0 0; font-size: 14px; color: #888;">Find all the details on our website: <a href="{website_url}" style="color: #c9a66b; text-decoration: underline; font-weight: bold;">gemma-bastiaan.wedding</a></p>
                                 </td>
                             </tr>
                         </table>
@@ -676,6 +695,8 @@ Wedding Details:
 - Venue: {venue_name}
 - Address: {venue_address}
 
+Find all the details on our website: {website_url}
+
 Please let us know if you can attend by visiting:
 {rsvp_url}
 
@@ -725,6 +746,7 @@ PLUS_ONE_INVITATION_HTML_ES = """<!DOCTYPE html>
                                     <p style="margin: 8px 0;"><strong>Hora:</strong> {ceremony_time}</p>
                                     <p style="margin: 8px 0;"><strong>Lugar:</strong> {venue_name}</p>
                                     <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
+                                    <p style="margin: 12px 0 0 0; font-size: 14px; color: #888;">Consulta todos los detalles en nuestra web: <a href="{website_url}" style="color: #c9a66b; text-decoration: underline; font-weight: bold;">gemma-bastiaan.wedding</a></p>
                                 </td>
                             </tr>
                         </table>
@@ -781,6 +803,8 @@ Detalles de la Boda:
 - Lugar: {venue_name}
 - Dirección: {venue_address}
 
+Consulta todos los detalles en nuestra web: {website_url}
+
 Por favor, haznos saber si puedes asistir visitando:
 {rsvp_url}
 
@@ -830,6 +854,7 @@ PLUS_ONE_INVITATION_HTML_NL = """<!DOCTYPE html>
                                     <p style="margin: 8px 0;"><strong>Tijd:</strong> {ceremony_time}</p>
                                     <p style="margin: 8px 0;"><strong>Locatie:</strong> {venue_name}</p>
                                     <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
+                                    <p style="margin: 12px 0 0 0; font-size: 14px; color: #888;">Bekijk alle details op onze website: <a href="{website_url}" style="color: #c9a66b; text-decoration: underline; font-weight: bold;">gemma-bastiaan.wedding</a></p>
                                 </td>
                             </tr>
                         </table>
@@ -885,6 +910,8 @@ Bruiloft Details:
 - Tijd: {ceremony_time}
 - Locatie: {venue_name}
 - Adres: {venue_address}
+
+Bekijk alle details op onze website: {website_url}
 
 Laat ons weten of je kunt komen door te bezoeken:
 {rsvp_url}
