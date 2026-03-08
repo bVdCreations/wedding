@@ -31,7 +31,7 @@ INVITATION_HTML_EN = """<!DOCTYPE html>
                                     <p style="margin: 8px 0;"><strong>Date:</strong> {ceremony_date}</p>
                                     <p style="margin: 8px 0;"><strong>Time:</strong> {ceremony_time}</p>
                                     <p style="margin: 8px 0;"><strong>Venue:</strong> {venue_name}</p>
-                                    <p style="margin: 8px 0; font-size: 14px; color: #666;">{venue_address}</p>
+                                    <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
                                 </td>
                             </tr>
                         </table>
@@ -64,8 +64,7 @@ INVITATION_HTML_EN = """<!DOCTYPE html>
                 </tr>
                 <tr>
                     <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
-                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 10px;">{contact_email}</p>
-                        <a href="{google_maps_url}" style="font-size: 13px; color: #c9a66b; text-decoration: none;">Get Directions</a>
+                        <p style="font-size: 13px; color: #8b7355; margin: 0;">{contact_email}</p>
                     </td>
                 </tr>
             </table>
@@ -144,7 +143,7 @@ CONFIRMATION_HTML_EN = """<!DOCTYPE html>
                                     <p style="margin: 8px 0;"><strong>Date:</strong> {ceremony_date}</p>
                                     <p style="margin: 8px 0;"><strong>Time:</strong> {ceremony_time}</p>
                                     <p style="margin: 8px 0;"><strong>Venue:</strong> {venue_name}</p>
-                                    <p style="margin: 8px 0; font-size: 14px; color: #666;">{venue_address}</p>
+                                    <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
                                 </td>
                             </tr>
                         </table>
@@ -156,8 +155,7 @@ CONFIRMATION_HTML_EN = """<!DOCTYPE html>
                 </tr>
                 <tr>
                     <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
-                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 10px;">{contact_email}</p>
-                        <a href="{google_maps_url}" style="font-size: 13px; color: #c9a66b; text-decoration: none;">Get Directions</a>
+                        <p style="font-size: 13px; color: #8b7355; margin: 0;">{contact_email}</p>
                     </td>
                 </tr>
             </table>
@@ -225,7 +223,7 @@ INVITATION_HTML_ES = """<!DOCTYPE html>
                                     <p style="margin: 8px 0;"><strong>Fecha:</strong> {ceremony_date}</p>
                                     <p style="margin: 8px 0;"><strong>Hora:</strong> {ceremony_time}</p>
                                     <p style="margin: 8px 0;"><strong>Lugar:</strong> {venue_name}</p>
-                                    <p style="margin: 8px 0; font-size: 14px; color: #666;">{venue_address}</p>
+                                    <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
                                 </td>
                             </tr>
                         </table>
@@ -258,8 +256,7 @@ INVITATION_HTML_ES = """<!DOCTYPE html>
                 </tr>
                 <tr>
                     <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
-                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 10px;">{contact_email}</p>
-                        <a href="{google_maps_url}" style="font-size: 13px; color: #c9a66b; text-decoration: none;">Cómo Llegar</a>
+                        <p style="font-size: 13px; color: #8b7355; margin: 0;">{contact_email}</p>
                     </td>
                 </tr>
             </table>
@@ -338,7 +335,7 @@ CONFIRMATION_HTML_ES = """<!DOCTYPE html>
                                     <p style="margin: 8px 0;"><strong>Fecha:</strong> {ceremony_date}</p>
                                     <p style="margin: 8px 0;"><strong>Hora:</strong> {ceremony_time}</p>
                                     <p style="margin: 8px 0;"><strong>Lugar:</strong> {venue_name}</p>
-                                    <p style="margin: 8px 0; font-size: 14px; color: #666;">{venue_address}</p>
+                                    <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
                                 </td>
                             </tr>
                         </table>
@@ -350,8 +347,7 @@ CONFIRMATION_HTML_ES = """<!DOCTYPE html>
                 </tr>
                 <tr>
                     <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
-                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 10px;">{contact_email}</p>
-                        <a href="{google_maps_url}" style="font-size: 13px; color: #c9a66b; text-decoration: none;">Cómo Llegar</a>
+                        <p style="font-size: 13px; color: #8b7355; margin: 0;">{contact_email}</p>
                     </td>
                 </tr>
             </table>
@@ -419,7 +415,7 @@ INVITATION_HTML_NL = """<!DOCTYPE html>
                                     <p style="margin: 8px 0;"><strong>Datum:</strong> {ceremony_date}</p>
                                     <p style="margin: 8px 0;"><strong>Tijd:</strong> {ceremony_time}</p>
                                     <p style="margin: 8px 0;"><strong>Locatie:</strong> {venue_name}</p>
-                                    <p style="margin: 8px 0; font-size: 14px; color: #666;">{venue_address}</p>
+                                    <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
                                 </td>
                             </tr>
                         </table>
@@ -452,8 +448,7 @@ INVITATION_HTML_NL = """<!DOCTYPE html>
                 </tr>
                 <tr>
                     <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
-                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 10px;">{contact_email}</p>
-                        <a href="{google_maps_url}" style="font-size: 13px; color: #c9a66b; text-decoration: none;">Routebeschrijving</a>
+                        <p style="font-size: 13px; color: #8b7355; margin: 0;">{contact_email}</p>
                     </td>
                 </tr>
             </table>
@@ -532,7 +527,7 @@ CONFIRMATION_HTML_NL = """<!DOCTYPE html>
                                     <p style="margin: 8px 0;"><strong>Datum:</strong> {ceremony_date}</p>
                                     <p style="margin: 8px 0;"><strong>Tijd:</strong> {ceremony_time}</p>
                                     <p style="margin: 8px 0;"><strong>Locatie:</strong> {venue_name}</p>
-                                    <p style="margin: 8px 0; font-size: 14px; color: #666;">{venue_address}</p>
+                                    <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
                                 </td>
                             </tr>
                         </table>
@@ -544,8 +539,7 @@ CONFIRMATION_HTML_NL = """<!DOCTYPE html>
                 </tr>
                 <tr>
                     <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
-                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 10px;">{contact_email}</p>
-                        <a href="{google_maps_url}" style="font-size: 13px; color: #c9a66b; text-decoration: none;">Routebeschrijving</a>
+                        <p style="font-size: 13px; color: #8b7355; margin: 0;">{contact_email}</p>
                     </td>
                 </tr>
             </table>
@@ -613,7 +607,7 @@ PLUS_ONE_INVITATION_HTML_EN = """<!DOCTYPE html>
                                     <p style="margin: 8px 0;"><strong>Date:</strong> {ceremony_date}</p>
                                     <p style="margin: 8px 0;"><strong>Time:</strong> {ceremony_time}</p>
                                     <p style="margin: 8px 0;"><strong>Venue:</strong> {venue_name}</p>
-                                    <p style="margin: 8px 0; font-size: 14px; color: #666;">{venue_address}</p>
+                                    <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
                                 </td>
                             </tr>
                         </table>
@@ -646,8 +640,7 @@ PLUS_ONE_INVITATION_HTML_EN = """<!DOCTYPE html>
                 </tr>
                 <tr>
                     <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
-                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 10px;">{contact_email}</p>
-                        <a href="{google_maps_url}" style="font-size: 13px; color: #c9a66b; text-decoration: none;">Get Directions</a>
+                        <p style="font-size: 13px; color: #8b7355; margin: 0;">{contact_email}</p>
                     </td>
                 </tr>
             </table>
@@ -716,7 +709,7 @@ PLUS_ONE_INVITATION_HTML_ES = """<!DOCTYPE html>
                                     <p style="margin: 8px 0;"><strong>Fecha:</strong> {ceremony_date}</p>
                                     <p style="margin: 8px 0;"><strong>Hora:</strong> {ceremony_time}</p>
                                     <p style="margin: 8px 0;"><strong>Lugar:</strong> {venue_name}</p>
-                                    <p style="margin: 8px 0; font-size: 14px; color: #666;">{venue_address}</p>
+                                    <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
                                 </td>
                             </tr>
                         </table>
@@ -749,8 +742,7 @@ PLUS_ONE_INVITATION_HTML_ES = """<!DOCTYPE html>
                 </tr>
                 <tr>
                     <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
-                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 10px;">{contact_email}</p>
-                        <a href="{google_maps_url}" style="font-size: 13px; color: #c9a66b; text-decoration: none;">Cómo Llegar</a>
+                        <p style="font-size: 13px; color: #8b7355; margin: 0;">{contact_email}</p>
                     </td>
                 </tr>
             </table>
@@ -819,7 +811,7 @@ PLUS_ONE_INVITATION_HTML_NL = """<!DOCTYPE html>
                                     <p style="margin: 8px 0;"><strong>Datum:</strong> {ceremony_date}</p>
                                     <p style="margin: 8px 0;"><strong>Tijd:</strong> {ceremony_time}</p>
                                     <p style="margin: 8px 0;"><strong>Locatie:</strong> {venue_name}</p>
-                                    <p style="margin: 8px 0; font-size: 14px; color: #666;">{venue_address}</p>
+                                    <a href="{google_maps_url}" style="margin: 8px 0; font-size: 14px; color: #666; text-decoration: underline;">{venue_address}</a>
                                 </td>
                             </tr>
                         </table>
@@ -852,8 +844,7 @@ PLUS_ONE_INVITATION_HTML_NL = """<!DOCTYPE html>
                 </tr>
                 <tr>
                     <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
-                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 10px;">{contact_email}</p>
-                        <a href="{google_maps_url}" style="font-size: 13px; color: #c9a66b; text-decoration: none;">Routebeschrijving</a>
+                        <p style="font-size: 13px; color: #8b7355; margin: 0;">{contact_email}</p>
                     </td>
                 </tr>
             </table>
