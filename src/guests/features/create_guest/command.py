@@ -1,7 +1,13 @@
+from __future__ import annotations
+
 import re
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import TYPE_CHECKING
 from uuid import UUID
+
+if TYPE_CHECKING:
+    from src.email_service.dtos import EmailResult
 
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
 
@@ -20,6 +26,10 @@ class CreateGuestCommandResult:
     guest_id: UUID | None = None
     email_status: str | None = None  # "sent", "failed", None (if send_email=False)
     email_error: str | None = None  # Error message if failed
+
+    def update_email_result(self, email_result: EmailResult) -> None:
+        self.email_status = email_result.status.value
+        self.email_error = email_result.error
 
 
 @dataclass

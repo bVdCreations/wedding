@@ -169,8 +169,7 @@ class CreateGuestHandler:
 
             email_result = await self._send_email(result)
 
-            result.email_status = email_result.status.value
-            result.email_error = email_result.error
+            result.update_email_result(email_result)
 
             if email_result.status is EmailStatus.SENT:
                 emails_sent += 1
