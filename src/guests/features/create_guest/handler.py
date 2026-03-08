@@ -115,11 +115,11 @@ class CreateGuestHandler:
         - Send invitation email
         - Commit on success, rollback email_sent_on on failure
         """
-        results = []
+        results: dict[str, CreateGuestCommandResult] = {}
         try:
             for cmd in command.commands:
                 result = await self._execute_single(cmd, session)
-                results.append(result)
+                results[cmd.email] = result
 
                 if result.status == CommandStatus.ERROR:
                     await session.rollback()
@@ -130,7 +130,7 @@ class CreateGuestHandler:
                         errors=len(command.commands),
                         emails_sent=0,
                         emails_failed=0,
-                        results=results,
+                        results=list(results.values()),
                     )
 
             await session.commit()
@@ -138,12 +138,10 @@ class CreateGuestHandler:
         except Exception as e:
             await session.rollback()
             for i in range(len(results), len(command.commands)):
-                results.append(
-                    CreateGuestCommandResult(
-                        status=CommandStatus.ERROR,
-                        email=command.commands[i].email,
-                        message=f"Transaction failed: {str(e)}",
-                    )
+                results[command.commands[i].email] = CreateGuestCommandResult(
+                    status=CommandStatus.ERROR,
+                    email=command.commands[i].email,
+                    message=f"Transaction failed: {str(e)}",
                 )
             return CreateGuestSeriesResult(
                 total=len(command.commands),
@@ -152,15 +150,14 @@ class CreateGuestHandler:
                 errors=len(command.commands),
                 emails_sent=0,
                 emails_failed=0,
-                results=results,
+                results=list(results.values()),
             )
 
         emails_sent = 0
         emails_failed = 0
 
-        for i, result in enumerate(results):
-            cmd = command.commands[i]
-
+        for cmd in command.commands:
+            result = results[cmd.email]
             if not cmd.send_email:
                 continue
 
@@ -178,12 +175,12 @@ class CreateGuestHandler:
 
         return CreateGuestSeriesResult(
             total=len(results),
-            created=sum(1 for r in results if r.status == CommandStatus.CREATED),
-            skipped=sum(1 for r in results if r.status == CommandStatus.SKIPPED),
-            errors=sum(1 for r in results if r.status == CommandStatus.ERROR),
+            created=sum(1 for r in results.values() if r.status == CommandStatus.CREATED),
+            skipped=sum(1 for r in results.values() if r.status == CommandStatus.SKIPPED),
+            errors=sum(1 for r in results.values() if r.status == CommandStatus.ERROR),
             emails_sent=emails_sent,
             emails_failed=emails_failed,
-            results=results,
+            results=list(results.values()),
         )
 
     async def _send_email(
