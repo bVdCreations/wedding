@@ -36,15 +36,6 @@ INVITATION_HTML_EN = """<!DOCTYPE html>
                             </tr>
                         </table>
 
-                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
-                            <tr>
-                                <td style="padding: 25px;">
-                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Schedule</h2>
-                                    <p style="margin: 8px 0; font-size: 15px;">{reception_details}</p>
-                                </td>
-                            </tr>
-                        </table>
-
                         <p style="margin: 25px 0;">Please let us know if you can attend by clicking the button below:</p>
 
                         <table width="100%" cellpadding="0" cellspacing="0">
@@ -88,9 +79,6 @@ Wedding Details:
 - Time: {ceremony_time}
 - Venue: {venue_name}
 - Address: {venue_address}
-
-Schedule:
-{reception_details}
 
 Please let us know if you can attend by visiting:
 {rsvp_url}
@@ -236,15 +224,6 @@ INVITATION_HTML_ES = """<!DOCTYPE html>
                             </tr>
                         </table>
 
-                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
-                            <tr>
-                                <td style="padding: 25px;">
-                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Horario</h2>
-                                    <p style="margin: 8px 0; font-size: 15px;">{reception_details}</p>
-                                </td>
-                            </tr>
-                        </table>
-
                         <p style="margin: 25px 0;">Por favor, haznos saber si puedes asistir haciendo clic en el botón de abajo:</p>
 
                         <table width="100%" cellpadding="0" cellspacing="0">
@@ -288,9 +267,6 @@ Detalles de la Boda:
 - Hora: {ceremony_time}
 - Lugar: {venue_name}
 - Dirección: {venue_address}
-
-Horario:
-{reception_details}
 
 Por favor, haznos saber si puedes asistir visitando:
 {rsvp_url}
@@ -436,15 +412,6 @@ INVITATION_HTML_NL = """<!DOCTYPE html>
                             </tr>
                         </table>
 
-                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
-                            <tr>
-                                <td style="padding: 25px;">
-                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Programma</h2>
-                                    <p style="margin: 8px 0; font-size: 15px;">{reception_details}</p>
-                                </td>
-                            </tr>
-                        </table>
-
                         <p style="margin: 25px 0;">Laat ons weten of je kunt komen door op de onderstaande knop te klikken:</p>
 
                         <table width="100%" cellpadding="0" cellspacing="0">
@@ -488,9 +455,6 @@ Bruiloft Details:
 - Tijd: {ceremony_time}
 - Locatie: {venue_name}
 - Adres: {venue_address}
-
-Programma:
-{reception_details}
 
 Laat ons weten of je kunt komen door te bezoeken:
 {rsvp_url}
@@ -636,15 +600,6 @@ PLUS_ONE_INVITATION_HTML_EN = """<!DOCTYPE html>
                             </tr>
                         </table>
 
-                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
-                            <tr>
-                                <td style="padding: 25px;">
-                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Schedule</h2>
-                                    <p style="margin: 8px 0; font-size: 15px;">{reception_details}</p>
-                                </td>
-                            </tr>
-                        </table>
-
                         <p style="margin: 25px 0;">Please let us know if you can attend by clicking the button below:</p>
 
                         <table width="100%" cellpadding="0" cellspacing="0">
@@ -688,9 +643,6 @@ Wedding Details:
 - Time: {ceremony_time}
 - Venue: {venue_name}
 - Address: {venue_address}
-
-Schedule:
-{reception_details}
 
 Please let us know if you can attend by visiting:
 {rsvp_url}
@@ -745,15 +697,6 @@ PLUS_ONE_INVITATION_HTML_ES = """<!DOCTYPE html>
                             </tr>
                         </table>
 
-                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
-                            <tr>
-                                <td style="padding: 25px;">
-                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Horario</h2>
-                                    <p style="margin: 8px 0; font-size: 15px;">{reception_details}</p>
-                                </td>
-                            </tr>
-                        </table>
-
                         <p style="margin: 25px 0;">Por favor, haznos saber si puedes asistir haciendo clic en el botón de abajo:</p>
 
                         <table width="100%" cellpadding="0" cellspacing="0">
@@ -797,9 +740,6 @@ Detalles de la Boda:
 - Hora: {ceremony_time}
 - Lugar: {venue_name}
 - Dirección: {venue_address}
-
-Horario:
-{reception_details}
 
 Por favor, haznos saber si puedes asistir visitando:
 {rsvp_url}
@@ -854,15 +794,6 @@ PLUS_ONE_INVITATION_HTML_NL = """<!DOCTYPE html>
                             </tr>
                         </table>
 
-                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f6; border-radius: 8px; margin: 25px 0;">
-                            <tr>
-                                <td style="padding: 25px;">
-                                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: #8b7355; margin: 0 0 15px 0;">Programma</h2>
-                                    <p style="margin: 8px 0; font-size: 15px;">{reception_details}</p>
-                                </td>
-                            </tr>
-                        </table>
-
                         <p style="margin: 25px 0;">Laat ons weten of je kunt komen door op de onderstaande knop te klikken:</p>
 
                         <table width="100%" cellpadding="0" cellspacing="0">
@@ -906,9 +837,6 @@ Bruiloft Details:
 - Tijd: {ceremony_time}
 - Locatie: {venue_name}
 - Adres: {venue_address}
-
-Programma:
-{reception_details}
 
 Laat ons weten of je kunt komen door te bezoeken:
 {rsvp_url}
