@@ -64,6 +64,7 @@ INVITATION_HTML_EN = """<!DOCTYPE html>
                 </tr>
                 <tr>
                     <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
+                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 5px;">If you have any questions, please contact us at:</p>
                         <p style="font-size: 13px; color: #8b7355; margin: 0;">{contact_email}</p>
                     </td>
                 </tr>
@@ -96,7 +97,7 @@ With love,
 {couple_names}
 
 ---
-Questions? Contact us at: {contact_email}
+If you have any questions, please contact us at: {contact_email}
 Get Directions: {google_maps_url}
 """
 
@@ -155,6 +156,7 @@ CONFIRMATION_HTML_EN = """<!DOCTYPE html>
                 </tr>
                 <tr>
                     <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
+                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 5px;">If you have any questions, please contact us at:</p>
                         <p style="font-size: 13px; color: #8b7355; margin: 0;">{contact_email}</p>
                     </td>
                 </tr>
@@ -186,7 +188,7 @@ With love,
 {couple_names}
 
 ---
-Questions? Contact us at: {contact_email}
+If you have any questions, please contact us at: {contact_email}
 Get Directions: {google_maps_url}
 """
 
@@ -256,6 +258,7 @@ INVITATION_HTML_ES = """<!DOCTYPE html>
                 </tr>
                 <tr>
                     <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
+                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 5px;">Si tienes alguna pregunta, por favor contáctanos en:</p>
                         <p style="font-size: 13px; color: #8b7355; margin: 0;">{contact_email}</p>
                     </td>
                 </tr>
@@ -288,7 +291,7 @@ Con cariño,
 {couple_names}
 
 ---
-¿Preguntas? Contáctanos en: {contact_email}
+Si tienes alguna pregunta, por favor contáctanos en: {contact_email}
 Cómo Llegar: {google_maps_url}
 """
 
@@ -347,6 +350,7 @@ CONFIRMATION_HTML_ES = """<!DOCTYPE html>
                 </tr>
                 <tr>
                     <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
+                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 5px;">Si tienes alguna pregunta, por favor contáctanos en:</p>
                         <p style="font-size: 13px; color: #8b7355; margin: 0;">{contact_email}</p>
                     </td>
                 </tr>
@@ -378,7 +382,7 @@ Con cariño,
 {couple_names}
 
 ---
-¿Preguntas? Contáctanos en: {contact_email}
+Si tienes alguna pregunta, por favor contáctanos en: {contact_email}
 Cómo Llegar: {google_maps_url}
 """
 
@@ -448,6 +452,7 @@ INVITATION_HTML_NL = """<!DOCTYPE html>
                 </tr>
                 <tr>
                     <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
+                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 5px;">Als je vragen hebt, neem dan contact met ons op via:</p>
                         <p style="font-size: 13px; color: #8b7355; margin: 0;">{contact_email}</p>
                     </td>
                 </tr>
@@ -480,7 +485,7 @@ Met liefde,
 {couple_names}
 
 ---
-Vragen? Neem contact op via: {contact_email}
+Als je vragen hebt, neem dan contact met ons op via: {contact_email}
 Routebeschrijving: {google_maps_url}
 """
 
@@ -539,6 +544,7 @@ CONFIRMATION_HTML_NL = """<!DOCTYPE html>
                 </tr>
                 <tr>
                     <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
+                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 5px;">Als je vragen hebt, neem dan contact met ons op via:</p>
                         <p style="font-size: 13px; color: #8b7355; margin: 0;">{contact_email}</p>
                     </td>
                 </tr>
@@ -570,7 +576,7 @@ Met liefde,
 {couple_names}
 
 ---
-Vragen? Neem contact op via: {contact_email}
+Als je vragen hebt, neem dan contact met ons op via: {contact_email}
 Routebeschrijving: {google_maps_url}
 """
 
@@ -640,6 +646,7 @@ PLUS_ONE_INVITATION_HTML_EN = """<!DOCTYPE html>
                 </tr>
                 <tr>
                     <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
+                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 5px;">If you have any questions, please contact us at:</p>
                         <p style="font-size: 13px; color: #8b7355; margin: 0;">{contact_email}</p>
                     </td>
                 </tr>
@@ -672,7 +679,7 @@ With love,
 {couple_names}
 
 ---
-Questions? Contact us at: {contact_email}
+If you have any questions, please contact us at: {contact_email}
 Get Directions: {google_maps_url}
 """
 
@@ -742,6 +749,7 @@ PLUS_ONE_INVITATION_HTML_ES = """<!DOCTYPE html>
                 </tr>
                 <tr>
                     <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
+                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 5px;">Si tienes alguna pregunta, por favor contáctanos en:</p>
                         <p style="font-size: 13px; color: #8b7355; margin: 0;">{contact_email}</p>
                     </td>
                 </tr>
@@ -774,7 +782,7 @@ Con cariño,
 {couple_names}
 
 ---
-¿Preguntas? Contáctanos en: {contact_email}
+Si tienes alguna pregunta, por favor contáctanos en: {contact_email}
 Cómo Llegar: {google_maps_url}
 """
 
@@ -844,6 +852,7 @@ PLUS_ONE_INVITATION_HTML_NL = """<!DOCTYPE html>
                 </tr>
                 <tr>
                     <td style="padding: 20px 40px; border-top: 1px solid #e5e5e5; text-align: center;">
+                        <p style="font-size: 13px; color: #8b7355; margin: 0 0 5px;">Als je vragen hebt, neem dan contact met ons op via:</p>
                         <p style="font-size: 13px; color: #8b7355; margin: 0;">{contact_email}</p>
                     </td>
                 </tr>
@@ -876,6 +885,6 @@ Met liefde,
 {couple_names}
 
 ---
-Vragen? Neem contact op via: {contact_email}
+Als je vragen hebt, neem dan contact met ons op via: {contact_email}
 Routebeschrijving: {google_maps_url}
 """
