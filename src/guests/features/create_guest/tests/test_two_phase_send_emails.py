@@ -7,12 +7,11 @@ from sqlalchemy import select
 
 from src.config.database import async_session_maker
 from src.email_service.base import EmailServiceBase
+from src.email_service.dtos import EmailResult, EmailStatus
 from src.guests.dtos import RSVPDTO, GuestDTO, GuestStatus, Language
 from src.guests.features.create_guest.command import (
     CreateGuestCommand,
     CreateGuestSeriesCommand,
-    EmailResult,
-    EmailStatus,
 )
 from src.guests.features.create_guest.handler import CreateGuestHandler
 from src.guests.features.create_guest.write_model import (

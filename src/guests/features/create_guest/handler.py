@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import async_session_manager
 from src.email_service.base import EmailServiceBase
+from src.email_service.dtos import EmailResult, EmailStatus
 from src.guests.dtos import GuestAlreadyExistsError, Language
 from src.guests.features.create_guest.command import (
     CommandStatus,
@@ -13,8 +14,6 @@ from src.guests.features.create_guest.command import (
     CreateGuestCommandResult,
     CreateGuestSeriesCommand,
     CreateGuestSeriesResult,
-    EmailResult,
-    EmailStatus,
 )
 from src.guests.features.create_guest.write_model import GuestCreateWriteModel
 
