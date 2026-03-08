@@ -65,7 +65,7 @@ class CreateGuestFactory:
     """Factory to create CreateGuestCommand from CSV rows."""
 
     @staticmethod
-    def create_commands(rows: list[dict]) -> CreateGuestSeriesCommand:
+    def create_commands(rows: list[dict], send_email: bool = False) -> CreateGuestSeriesCommand:
         """Create CreateGuestSeriesCommand from CSV rows."""
         commands = []
 
@@ -87,6 +87,7 @@ class CreateGuestFactory:
                 first_name=row.get("first_name", "").strip() or "",
                 last_name=row.get("last_name", "").strip() or "",
                 lang=row.get("lang", "").strip() or "en",
+                send_email=send_email,
             )
             commands.append(command)
 

@@ -329,3 +329,26 @@ class TestCreateGuestFactory:
         assert len(series.commands) == 2
         assert series.commands[0].email == "new@example.com"
         assert series.commands[1].email == "another@example.com"
+
+    def test_create_commands_with_send_email_flag(self):
+        """Test that send_email flag is set on all commands."""
+        rows = [
+            {"email": "john@example.com", "first_name": "John", "last_name": "Doe"},
+            {"email": "jane@example.com", "first_name": "Jane", "last_name": "Smith"},
+        ]
+
+        series = CreateGuestFactory.create_commands(rows, send_email=True)
+
+        assert len(series.commands) == 2
+        assert series.commands[0].send_email is True
+        assert series.commands[1].send_email is True
+
+    def test_create_commands_send_email_default_false(self):
+        """Test that send_email defaults to False."""
+        rows = [
+            {"email": "test@example.com"},
+        ]
+
+        series = CreateGuestFactory.create_commands(rows)
+
+        assert series.commands[0].send_email is False
