@@ -53,6 +53,9 @@ class EmailServiceBase(ABC):
     ) -> None:
         pass
 
+    def set_session_overwrite(self, session: AsyncSession) -> None:
+        self._session_overwrite = session
+
     async def send_invitation_for_guest(
         self,
         guest_id: UUID | None,

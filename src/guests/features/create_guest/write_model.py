@@ -4,8 +4,8 @@ Creates or gets User by email, creates Guest linked to User, and creates RSVPInf
 Returns DTOs instead of ORM models.
 """
 
+import logging
 from abc import ABC, abstractmethod
-from datetime import UTC, datetime
 from functools import partial
 from uuid import UUID, uuid4
 
@@ -15,9 +15,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.config.database import async_session_manager
 from src.config.settings import settings
 from src.email_service.base import EmailServiceBase
+from src.email_service.dtos import EmailStatus
 from src.guests.dtos import RSVPDTO, GuestAlreadyExistsError, GuestDTO, GuestStatus, Language
 from src.guests.repository.orm_models import Guest, RSVPInfo
 from src.models.user import User
+
+logger = logging.getLogger(__name__)
 
 
 class GuestCreateWriteModel(ABC):
@@ -124,26 +127,15 @@ class SqlGuestCreateWriteModel(GuestCreateWriteModel):
             )
             session.add(rsvp_info)
 
-            # 5. Send invitation email if requested and email is provided
-            email_sent_on = None
-            if send_email and email and email.strip():
-                try:
-                    if self.email_service:
-                        await self.email_service.send_invitation(
-                            to_address=email,
-                            guest_name=f"{first_name or ''} {last_name or ''}".strip() or "Guest",
-                            rsvp_url=rsvp_info.rsvp_link,
-                            language=preferred_language,
-                            guest_id=guest.uuid,
-                            user_id=user.uuid,
+            # 5. Send invitation email if requested
+            if send_email:
+                if self.email_service:
+                    self.email_service.set_session_overwrite(session)
+                    result = await self.email_service.send_invitation_for_guest(guest_id=guest.uuid)
+                    if result.status == EmailStatus.FAILED:
+                        logger.warning(
+                            f"Failed to send invitation email for guest {guest.uuid}: {result.error}"
                         )
-                        email_sent_on = datetime.now(UTC)
-                except Exception:
-                    # Log error but don't fail guest creation
-                    email_sent_on = None
-
-            # Update email_sent_on timestamp in database
-            rsvp_info.email_sent_on = email_sent_on
 
             await session.flush()
 

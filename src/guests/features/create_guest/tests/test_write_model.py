@@ -1,12 +1,12 @@
 """Tests for SqlGuestCreateWriteModel."""
 
-from datetime import datetime
 from unittest.mock import AsyncMock
 
 import pytest
 from sqlalchemy import select
 
 from src.config.database import async_session_maker
+from src.email_service.dtos import EmailResult, EmailStatus
 from src.guests.dtos import GuestAlreadyExistsError, GuestStatus, Language
 from src.guests.features.create_guest.write_model import (
     SqlGuestCreateWriteModel,
@@ -254,65 +254,37 @@ async def test_create_guest_duplicate_guest_raises_error():
         await db_session.rollback()
 
 
-async def test_create_guest_with_email_service_sets_timestamp():
-    """Test that email_sent_on is set when email_service is provided and send_email=True."""
-    # Create a mock email service
+async def test_create_guest_email_service_is_called():
+    """Test that email_service.send_invitation_for_guest is called when send_email=True."""
     mock_email_service = AsyncMock()
+    mock_email_service.send_invitation_for_guest = AsyncMock(
+        return_value=EmailResult(status=EmailStatus.SENT)
+    )
 
     async with async_session_maker() as db_session:
         write_model = SqlGuestCreateWriteModel(
             session_overwrite=db_session, email_service=mock_email_service
         )
         result = await write_model.create_guest(
-            email="withservice@example.com",
-            first_name="With",
-            last_name="Service",
-            send_email=True,
-        )
-
-        result_db = await db_session.execute(
-            select(RSVPInfo).join(Guest).where(Guest.uuid == result.id)
-        )
-        rsvp_db = result_db.scalar_one_or_none()
-        assert rsvp_db is not None
-        # email_sent_on should be set when email_service is provided
-        assert rsvp_db.email_sent_on is not None
-        assert isinstance(rsvp_db.email_sent_on, datetime)
-        await db_session.rollback()
-
-
-async def test_create_guest_email_service_is_called():
-    """Test that email_service.send_invitation is called when send_email=True."""
-    # Create a mock email service
-    mock_email_service = AsyncMock()
-
-    async with async_session_maker() as db_session:
-        write_model = SqlGuestCreateWriteModel(
-            session_overwrite=db_session, email_service=mock_email_service
-        )
-        await write_model.create_guest(
             email="testcall@example.com",
             first_name="Test",
             last_name="Call",
             send_email=True,
         )
 
-        # Verify the email service was called
-        mock_email_service.send_invitation.assert_called_once()
-
-        # Verify the call arguments
-        call_kwargs = mock_email_service.send_invitation.call_args.kwargs
-        assert call_kwargs["to_address"] == "testcall@example.com"
-        assert call_kwargs["guest_name"] == "Test Call"
-        assert "rsvp_url" in call_kwargs
+        mock_email_service.send_invitation_for_guest.assert_called_once()
+        call_kwargs = mock_email_service.send_invitation_for_guest.call_args.kwargs
+        assert call_kwargs["guest_id"] == result.id
 
         await db_session.rollback()
 
 
 async def test_create_guest_email_service_not_called_when_send_email_false():
-    """Test that email_service is NOT called when send_email=False."""
-    # Create a mock email service
+    """Test that email_service.send_invitation_for_guest is NOT called when send_email=False."""
     mock_email_service = AsyncMock()
+    mock_email_service.send_invitation_for_guest = AsyncMock(
+        return_value=EmailResult(status=EmailStatus.SENT)
+    )
 
     async with async_session_maker() as db_session:
         write_model = SqlGuestCreateWriteModel(
@@ -325,10 +297,8 @@ async def test_create_guest_email_service_not_called_when_send_email_false():
             send_email=False,
         )
 
-        # Verify the email service was NOT called
-        mock_email_service.send_invitation.assert_not_called()
+        mock_email_service.send_invitation_for_guest.assert_not_called()
 
-        # Verify email_sent_on is None
         result_db = await db_session.execute(
             select(RSVPInfo).join(Guest).where(Guest.uuid == result.id)
         )
@@ -428,53 +398,5 @@ async def test_create_guest_default_language_is_english():
         guest_db = result_db.scalar_one_or_none()
         assert guest_db is not None
         assert guest_db.preferred_language == Language.EN
-
-        await db_session.rollback()
-
-
-async def test_create_guest_email_sent_with_correct_language():
-    """Test that email is sent with the correct language parameter."""
-    mock_email_service = AsyncMock()
-
-    async with async_session_maker() as db_session:
-        write_model = SqlGuestCreateWriteModel(
-            session_overwrite=db_session, email_service=mock_email_service
-        )
-        await write_model.create_guest(
-            email="spanish_email@example.com",
-            first_name="Maria",
-            last_name="Lopez",
-            preferred_language=Language.ES,
-            send_email=True,
-        )
-
-        # Verify the email service was called with Spanish language
-        mock_email_service.send_invitation.assert_called_once()
-        call_kwargs = mock_email_service.send_invitation.call_args.kwargs
-        assert call_kwargs["language"] == Language.ES
-
-        await db_session.rollback()
-
-
-async def test_create_guest_email_sent_with_dutch_language():
-    """Test that email is sent with Dutch language parameter."""
-    mock_email_service = AsyncMock()
-
-    async with async_session_maker() as db_session:
-        write_model = SqlGuestCreateWriteModel(
-            session_overwrite=db_session, email_service=mock_email_service
-        )
-        await write_model.create_guest(
-            email="dutch_email@example.com",
-            first_name="Pieter",
-            last_name="Jansen",
-            preferred_language=Language.NL,
-            send_email=True,
-        )
-
-        # Verify the email service was called with Dutch language
-        mock_email_service.send_invitation.assert_called_once()
-        call_kwargs = mock_email_service.send_invitation.call_args.kwargs
-        assert call_kwargs["language"] == Language.NL
 
         await db_session.rollback()
