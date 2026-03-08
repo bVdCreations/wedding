@@ -49,7 +49,13 @@ INVITATION_HTML_EN = """<!DOCTYPE html>
                         <p style="font-size: 14px; color: #888; margin-top: 20px;">If the button doesn't work, copy this link:<br>
                         <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a></p>
 
-                        <p style="margin: 25px 0 10px;">We kindly ask that you respond by {rsvp_deadline}.</p>
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff5e6; border-radius: 8px; margin: 25px 0; border-left: 4px solid #c9a66b;">
+                            <tr>
+                                <td style="padding: 20px;">
+                                    <p style="margin: 0; font-size: 16px; color: #8b7355;"><strong>Please respond by:</strong> {rsvp_deadline}</p>
+                                </td>
+                            </tr>
+                        </table>
 
                         <p style="margin-bottom: 5px;">We look forward to celebrating with you!</p>
 
@@ -237,7 +243,13 @@ INVITATION_HTML_ES = """<!DOCTYPE html>
                         <p style="font-size: 14px; color: #888; margin-top: 20px;">Si el botón no funciona, copia este enlace:<br>
                         <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a></p>
 
-                        <p style="margin: 25px 0 10px;">Te pedimos amablemente que respondas antes del {rsvp_deadline}.</p>
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff5e6; border-radius: 8px; margin: 25px 0; border-left: 4px solid #c9a66b;">
+                            <tr>
+                                <td style="padding: 20px;">
+                                    <p style="margin: 0; font-size: 16px; color: #8b7355;"><strong>Por favor, responde antes del:</strong> {rsvp_deadline}</p>
+                                </td>
+                            </tr>
+                        </table>
 
                         <p style="margin-bottom: 5px;">¡ esperamos celebrar contigo!</p>
 
@@ -425,7 +437,13 @@ INVITATION_HTML_NL = """<!DOCTYPE html>
                         <p style="font-size: 14px; color: #888; margin-top: 20px;">Als de knop niet werkt, kopieer deze link:<br>
                         <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a></p>
 
-                        <p style="margin: 25px 0 10px;">We vragen je vriendelijk om te reageren voor {rsvp_deadline}.</p>
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff5e6; border-radius: 8px; margin: 25px 0; border-left: 4px solid #c9a66b;">
+                            <tr>
+                                <td style="padding: 20px;">
+                                    <p style="margin: 0; font-size: 16px; color: #8b7355;"><strong>Graag reageren voor:</strong> {rsvp_deadline}</p>
+                                </td>
+                            </tr>
+                        </table>
 
                         <p style="margin-bottom: 5px;">We kijken ernaar uit om met je te vieren!</p>
 
@@ -613,7 +631,13 @@ PLUS_ONE_INVITATION_HTML_EN = """<!DOCTYPE html>
                         <p style="font-size: 14px; color: #888; margin-top: 20px;">If the button doesn't work, copy this link:<br>
                         <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a></p>
 
-                        <p style="margin: 25px 0 10px;">We kindly ask that you respond by {rsvp_deadline}.</p>
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff5e6; border-radius: 8px; margin: 25px 0; border-left: 4px solid #c9a66b;">
+                            <tr>
+                                <td style="padding: 20px;">
+                                    <p style="margin: 0; font-size: 16px; color: #8b7355;"><strong>Please respond by:</strong> {rsvp_deadline}</p>
+                                </td>
+                            </tr>
+                        </table>
 
                         <p style="margin-bottom: 5px;">We look forward to celebrating with you!</p>
 
@@ -710,7 +734,13 @@ PLUS_ONE_INVITATION_HTML_ES = """<!DOCTYPE html>
                         <p style="font-size: 14px; color: #888; margin-top: 20px;">Si el botón no funciona, copia este enlace:<br>
                         <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a></p>
 
-                        <p style="margin: 25px 0 10px;">Te pedimos amablemente que respondas antes del {rsvp_deadline}.</p>
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff5e6; border-radius: 8px; margin: 25px 0; border-left: 4px solid #c9a66b;">
+                            <tr>
+                                <td style="padding: 20px;">
+                                    <p style="margin: 0; font-size: 16px; color: #8b7355;"><strong>Por favor, responde antes del:</strong> {rsvp_deadline}</p>
+                                </td>
+                            </tr>
+                        </table>
 
                         <p style="margin-bottom: 5px;">¡ esperamos celebrate contigo!</p>
 
@@ -807,7 +837,13 @@ PLUS_ONE_INVITATION_HTML_NL = """<!DOCTYPE html>
                         <p style="font-size: 14px; color: #888; margin-top: 20px;">Als de knop niet werkt, kopieer deze link:<br>
                         <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a></p>
 
-                        <p style="margin: 25px 0 10px;">We vragen je vriendelijk om te reageren voor {rsvp_deadline}.</p>
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff5e6; border-radius: 8px; margin: 25px 0; border-left: 4px solid #c9a66b;">
+                            <tr>
+                                <td style="padding: 20px;">
+                                    <p style="margin: 0; font-size: 16px; color: #8b7355;"><strong>Graag reageren voor:</strong> {rsvp_deadline}</p>
+                                </td>
+                            </tr>
+                        </table>
 
                         <p style="margin-bottom: 5px;">We kijken ernaar uit om met je te vieren!</p>
 
