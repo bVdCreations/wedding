@@ -40,14 +40,16 @@ INVITATION_HTML_EN = """<!DOCTYPE html>
 
                         <table width="100%" cellpadding="0" cellspacing="0">
                             <tr>
-                                <td align="center" style="padding: 25px 0;">
-                                    <a href="{rsvp_url}" style="background-color: #c9a66b; color: #ffffff; padding: 16px 36px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; display: inline-block;">RSVP Now</a>
+                                <td align="center" style="padding: 25px 0 12px 0;">
+                                    <a href="{rsvp_url}" style="background-color: #c9a66b; color: #ffffff; padding: 12px 36px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; display: inline-block;">RSVP Now</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" style="font-size: 12px; color: #888; padding-bottom: 16px;">
+                                    Or use this link: <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a>
                                 </td>
                             </tr>
                         </table>
-
-                        <p style="font-size: 14px; color: #888; margin-top: 20px;">If the button doesn't work, copy this link:<br>
-                        <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a></p>
 
                         <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff5e6; border-radius: 8px; margin: 25px 0; border-left: 4px solid #c9a66b;">
                             <tr>
@@ -234,14 +236,16 @@ INVITATION_HTML_ES = """<!DOCTYPE html>
 
                         <table width="100%" cellpadding="0" cellspacing="0">
                             <tr>
-                                <td align="center" style="padding: 25px 0;">
-                                    <a href="{rsvp_url}" style="background-color: #c9a66b; color: #ffffff; padding: 16px 36px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; display: inline-block;">Confirmar Asistencia</a>
+                                <td align="center" style="padding: 25px 0 12px 0;">
+                                    <a href="{rsvp_url}" style="background-color: #c9a66b; color: #ffffff; padding: 12px 36px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; display: inline-block;">Confirmar Asistencia</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" style="font-size: 12px; color: #888; padding-bottom: 16px;">
+                                    O usa este enlace: <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a>
                                 </td>
                             </tr>
                         </table>
-
-                        <p style="font-size: 14px; color: #888; margin-top: 20px;">Si el botón no funciona, copia este enlace:<br>
-                        <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a></p>
 
                         <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff5e6; border-radius: 8px; margin: 25px 0; border-left: 4px solid #c9a66b;">
                             <tr>
@@ -428,14 +432,16 @@ INVITATION_HTML_NL = """<!DOCTYPE html>
 
                         <table width="100%" cellpadding="0" cellspacing="0">
                             <tr>
-                                <td align="center" style="padding: 25px 0;">
-                                    <a href="{rsvp_url}" style="background-color: #c9a66b; color: #ffffff; padding: 16px 36px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; display: inline-block;">Bevestig Aanwezigheid</a>
+                                <td align="center" style="padding: 25px 0 12px 0;">
+                                    <a href="{rsvp_url}" style="background-color: #c9a66b; color: #ffffff; padding: 12px 36px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; display: inline-block;">Bevestig Aanwezigheid</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" style="font-size: 12px; color: #888; padding-bottom: 16px;">
+                                    Of gebruik deze link: <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a>
                                 </td>
                             </tr>
                         </table>
-
-                        <p style="font-size: 14px; color: #888; margin-top: 20px;">Als de knop niet werkt, kopieer deze link:<br>
-                        <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a></p>
 
                         <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff5e6; border-radius: 8px; margin: 25px 0; border-left: 4px solid #c9a66b;">
                             <tr>
@@ -622,14 +628,16 @@ PLUS_ONE_INVITATION_HTML_EN = """<!DOCTYPE html>
 
                         <table width="100%" cellpadding="0" cellspacing="0">
                             <tr>
-                                <td align="center" style="padding: 25px 0;">
-                                    <a href="{rsvp_url}" style="background-color: #c9a66b; color: #ffffff; padding: 16px 36px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; display: inline-block;">RSVP Now</a>
+                                <td align="center" style="padding: 25px 0 12px 0;">
+                                    <a href="{rsvp_url}" style="background-color: #c9a66b; color: #ffffff; padding: 12px 36px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; display: inline-block;">RSVP Now</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" style="font-size: 12px; color: #888; padding-bottom: 16px;">
+                                    Or use this link: <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a>
                                 </td>
                             </tr>
                         </table>
-
-                        <p style="font-size: 14px; color: #888; margin-top: 20px;">If the button doesn't work, copy this link:<br>
-                        <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a></p>
 
                         <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff5e6; border-radius: 8px; margin: 25px 0; border-left: 4px solid #c9a66b;">
                             <tr>
@@ -725,14 +733,16 @@ PLUS_ONE_INVITATION_HTML_ES = """<!DOCTYPE html>
 
                         <table width="100%" cellpadding="0" cellspacing="0">
                             <tr>
-                                <td align="center" style="padding: 25px 0;">
-                                    <a href="{rsvp_url}" style="background-color: #c9a66b; color: #ffffff; padding: 16px 36px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; display: inline-block;">Confirmar Asistencia</a>
+                                <td align="center" style="padding: 25px 0 12px 0;">
+                                    <a href="{rsvp_url}" style="background-color: #c9a66b; color: #ffffff; padding: 12px 36px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; display: inline-block;">Confirmar Asistencia</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" style="font-size: 12px; color: #888; padding-bottom: 16px;">
+                                    O usa este enlace: <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a>
                                 </td>
                             </tr>
                         </table>
-
-                        <p style="font-size: 14px; color: #888; margin-top: 20px;">Si el botón no funciona, copia este enlace:<br>
-                        <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a></p>
 
                         <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff5e6; border-radius: 8px; margin: 25px 0; border-left: 4px solid #c9a66b;">
                             <tr>
@@ -828,14 +838,16 @@ PLUS_ONE_INVITATION_HTML_NL = """<!DOCTYPE html>
 
                         <table width="100%" cellpadding="0" cellspacing="0">
                             <tr>
-                                <td align="center" style="padding: 25px 0;">
-                                    <a href="{rsvp_url}" style="background-color: #c9a66b; color: #ffffff; padding: 16px 36px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; display: inline-block;">Bevestig Aanwezigheid</a>
+                                <td align="center" style="padding: 25px 0 12px 0;">
+                                    <a href="{rsvp_url}" style="background-color: #c9a66b; color: #ffffff; padding: 12px 36px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 500; display: inline-block;">Bevestig Aanwezigheid</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" style="font-size: 12px; color: #888; padding-bottom: 16px;">
+                                    Of gebruik deze link: <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a>
                                 </td>
                             </tr>
                         </table>
-
-                        <p style="font-size: 14px; color: #888; margin-top: 20px;">Als de knop niet werkt, kopieer deze link:<br>
-                        <a href="{rsvp_url}" style="color: #c9a66b;">{rsvp_url}</a></p>
 
                         <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff5e6; border-radius: 8px; margin: 25px 0; border-left: 4px solid #c9a66b;">
                             <tr>
