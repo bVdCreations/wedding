@@ -40,9 +40,7 @@ async def test_request_invitation_creates_new_user_and_guest():
         assert user.email == email
 
         # Verify Guest was created
-        guest_result = await db_session.execute(
-            select(Guest).where(Guest.user_id == user.uuid)
-        )
+        guest_result = await db_session.execute(select(Guest).where(Guest.user_id == user.uuid))
         guest = guest_result.scalar_one_or_none()
         assert guest is not None
         assert guest.first_name == "John"
@@ -81,9 +79,7 @@ async def test_request_invitation_with_spanish_language():
         # Verify Guest has Spanish language
         user_result = await db_session.execute(select(User).where(User.email == email))
         user = user_result.scalar_one()
-        guest_result = await db_session.execute(
-            select(Guest).where(Guest.user_id == user.uuid)
-        )
+        guest_result = await db_session.execute(select(Guest).where(Guest.user_id == user.uuid))
         guest = guest_result.scalar_one()
         assert guest.preferred_language == Language.ES
 
@@ -115,9 +111,7 @@ async def test_request_invitation_with_dutch_language():
         # Verify Guest has Dutch language
         user_result = await db_session.execute(select(User).where(User.email == email))
         user = user_result.scalar_one()
-        guest_result = await db_session.execute(
-            select(Guest).where(Guest.user_id == user.uuid)
-        )
+        guest_result = await db_session.execute(select(Guest).where(Guest.user_id == user.uuid))
         guest = guest_result.scalar_one()
         assert guest.preferred_language == Language.NL
 
@@ -149,9 +143,7 @@ async def test_request_invitation_default_language_is_english():
         # Verify Guest has English language
         user_result = await db_session.execute(select(User).where(User.email == email))
         user = user_result.scalar_one()
-        guest_result = await db_session.execute(
-            select(Guest).where(Guest.user_id == user.uuid)
-        )
+        guest_result = await db_session.execute(select(Guest).where(Guest.user_id == user.uuid))
         guest = guest_result.scalar_one()
         assert guest.preferred_language == Language.EN
 
@@ -193,9 +185,7 @@ async def test_request_invitation_resends_to_existing_guest():
         # Get original guest data
         user_result = await db_session.execute(select(User).where(User.email == email))
         user = user_result.scalar_one()
-        guest_result = await db_session.execute(
-            select(Guest).where(Guest.user_id == user.uuid)
-        )
+        guest_result = await db_session.execute(select(Guest).where(Guest.user_id == user.uuid))
         original_guest = guest_result.scalar_one()
         original_first_name = original_guest.first_name
         original_last_name = original_guest.last_name
@@ -244,9 +234,7 @@ async def test_request_invitation_updates_language_on_resend():
         # Verify initial language is English
         user_result = await db_session.execute(select(User).where(User.email == email))
         user = user_result.scalar_one()
-        guest_result = await db_session.execute(
-            select(Guest).where(Guest.user_id == user.uuid)
-        )
+        guest_result = await db_session.execute(select(Guest).where(Guest.user_id == user.uuid))
         guest = guest_result.scalar_one()
         assert guest.preferred_language == Language.EN
 
@@ -282,9 +270,7 @@ async def test_request_invitation_preserves_language_when_none_on_resend():
         # Verify language is Spanish
         user_result = await db_session.execute(select(User).where(User.email == email))
         user = user_result.scalar_one()
-        guest_result = await db_session.execute(
-            select(Guest).where(Guest.user_id == user.uuid)
-        )
+        guest_result = await db_session.execute(select(Guest).where(Guest.user_id == user.uuid))
         guest = guest_result.scalar_one()
         assert guest.preferred_language == Language.ES
 
@@ -337,9 +323,7 @@ async def test_request_invitation_sends_email_for_new_guest():
             select(User).where(User.email == "email_test@example.com")
         )
         user = user_result.scalar_one()
-        guest_result = await db_session.execute(
-            select(Guest).where(Guest.user_id == user.uuid)
-        )
+        guest_result = await db_session.execute(select(Guest).where(Guest.user_id == user.uuid))
         guest = guest_result.scalar_one()
         rsvp_result = await db_session.execute(
             select(RSVPInfo).where(RSVPInfo.guest_id == guest.uuid)
@@ -371,9 +355,7 @@ async def test_request_invitation_sends_email_on_resend():
         # Get original email_sent_on
         user_result = await db_session.execute(select(User).where(User.email == email))
         user = user_result.scalar_one()
-        guest_result = await db_session.execute(
-            select(Guest).where(Guest.user_id == user.uuid)
-        )
+        guest_result = await db_session.execute(select(Guest).where(Guest.user_id == user.uuid))
         guest = guest_result.scalar_one()
         rsvp_result = await db_session.execute(
             select(RSVPInfo).where(RSVPInfo.guest_id == guest.uuid)
@@ -424,9 +406,7 @@ async def test_request_invitation_email_not_sent_without_service():
             select(User).where(User.email == "noservice@example.com")
         )
         user = user_result.scalar_one()
-        guest_result = await db_session.execute(
-            select(Guest).where(Guest.user_id == user.uuid)
-        )
+        guest_result = await db_session.execute(select(Guest).where(Guest.user_id == user.uuid))
         guest = guest_result.scalar_one()
         rsvp_result = await db_session.execute(
             select(RSVPInfo).where(RSVPInfo.guest_id == guest.uuid)
@@ -438,7 +418,7 @@ async def test_request_invitation_email_not_sent_without_service():
 
 
 async def test_request_invitation_handles_email_service_failure():
-    """Test that email service failure doesn't prevent guest creation."""
+    """Test that email service failure raises exception."""
     mock_email_service = AsyncMock()
     mock_email_service.send_invitation.side_effect = Exception("Email service failed")
 
@@ -447,32 +427,12 @@ async def test_request_invitation_handles_email_service_failure():
             session_overwrite=db_session, email_service=mock_email_service
         )
 
-        # Should not raise exception
-        result = await write_model.request_invitation(
-            email="failure@example.com",
-            first_name="Failure",
-            last_name="Test",
-        )
-
-        assert result.message == "Check your email for your invitation link"
-
-        # Verify guest was still created
-        user_result = await db_session.execute(
-            select(User).where(User.email == "failure@example.com")
-        )
-        user = user_result.scalar_one()
-        guest_result = await db_session.execute(
-            select(Guest).where(Guest.user_id == user.uuid)
-        )
-        guest = guest_result.scalar_one()
-        assert guest is not None
-
-        # Verify email_sent_on is None due to failure
-        rsvp_result = await db_session.execute(
-            select(RSVPInfo).where(RSVPInfo.guest_id == guest.uuid)
-        )
-        rsvp = rsvp_result.scalar_one()
-        assert rsvp.email_sent_on is None
+        with pytest.raises(Exception, match="Email service failed"):
+            await write_model.request_invitation(
+                email="failure@example.com",
+                first_name="Failure",
+                last_name="Test",
+            )
 
         await db_session.rollback()
 
@@ -505,7 +465,7 @@ async def test_request_invitation_email_sent_with_correct_language():
 
 
 async def test_request_invitation_with_existing_user_no_guest():
-    """Test requesting invitation with existing user but no guest creates guest."""
+    """Test requesting invitation with existing user but no guest raises error."""
     async with async_session_maker() as db_session:
         email = "user_only@example.com"
 
@@ -520,33 +480,17 @@ async def test_request_invitation_with_existing_user_no_guest():
         await db_session.flush()
 
         # Verify no guest exists yet
-        guest_result = await db_session.execute(
-            select(Guest).where(Guest.user_id == user.uuid)
-        )
+        guest_result = await db_session.execute(select(Guest).where(Guest.user_id == user.uuid))
         assert guest_result.scalar_one_or_none() is None
 
-        # Request invitation
+        # Request invitation - should raise exception
         write_model = SqlRequestInvitationWriteModel(session_overwrite=db_session)
-        result = await write_model.request_invitation(
-            email=email,
-            first_name="New",
-            last_name="Guest",
-        )
-
-        assert result.message == "Check your email for your invitation link"
-
-        # Verify guest was created using existing user
-        guest_result_after = await db_session.execute(
-            select(Guest).where(Guest.user_id == user.uuid)
-        )
-        guest = guest_result_after.scalar_one()
-        assert guest is not None
-        assert guest.first_name == "New"
-        assert guest.last_name == "Guest"
-
-        # Verify only one user exists (no duplicate)
-        user_count = await db_session.execute(select(User).where(User.email == email))
-        assert len(user_count.scalars().all()) == 1
+        with pytest.raises(Exception, match=f"Guest not found"):
+            await write_model.request_invitation(
+                email=email,
+                first_name="New",
+                last_name="Guest",
+            )
 
         await db_session.rollback()
 
@@ -569,9 +513,7 @@ async def test_request_invitation_empty_first_name():
             select(User).where(User.email == "empty_first@example.com")
         )
         user = user_result.scalar_one()
-        guest_result = await db_session.execute(
-            select(Guest).where(Guest.user_id == user.uuid)
-        )
+        guest_result = await db_session.execute(select(Guest).where(Guest.user_id == user.uuid))
         guest = guest_result.scalar_one()
         assert guest.first_name == ""
         assert guest.last_name == "LastName"
@@ -597,9 +539,7 @@ async def test_request_invitation_empty_last_name():
             select(User).where(User.email == "empty_last@example.com")
         )
         user = user_result.scalar_one()
-        guest_result = await db_session.execute(
-            select(Guest).where(Guest.user_id == user.uuid)
-        )
+        guest_result = await db_session.execute(select(Guest).where(Guest.user_id == user.uuid))
         guest = guest_result.scalar_one()
         assert guest.first_name == "FirstName"
         assert guest.last_name == ""
@@ -625,9 +565,7 @@ async def test_request_invitation_whitespace_in_names():
             select(User).where(User.email == "whitespace@example.com")
         )
         user = user_result.scalar_one()
-        guest_result = await db_session.execute(
-            select(Guest).where(Guest.user_id == user.uuid)
-        )
+        guest_result = await db_session.execute(select(Guest).where(Guest.user_id == user.uuid))
         guest = guest_result.scalar_one()
         assert guest.first_name == "  John  "
         assert guest.last_name == "  Doe  "
@@ -636,7 +574,7 @@ async def test_request_invitation_whitespace_in_names():
 
 
 async def test_request_invitation_resend_without_rsvp_info():
-    """Test resending invitation when RSVPInfo is missing (data corruption scenario)."""
+    """Test resending invitation when RSVPInfo is missing raises error."""
     async with async_session_maker() as db_session:
         email = "no_rsvp@example.com"
 
@@ -665,16 +603,14 @@ async def test_request_invitation_resend_without_rsvp_info():
         )
         assert rsvp_result.scalar_one_or_none() is None
 
-        # Request invitation (should handle gracefully)
+        # Request invitation - should raise exception
         write_model = SqlRequestInvitationWriteModel(session_overwrite=db_session)
-        result = await write_model.request_invitation(
-            email=email,
-            first_name="Different",
-            last_name="Name",
-        )
-
-        # Should succeed (resend path returns early if no RSVPInfo)
-        assert result.message == "Check your email for your invitation link"
+        with pytest.raises(Exception, match="RSVPInfo not found"):
+            await write_model.request_invitation(
+                email=email,
+                first_name="Different",
+                last_name="Name",
+            )
 
         await db_session.rollback()
 
@@ -739,9 +675,7 @@ async def test_request_invitation_rsvp_link_format():
             select(User).where(User.email == "link_test@example.com")
         )
         user = user_result.scalar_one()
-        guest_result = await db_session.execute(
-            select(Guest).where(Guest.user_id == user.uuid)
-        )
+        guest_result = await db_session.execute(select(Guest).where(Guest.user_id == user.uuid))
         guest = guest_result.scalar_one()
         rsvp_result = await db_session.execute(
             select(RSVPInfo).where(RSVPInfo.guest_id == guest.uuid)
@@ -771,9 +705,7 @@ async def test_request_invitation_creates_active_rsvp():
             select(User).where(User.email == "active_rsvp@example.com")
         )
         user = user_result.scalar_one()
-        guest_result = await db_session.execute(
-            select(Guest).where(Guest.user_id == user.uuid)
-        )
+        guest_result = await db_session.execute(select(Guest).where(Guest.user_id == user.uuid))
         guest = guest_result.scalar_one()
         rsvp_result = await db_session.execute(
             select(RSVPInfo).where(RSVPInfo.guest_id == guest.uuid)
