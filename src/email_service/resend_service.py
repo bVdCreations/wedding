@@ -154,7 +154,7 @@ class ResendEmailService(EmailServiceBase):
             subject=content.subject,
             html_body=content.html_body,
             text_body=content.text_body,
-            email_type="plus_one_invitation",
+            email_type="plus_one_invite",
             guest_id=guest_id,
             user_id=user_id,
             language=language,
