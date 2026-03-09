@@ -56,16 +56,40 @@ class GuestStatus(str, Enum):
     CONFIRMED = "confirmed"
     DECLINED = "declined"
 
+    @classmethod
+    def _missing_(cls, value: str) -> "GuestStatus":
+        value_lower = value.lower()
+        for member in cls:
+            if member.value == value_lower:
+                return member
+        raise ValueError(f"{value!r} is not a valid {cls.__name__}")
+
 
 class GuestType(str, Enum):
     ADULT = "adult"
     CHILD = "child"
+
+    @classmethod
+    def _missing_(cls, value: str) -> "GuestType":
+        value_lower = value.lower()
+        for member in cls:
+            if member.value == value_lower:
+                return member
+        raise ValueError(f"{value!r} is not a valid {cls.__name__}")
 
 
 class Language(str, Enum):
     EN = "en"
     ES = "es"
     NL = "nl"
+
+    @classmethod
+    def _missing_(cls, value: str) -> "Language":
+        value_lower = value.lower()
+        for member in cls:
+            if member.value == value_lower:
+                return member
+        raise ValueError(f"{value!r} is not a valid {cls.__name__}")
 
 
 @dataclass(frozen=True)
