@@ -1,0 +1,24 @@
+---
+const apiKey = import.meta.env.PUBLIC_POSTHOG_KEY;
+const host = import.meta.env.PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com';
+---
+
+{apiKey && (
+  <>
+    <script src="https://eu.i.posthog.com/static/array.js" is:inline></script>
+    <script define:vars={{ apiKey, host }} is:inline>
+      if (window.posthog) {
+        window.posthog.init(apiKey, {
+          api_host: host,
+          autocapture: true,
+          capture_pageview: true,
+          capture_pageleave: true,
+          session_recording: {
+            strictMinimumDuration: true,
+          },
+          persistence: 'localStorage+cookie',
+        });
+      }
+    </script>
+  </>
+)}
