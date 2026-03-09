@@ -87,7 +87,7 @@ class SqlRequestInvitationWriteModel(RequestInvitationWriteModel):
             if user is not None:
                 # 2. Check if user has a guest
                 guest = await self._get_guest_by_user_id(session, user.uuid)
-                if guest is not None:
+                if guest:
                     # Guest exists - resend invitation (update preferred language if provided)
                     if language:
                         guest.preferred_language = language
@@ -96,6 +96,8 @@ class SqlRequestInvitationWriteModel(RequestInvitationWriteModel):
                     return RequestInvitationResponse(
                         message="Check your email for your invitation link"
                     )
+                else:
+                    raise Exception(f"Guest not found: {email} - user: {user.uuid}")
 
             # 3. No guest exists - create new guest
             # Get or create user (should exist now after check above, but handle race)
@@ -176,7 +178,7 @@ class SqlRequestInvitationWriteModel(RequestInvitationWriteModel):
         rsvp_info = result.scalar_one_or_none()
 
         if not rsvp_info:
-            return
+            raise Exception(f"RSVPInfo not found: {guest.uuid}")
 
         # Send invitation email
         if user.email and user.email.strip():
@@ -192,5 +194,5 @@ class SqlRequestInvitationWriteModel(RequestInvitationWriteModel):
                     )
                     rsvp_info.email_sent_on = datetime.now(UTC)
                     await session.flush()
-            except Exception:
-                pass
+            except Exception as e:
+                raise e
