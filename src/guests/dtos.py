@@ -34,6 +34,14 @@ class DietaryType(str, Enum):
     NUT_ALLERGY = "nut_allergy"
     OTHER = "other"
 
+    @classmethod
+    def _missing_(cls, value: str) -> "DietaryType":
+        value_lower = value.lower()
+        for member in cls:
+            if member.value == value_lower:
+                return member
+        raise ValueError(f"{value!r} is not a valid {cls.__name__}")
+
 
 @dataclass(frozen=True)
 class DietaryRequirementDTO:
