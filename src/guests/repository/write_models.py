@@ -137,7 +137,7 @@ class SqlRSVPWriteModel(RSVPWriteModel):
             for req in dietary_requirements:
                 dietary = DietaryOption(
                     guest_id=family_member_uuid,
-                    requirement_type=DietaryType(req.requirement_type),
+                    requirement_type=DietaryType(req.requirement_type).value,
                     notes=req.notes,
                 )
                 session.add(dietary)
@@ -208,7 +208,7 @@ class SqlRSVPWriteModel(RSVPWriteModel):
                         notes = req.notes
                     dietary = DietaryOption(
                         guest_id=guest.uuid,
-                        requirement_type=DietaryType(req_type),
+                        requirement_type=DietaryType(req_type).value,
                         notes=notes,
                     )
                     session.add(dietary)
