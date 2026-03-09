@@ -158,12 +158,10 @@ class EmailLog(Base, TimeStamp):
 
     # Foreign keys for context
     guest_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey(f"{TableNames.GUESTS.value}.uuid", ondelete="SET NULL"),
         nullable=True,
         index=True,
     )
     user_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey(f"{TableNames.USERS.value}.uuid", ondelete="SET NULL"),
         nullable=True,
         index=True,
     )
