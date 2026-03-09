@@ -253,10 +253,10 @@ class EmailTemplates:
         html_body = html.format(
             guest_name=guest_name,
             couple_names=config.couple_names,
+            contact_email=config.contact_email,
         )
         text_body = text.format(
             guest_name=guest_name,
             couple_names=config.couple_names,
         )
         return EmailContent(subject=subject_body, html_body=html_body, text_body=text_body)
-        return EmailContent(subject=subject, html_body=html_body, text_body=text_body)
