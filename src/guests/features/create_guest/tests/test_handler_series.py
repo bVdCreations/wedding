@@ -67,6 +67,15 @@ class MockEmailService(EmailServiceBase):
     ):
         pass
 
+    async def send_rsvp_declined(
+        self,
+        guest_name: str,
+        to_address: str,
+        guest_id,
+        language=None,
+    ):
+        pass
+
 
 class TrackingMockEmailService(EmailServiceBase):
     """Mock email service that tracks which guests received emails."""
@@ -108,6 +117,15 @@ class TrackingMockEmailService(EmailServiceBase):
         language=None,
         guest_id=None,
         user_id=None,
+    ):
+        pass
+
+    async def send_rsvp_declined(
+        self,
+        guest_name: str,
+        to_address: str,
+        guest_id,
+        language=None,
     ):
         pass
 

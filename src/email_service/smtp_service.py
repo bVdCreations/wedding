@@ -116,3 +116,21 @@ class SMTPEmailService(EmailServiceBase):
         )
 
         self._send(msg)
+
+    async def send_rsvp_declined(
+        self,
+        guest_name: str,
+        to_address: str,
+        guest_id: UUID,
+        language: Language = Language.EN,
+    ) -> None:
+        content = EmailTemplates().get_rsvp_declined_templates(language, guest_name)
+
+        msg = self._create_message(
+            to_address=to_address,
+            subject=content.subject,
+            html_body=content.html_body,
+            text_body=content.text_body,
+        )
+
+        self._send(msg)

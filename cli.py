@@ -24,6 +24,7 @@ class EmailType(str, Enum):
     INVITATION = "invitation"
     CONFIRMATION = "confirmation"
     PLUS_ONE = "plus_one"
+    RSVP_DECLINED = "rsvp_declined"
 
 
 app = typer.Typer(help="CLI commands for wedding RSVP management")
@@ -516,6 +517,13 @@ async def _send_test_email(
             rsvp_url="https://example.com/rsvp/plus-one-token",
             language=language,
         )
+    elif email_type == EmailType.RSVP_DECLINED:
+        await email_service.send_rsvp_declined(
+            guest_name=guest_name,
+            to_address=to_email,
+            guest_id=uuid4(),
+            language=language,
+        )
 
 
 @app.command()
@@ -528,7 +536,7 @@ def send_email(
         "invitation",
         "--type",
         "-y",
-        help="Email type: invitation, confirmation, plus_one",
+        help="Email type: invitation, confirmation, plus_one, regret",
     ),
     language: str = typer.Option(
         "en",
@@ -543,7 +551,7 @@ def send_email(
         email_type_enum = EmailType(email_type)
     except ValueError:
         typer.secho(
-            f"Invalid email type: {email_type}. Must be one of: invitation, confirmation, plus_one",
+            f"Invalid email type: {email_type}. Must be one of: invitation, confirmation, plus_one, regret",
             fg=typer.colors.RED,
         )
         raise typer.Exit(1)
@@ -610,6 +618,13 @@ async def _send_all_test_emails(
                     rsvp_url=rsvp_url,
                     language=lang,
                 )
+            elif etype == EmailType.RSVP_DECLINED:
+                await email_service.send_rsvp_declined(
+                    guest_name=guest_name,
+                    to_address=to_email,
+                    guest_id=uuid4(),
+                    language=lang,
+                )
             sent_count += 1
             typer.echo(f"  Sent: {etype.value} ({lang.value})")
 
@@ -628,7 +643,7 @@ def send_test_emails(
         None,
         "--type",
         "-y",
-        help="Email type: invitation, confirmation, plus_one. If not set, sends all types",
+        help="Email type: invitation, confirmation, plus_one, regret. If not set, sends all types",
     ),
 ):
     """Send test emails to Mailhog for inspection.

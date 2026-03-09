@@ -57,6 +57,16 @@ class MockEmailService(EmailServiceBase):
         """Mock send invite one plus one - does nothing."""
         pass
 
+    async def send_rsvp_declined(
+        self,
+        guest_name: str,
+        to_address: str,
+        guest_id: UUID,
+        language: Language = Language.EN,
+    ) -> None:
+        """Mock send regret notification - does nothing."""
+        pass
+
 
 async def create_test_user(async_session, email="test@example.com"):
     """Create a test user, cleaning up any existing test data first."""
@@ -193,6 +203,102 @@ async def test_submit_rsvp_not_attending():
             )
             rsvp_info = rsvp_result.scalar_one()
             assert rsvp_info.status == GuestStatus.DECLINED
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_attending_does_not_send_rsvp_declined_email():
+    """Test that rsvp_declined email is NOT sent when guest attends."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="attending@example.com")
+            await create_test_guest(session, user, "attending-token")
+
+            spy_email_service = SpyEmailService()
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session, email_service=spy_email_service
+            )
+
+            rsvp_data = RSVPResponseSubmit(
+                attending=True,
+                family_member_updates={},
+            )
+
+            await write_model.submit_rsvp(
+                token="attending-token",
+                rsvp_data=rsvp_data,
+            )
+
+            # Verify confirmation email was sent
+            assert len(spy_email_service.send_confirmation_calls) == 1
+            # Verify rsvp_declined email was NOT sent
+            assert len(spy_email_service.send_rsvp_declined_calls) == 0
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_not_attending_sends_rsvp_declined_email():
+    """Test that rsvp_declined email is sent when guest declines."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="declining@example.com")
+            await create_test_guest(session, user, "declining-token")
+
+            spy_email_service = SpyEmailService()
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session, email_service=spy_email_service
+            )
+
+            rsvp_data = RSVPResponseSubmit(
+                attending=False,
+                family_member_updates={},
+            )
+
+            await write_model.submit_rsvp(
+                token="declining-token",
+                rsvp_data=rsvp_data,
+            )
+
+            # Verify rsvp_declined email was sent to guest
+            assert len(spy_email_service.send_rsvp_declined_calls) == 1
+            decline_call = spy_email_service.send_rsvp_declined_calls[0]
+            assert decline_call["guest_name"] == "John Doe"
+            assert decline_call["to_address"] == "declining@example.com"
+        finally:
+            await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_submit_rsvp_not_attending_uses_guest_language():
+    """Test that rsvp_declined email uses guest's preferred language."""
+    async with async_session_manager() as session:
+        try:
+            user = await create_test_user(session, email="es-decline@example.com")
+            _guest = await create_test_guest_with_language(
+                session, user, "es-decline-token", Language.ES
+            )
+
+            spy_email_service = SpyEmailService()
+            write_model = SqlRSVPWriteModel(
+                session_overwrite=session, email_service=spy_email_service
+            )
+
+            rsvp_data = RSVPResponseSubmit(
+                attending=False,
+                family_member_updates={},
+            )
+
+            await write_model.submit_rsvp(
+                token="es-decline-token",
+                rsvp_data=rsvp_data,
+            )
+
+            # Verify rsvp_declined email was sent with Spanish language
+            assert len(spy_email_service.send_rsvp_declined_calls) == 1
+            call = spy_email_service.send_rsvp_declined_calls[0]
+            assert call["language"] == Language.ES
         finally:
             await session.rollback()
 
@@ -432,6 +538,7 @@ class SpyEmailService(EmailServiceBase):
     def __init__(self):
         self.send_confirmation_calls = []
         self.send_invite_one_plus_one_calls = []
+        self.send_rsvp_declined_calls = []
 
     async def send_confirmation(
         self,
@@ -490,6 +597,23 @@ class SpyEmailService(EmailServiceBase):
                 "language": language,
                 "guest_id": guest_id,
                 "user_id": user_id,
+            }
+        )
+
+    async def send_rsvp_declined(
+        self,
+        guest_name: str,
+        to_address: str,
+        guest_id=None,
+        language: Language = Language.EN,
+    ) -> None:
+        """Capture send rsvp_declined calls."""
+        self.send_rsvp_declined_calls.append(
+            {
+                "to_address": to_address,
+                "guest_name": guest_name,
+                "guest_id": guest_id,
+                "language": language,
             }
         )
 

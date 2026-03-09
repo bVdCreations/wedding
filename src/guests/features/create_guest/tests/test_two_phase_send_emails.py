@@ -75,6 +75,15 @@ class TestTwoPhaseExecution:
         ):
             pass
 
+        async def send_rsvp_declined(
+            self,
+            guest_name: str,
+            to_address: str,
+            guest_id,
+            language=None,
+        ):
+            pass
+
         async def send_invitation_for_guest(self, guest_id):
             return EmailResult(status=EmailStatus.SENT)
 
@@ -157,6 +166,15 @@ class TestTwoPhaseExecution:
                 language=None,
                 guest_id=None,
                 user_id=None,
+            ):
+                pass
+
+            async def send_rsvp_declined(
+                self,
+                guest_name: str,
+                to_address: str,
+                guest_id,
+                language=None,
             ):
                 pass
 
@@ -327,6 +345,15 @@ class TestTwoPhaseExecution:
                 language=None,
                 guest_id=None,
                 user_id=None,
+            ):
+                pass
+
+            async def send_rsvp_declined(
+                self,
+                guest_name: str,
+                to_address: str,
+                guest_id,
+                language=None,
             ):
                 pass
 

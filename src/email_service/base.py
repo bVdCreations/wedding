@@ -55,6 +55,16 @@ class EmailServiceBase(ABC):
     ) -> None:
         pass
 
+    @abstractmethod
+    async def send_rsvp_declined(
+        self,
+        guest_name: str,
+        to_address: str,
+        guest_id: UUID,
+        language: Language = Language.EN,
+    ) -> None:
+        pass
+
     def set_session_overwrite(self, session: AsyncSession) -> None:
         self._session_overwrite = session
 

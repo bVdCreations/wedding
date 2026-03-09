@@ -149,6 +149,7 @@ class EmailLog(Base, TimeStamp):
             "reminder",
             "plus_one_invite",
             "forwarded",
+            "rsvp_declined",
             name="email_type_enum",
         ),
         nullable=False,

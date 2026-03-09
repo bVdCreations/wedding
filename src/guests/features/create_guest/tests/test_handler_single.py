@@ -66,6 +66,15 @@ class MockEmailService(EmailServiceBase):
     ):
         pass
 
+    async def send_rsvp_declined(
+        self,
+        guest_name: str,
+        to_address: str,
+        guest_id,
+        language=None,
+    ):
+        pass
+
 
 @pytest.fixture
 async def session():

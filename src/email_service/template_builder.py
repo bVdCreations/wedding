@@ -225,3 +225,38 @@ class EmailTemplates:
             website_url=config.website_url,
         )
         return EmailContent(subject=subject, html_body=html_body, text_body=text_body)
+
+    def get_rsvp_declined_templates(
+        self,
+        language: Language,
+        guest_name: str,
+    ) -> EmailContent:
+        lang_suffix = language.value.upper()
+        subject = getattr(
+            templates,
+            f"RSVP_DECLINED_SUBJECT_{lang_suffix}",
+            templates.RSVP_DECLINED_SUBJECT_EN,
+        )
+        html = getattr(
+            templates,
+            f"RSVP_DECLINED_HTML_{lang_suffix}",
+            templates.RSVP_DECLINED_HTML_EN,
+        )
+        text = getattr(
+            templates,
+            f"RSVP_DECLINED_TEXT_{lang_suffix}",
+            templates.RSVP_DECLINED_TEXT_EN,
+        )
+
+        config = self._config
+        subject_body = subject.format(guest_name=guest_name)
+        html_body = html.format(
+            guest_name=guest_name,
+            couple_names=config.couple_names,
+        )
+        text_body = text.format(
+            guest_name=guest_name,
+            couple_names=config.couple_names,
+        )
+        return EmailContent(subject=subject_body, html_body=html_body, text_body=text_body)
+        return EmailContent(subject=subject, html_body=html_body, text_body=text_body)

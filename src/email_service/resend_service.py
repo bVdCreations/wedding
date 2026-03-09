@@ -159,3 +159,23 @@ class ResendEmailService(EmailServiceBase):
             user_id=user_id,
             language=language,
         )
+
+    async def send_rsvp_declined(
+        self,
+        guest_name: str,
+        to_address: str,
+        guest_id: UUID,
+        language: Language = Language.EN,
+    ) -> None:
+        content = EmailTemplates().get_rsvp_declined_templates(language, guest_name)
+
+        await self._send(
+            to_address=to_address,
+            subject=content.subject,
+            html_body=content.html_body,
+            text_body=content.text_body,
+            email_type="rsvp_declined",
+            guest_id=guest_id,
+            user_id=None,
+            language=language,
+        )

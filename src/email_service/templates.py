@@ -921,3 +921,142 @@ Met liefde,
 Als je vragen hebt, neem dan contact met ons op via: {contact_email}
 Routebeschrijving: {google_maps_url}
 """
+
+
+RSVP_DECLINED_SUBJECT_EN = "We have received your answer"
+RSVP_DECLINED_HTML_EN = """<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f9f7f4; font-family: 'Cormorant Garamond', Georgia, serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9f7f4; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                    <tr>
+                        <td style="padding: 40px 40px 20px; text-align: center;">
+                            <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 32px; color: #333333; margin: 0 0 10px;">We have received your answer</h1>
+                            <p style="font-size: 16px; color: #666666; margin: 0; line-height: 1.6;">
+                                Hi {guest_name},<br><br>
+                                Thank you for letting us know. We'll definitely miss having you with us on the big day, but we completely understand.<br><br>
+                                We hope everything is going well with you and look forward to catching up soon.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 30px 40px; text-align: center;">
+                            <p style="font-family: 'Cormorant Garamond', serif; font-size: 20px; color: #c9a66b; margin: 0;">Warmly,<br>{couple_names}</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"""
+
+RSVP_DECLINED_TEXT_EN = """Hi {guest_name},
+
+Thank you for letting us know. We'll definitely miss having you with us on the big day, but we completely understand.
+
+We hope everything is going well with you and look forward to catching up soon.
+
+Warmly,
+{couple_names}
+"""
+
+RSVP_DECLINED_SUBJECT_ES = "Hemos recibido tu respuesta"
+RSVP_DECLINED_HTML_ES = """<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f9f7f4; font-family: 'Cormorant Garamond', Georgia, serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9f7f4; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                    <tr>
+                        <td style="padding: 40px 40px 20px; text-align: center;">
+                            <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 32px; color: #333333; margin: 0 0 10px;">Hemos recibido tu respuesta</h1>
+                            <p style="font-size: 16px; color: #666666; margin: 0; line-height: 1.6;">
+                                Hola {guest_name},<br><br>
+                                Gracias por avisarnos. Nos encantaría tenerte con nosotros en nuestro gran día, pero lo entendemos perfectamente.<br><br>
+                                Esperamos que todo te vaya bien y esperamos poder verte pronto.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 30px 40px; text-align: center;">
+                            <p style="font-family: 'Cormorant Garamond', serif; font-size: 20px; color: #c9a66b; margin: 0;">Saludos,<br>{couple_names}</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"""
+
+RSVP_DECLINED_TEXT_ES = """Hola {guest_name},
+
+Gracias por avisarnos. Nos encantaría tenerte con nosotros en nuestro gran día, pero lo entendemos perfectamente.
+
+Esperamos que todo te vaya bien y esperamos poder verte pronto.
+
+Saludos,
+{couple_names}
+"""
+
+RSVP_DECLINED_SUBJECT_NL = "We hebben je antwoord ontvangen"
+RSVP_DECLINED_HTML_NL = """<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f9f7f4; font-family: 'Cormorant Garamond', Georgia, serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9f7f4; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                    <tr>
+                        <td style="padding: 40px 40px 20px; text-align: center;">
+                            <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 32px; color: #333333; margin: 0 0 10px;">We hebben je antwoord ontvangen</h1>
+                            <p style="font-size: 16px; color: #666666; margin: 0; line-height: 1.6;">
+                                Hoi {guest_name},<br><br>
+                                Bedankt dat je het ons hebt laten weten. We missen je zeker op onze grote dag, maar we begrijpen het volledig.<br><br>
+                                We hopen dat het goed met je gaat en we kijken ernaar uit om snel bij te praten.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 30px 40px; text-align: center;">
+                            <p style="font-family: 'Cormorant Garamond', serif; font-size: 20px; color: #c9a66b; margin: 0;">Groetjes,<br>{couple_names}</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"""
+
+RSVP_DECLINED_TEXT_NL = """Hoi {guest_name},
+
+Bedankt dat je het ons hebt laten weten. We missen je zeker op onze grote dag, maar we begrijpen het volledig.
+
+We hopen dat het goed met je gaat en we kijken ernaar uit om snel bij te praten.
+
+Groetjes,
+{couple_names}
+"""

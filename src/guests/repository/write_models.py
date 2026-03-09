@@ -287,32 +287,40 @@ class SqlRSVPWriteModel(RSVPWriteModel):
 
             # Send confirmation email if email_service is available
             if self._email_service:
-                # Handle both dict and Pydantic model for dietary_requirements
-                if dietary_requirements:
-                    dietary_list = []
-                    for req in dietary_requirements:
-                        if isinstance(req, dict):
-                            dietary_list.append(req["requirement_type"])
-                        else:
-                            dietary_list.append(req.requirement_type)
-                    dietary_str = ", ".join(dietary_list)
-                else:
-                    dietary_str = "None"
-
                 user_email = await self._get_user_email(session, guest.user_id)
                 guest_name = f"{guest.first_name} {guest.last_name}"
+                # Handle both dict and Pydantic model for dietary_requirements
+                if attending:
+                    if dietary_requirements:
+                        dietary_list = []
+                        for req in dietary_requirements:
+                            if isinstance(req, dict):
+                                dietary_list.append(req["requirement_type"])
+                            else:
+                                dietary_list.append(req.requirement_type)
+                        dietary_str = ", ".join(dietary_list)
+                    else:
+                        dietary_str = "None"
 
-                await self._email_service.send_confirmation(
-                    to_address=user_email,
-                    guest_name=guest_name,
-                    attending="Yes" if attending else "No",
-                    dietary=dietary_str,
-                    allergies=guest.allergies or "",
-                    taking_bus=rsvp_info.needs_transport,
-                    language=preferred_language,
-                    guest_id=guest.uuid,
-                    user_id=guest.user_id,
-                )
+                    await self._email_service.send_confirmation(
+                        to_address=user_email,
+                        guest_name=guest_name,
+                        attending="Yes" if attending else "No",
+                        dietary=dietary_str,
+                        allergies=guest.allergies or "",
+                        taking_bus=rsvp_info.needs_transport,
+                        language=preferred_language,
+                        guest_id=guest.uuid,
+                        user_id=guest.user_id,
+                    )
+
+                else:
+                    await self._email_service.send_rsvp_declined(
+                        guest_name=guest_name,
+                        to_address=user_email,
+                        language=preferred_language,
+                        guest_id=guest.uuid,
+                    )
 
             # Return DTO instead of ORM model
             return RSVPResponseDTO(
