@@ -485,7 +485,7 @@ async def test_request_invitation_with_existing_user_no_guest():
 
         # Request invitation - should raise exception
         write_model = SqlRequestInvitationWriteModel(session_overwrite=db_session)
-        with pytest.raises(Exception, match=f"Guest not found"):
+        with pytest.raises(Exception, match="Guest not found"):
             await write_model.request_invitation(
                 email=email,
                 first_name="New",
