@@ -1055,7 +1055,7 @@ RSVP_DECLINED_HTML_NL = """<!DOCTYPE html>
                 </tr>
                 <tr>
                     <td style="padding: 20px 40px 40px;">
-                        <p style="font-size: 18px; margin-bottom: 30px;">Hoi {guest_name},</p>
+                        <p style="font-size: 18px; margin-bottom: 30px;">Beste {guest_name},</p>
 
                         <p style="margin-bottom: 25px;">Bedankt dat je het ons hebt laten weten. We missen je zeker op onze grote dag, maar we begrijpen het volledig.</p>
 
@@ -1078,7 +1078,7 @@ RSVP_DECLINED_HTML_NL = """<!DOCTYPE html>
 </html>
 """
 
-RSVP_DECLINED_TEXT_NL = """Hoi {guest_name},
+RSVP_DECLINED_TEXT_NL = """Beste {guest_name},
 
 Bedankt dat je het ons hebt laten weten. We missen je zeker op onze grote dag, maar we begrijpen het volledig.
 
