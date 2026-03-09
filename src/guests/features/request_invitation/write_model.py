@@ -150,8 +150,9 @@ class SqlRequestInvitationWriteModel(RequestInvitationWriteModel):
                             user_id=user.uuid,
                         )
                         email_sent_on = datetime.now(UTC)
-                except Exception:
+                except Exception as e:
                     email_sent_on = None
+                    raise e
 
             rsvp_info.email_sent_on = email_sent_on
             await session.flush()
