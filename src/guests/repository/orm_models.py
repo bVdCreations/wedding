@@ -1,11 +1,11 @@
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.config.table_names import TableNames
-from src.guests.dtos import DietaryType, GuestStatus, GuestType, Language
+from src.guests.dtos import GuestStatus, GuestType, Language
 from src.models.base import Base, TimeStamp
 
 
@@ -30,9 +30,7 @@ class DietaryOption(Base, TimeStamp):
         index=True,
     )
 
-    requirement_type: Mapped[str] = mapped_column(
-        Enum(DietaryType, name="dietary_type_enum"), nullable=False
-    )
+    requirement_type: Mapped[str] = mapped_column(String(50), nullable=False)
     notes: Mapped[str] = mapped_column(Text, nullable=True)
 
     def __repr__(self) -> str:
@@ -53,7 +51,7 @@ class Guest(Base, TimeStamp):
 
     # Guest type (adult or child)
     guest_type: Mapped[str] = mapped_column(
-        Enum(GuestType, name="guest_type_enum", values_callable=lambda x: [e.value for e in x]),
+        String(10),
         default=GuestType.ADULT,
         nullable=False,
     )
@@ -85,7 +83,7 @@ class Guest(Base, TimeStamp):
     allergies: Mapped[str] = mapped_column(Text, nullable=True)
     # Preferred language for communication (emails, RSVP page)
     preferred_language: Mapped[str] = mapped_column(
-        Enum(Language, name="language_enum", values_callable=lambda x: [e.value for e in x]),
+        String(2),
         default=Language.EN,
         nullable=False,
     )
@@ -104,7 +102,7 @@ class RSVPInfo(Base, TimeStamp):
     )
 
     status: Mapped[str] = mapped_column(
-        Enum(GuestStatus, name="guest_status_enum_v2"),
+        String(20),
         default=GuestStatus.PENDING,
         nullable=False,
     )
@@ -160,15 +158,7 @@ class EmailLog(Base, TimeStamp):
 
     # Delivery tracking
     status: Mapped[str] = mapped_column(
-        Enum(
-            "pending",
-            "sent",
-            "delivered",
-            "bounced",
-            "failed",
-            "complained",
-            name="email_status_enum",
-        ),
+        String(20),
         default="pending",
         nullable=False,
         index=True,
@@ -176,7 +166,7 @@ class EmailLog(Base, TimeStamp):
 
     # Additional metadata
     language: Mapped[str | None] = mapped_column(
-        Enum(Language, name="language_enum_ref", values_callable=lambda x: [e.value for e in x]),
+        String(2),
         nullable=True,
     )
 

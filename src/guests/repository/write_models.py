@@ -11,13 +11,14 @@ from src.config.database import async_session_manager
 from src.email_service.base import EmailServiceBase
 from src.guests.dtos import (
     DietaryRequirementDTO,
+    DietaryType,
     GuestStatus,
     Language,
     PlusOneDTO,
     RSVPAlreadySubmittedError,
     RSVPResponseDTO,
 )
-from src.guests.repository.orm_models import DietaryOption, DietaryType, Guest, RSVPInfo
+from src.guests.repository.orm_models import DietaryOption, Guest, RSVPInfo
 from src.models.user import User
 
 if TYPE_CHECKING:
