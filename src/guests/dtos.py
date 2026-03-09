@@ -35,7 +35,8 @@ class DietaryType(str, Enum):
     OTHER = "other"
 
     @classmethod
-    def _missing_(cls, value: str) -> "DietaryType":
+    def _missing_(cls, value: object) -> "DietaryType":
+        assert isinstance(value, str)
         value_lower = value.lower()
         for member in cls:
             if member.value == value_lower:
@@ -57,7 +58,8 @@ class GuestStatus(str, Enum):
     DECLINED = "declined"
 
     @classmethod
-    def _missing_(cls, value: str) -> "GuestStatus":
+    def _missing_(cls, value: object) -> "GuestStatus":
+        assert isinstance(value, str)
         value_lower = value.lower()
         for member in cls:
             if member.value == value_lower:
@@ -70,7 +72,8 @@ class GuestType(str, Enum):
     CHILD = "child"
 
     @classmethod
-    def _missing_(cls, value: str) -> "GuestType":
+    def _missing_(cls, value: object) -> "GuestType":
+        assert isinstance(value, str)
         value_lower = value.lower()
         for member in cls:
             if member.value == value_lower:
@@ -84,7 +87,8 @@ class Language(str, Enum):
     NL = "nl"
 
     @classmethod
-    def _missing_(cls, value: str) -> "Language":
+    def _missing_(cls, value: object) -> "Language":
+        assert isinstance(value, str)
         value_lower = value.lower()
         for member in cls:
             if member.value == value_lower:
