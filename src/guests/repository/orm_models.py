@@ -143,15 +143,7 @@ class EmailLog(Base, TimeStamp):
 
     # Email type and context
     email_type: Mapped[str] = mapped_column(
-        Enum(
-            "invitation",
-            "confirmation",
-            "reminder",
-            "plus_one_invite",
-            "forwarded",
-            "rsvp_declined",
-            name="email_type_enum",
-        ),
+        String(50),
         nullable=False,
         index=True,
     )

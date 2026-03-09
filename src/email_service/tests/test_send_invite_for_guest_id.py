@@ -224,3 +224,48 @@ async def test_send_invitation_for_guest_none_guest_id():
 
         assert result.status == EmailStatus.FAILED
         assert "guest_id is None" in (result.error or "")
+
+
+@pytest.mark.asyncio
+async def test_email_type_accepts_any_string():
+    """Test that email_type column accepts any string value (not restricted by enum).
+
+    This test covers the bug where 'plus_one_invitation' was rejected because
+    the enum only had 'plus_one_invite'. Now that email_type is a plain varchar,
+    any string should be accepted.
+    """
+    from src.guests.repository.orm_models import EmailLog
+
+    async with async_session_manager() as session:
+        email_types_to_test = [
+            "invitation",
+            "confirmation",
+            "reminder",
+            "plus_one_invite",
+            "plus_one_invitation",
+            "forwarded",
+            "rsvp_declined",
+            "custom_email_type",
+            "any_arbitrary_string_12345",
+        ]
+
+        for email_type in email_types_to_test:
+            email_log = EmailLog(
+                to_address="test@example.com",
+                from_address="from@example.com",
+                subject="Test Subject",
+                html_body="<p>Test</p>",
+                text_body="Test",
+                email_type=email_type,
+                status="pending",
+            )
+            session.add(email_log)
+            await session.flush()
+            await session.refresh(email_log)
+
+            assert email_log.email_type == email_type
+            assert email_log.uuid is not None
+
+            session.expunge(email_log)
+
+        await session.commit()
