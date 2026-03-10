@@ -1,0 +1,13 @@
+api.gemma-bastiaan.wedding {
+    reverse_proxy api:8000
+    tls {
+        dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+    }
+}
+
+webhook.gemma-bastiaan.wedding {
+    reverse_proxy webhook:8080
+    tls {
+        dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+    }
+}
