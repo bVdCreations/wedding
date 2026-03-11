@@ -217,18 +217,23 @@ class SqlRSVPWriteModel(RSVPWriteModel):
             if guest_info:
                 await self._update_guest_info(session, guest, guest_info)
 
-            # Update preferred_language if provided
+            # Update selected_language if provided
             if rsvp_data.language:
                 try:
-                    guest.preferred_language = Language(rsvp_data.language)
+                    selected_langauge = Language(rsvp_data.language)
                 except ValueError:
-                    pass  # Ignore invalid language values
-
-            await session.flush()
-            await session.refresh(guest)
+                    pass
+                else:
+                    guest.preferred_language = selected_langauge.value
+                    await session.flush()
+                    await session.refresh(guest)
 
             # Get guest's preferred language (needed for plus-one email and confirmation email)
-            preferred_language = getattr(guest, "preferred_language", Language.EN)
+            if guest.preferred_language is None:
+                preferred_language = Language.EN
+
+            else:
+                preferred_language = Language(guest.preferred_language)
 
             # Create plus-one guest if details provided
             if attending and plus_one_details and self._plus_one_guest_write_model:
