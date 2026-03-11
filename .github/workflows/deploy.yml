@@ -40,3 +40,10 @@ jobs:
             ghcr.io/${{ steps.lowercase-owner.outputs.owner }}/wedding-api:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Notify webhook
+        run: |
+          curl -X POST "${{ vars.WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.WEBHOOK_SECRET }}" \
+            -d '{"tag": "c-${{ github.sha }}"}'
