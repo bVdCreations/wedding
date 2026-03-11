@@ -43,7 +43,7 @@ jobs:
 
       - name: Notify webhook
         run: |
-          curl -X POST "${{ vars.WEBHOOK_URL }}" \
+          curl -f -X POST "${{ vars.WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.WEBHOOK_SECRET }}" \
             -d '{"tag": "c-${{ github.sha }}"}'
