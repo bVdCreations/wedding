@@ -32,8 +32,6 @@ services:
     image: postgres:16-alpine
     container_name: wedding_db
     restart: unless-stopped
-    env_file:
-      - ./deploy/.env.prod
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -54,7 +52,7 @@ services:
     restart: unless-stopped
     pull_policy: always
     env_file:
-      - ./deploy/.env.prod
+      - .env.prod
     environment:
       WEBHOOK_SECRET: ${WEBHOOK_SECRET}
       COMPOSE_FILE: docker-compose.prod.yml
@@ -63,6 +61,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - .env.prod:/app/.env.prod
+      - ./docker-compose.prod.yml:/app/docker-compose.prod.yml
 
 volumes:
   postgres_data:
