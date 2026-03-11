@@ -1,3 +1,4 @@
+name: wedding
 services:
   caddy:
     image: ghcr.io/bvdcreations/wedding-caddy:latest
