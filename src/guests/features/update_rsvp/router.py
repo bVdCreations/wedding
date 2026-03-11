@@ -3,6 +3,7 @@ from dataclasses import field
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, field_validator, model_validator
 
+from src.config.logging import get_logger
 from src.email_service import get_email_service
 from src.guests.dtos import DietaryType, GuestStatus, RSVPAlreadySubmittedError
 from src.guests.features.create_plus_one_guest.write_model import (
@@ -10,6 +11,8 @@ from src.guests.features.create_plus_one_guest.write_model import (
 )
 from src.guests.repository.write_models import RSVPWriteModel, SqlRSVPWriteModel
 from src.guests.urls import UPDATE_RSVP_URL
+
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -107,18 +110,23 @@ async def submit_rsvp(
     Supports updating guest info and family member RSVP/dietary.
     Family members cannot add plus-ones.
     """
+    logger.info(f"RSVP submitted for token, attending={rsvp_data.attending}")
     try:
         response_dto = await write_model.submit_rsvp(
             token=token,
             rsvp_data=rsvp_data,
         )
 
+        logger.info(
+            f"RSVP submitted successfully, attending={response_dto.attending}, status={response_dto.status}"
+        )
         return RSVPResponse(
             message=response_dto.message,
             attending=response_dto.attending,
             status=response_dto.status,
         )
     except RSVPAlreadySubmittedError:
+        logger.warning("RSVP already submitted for token")
         raise HTTPException(
             status_code=409,
             detail={
@@ -127,4 +135,5 @@ async def submit_rsvp(
             },
         )
     except ValueError as e:
+        logger.error(f"RSVP submission error: {e}")
         raise HTTPException(status_code=404, detail=str(e))

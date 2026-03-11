@@ -9,22 +9,29 @@ from fastapi.middleware.cors import CORSMiddleware
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.starlette import StarletteIntegration
 
+from src.config.logging import get_logger
 from src.config.settings import settings
 from src.guests.routers import router as guests_router
 from src.routers.healthz.router import router as healthz_router
 from src.webhooks.router import router as webhooks_router
 
+logger = get_logger(__name__)
+
 
 async def run_migrations():
+    logger.info("Running database migrations")
     alembic_cfg = Config("alembic.ini")
     await asyncio.to_thread(command.upgrade, alembic_cfg, "head")
+    logger.info("Database migrations completed")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logger.info("Application starting up")
     if settings.RUN_MIGRATIONS_ON_STARTUP:
         await run_migrations()
     yield
+    logger.info("Application shutting down")
 
 
 if settings.SENTRY_DSN:
@@ -39,6 +46,9 @@ if settings.SENTRY_DSN:
         ],
         send_default_pii=False,
     )
+    logger.info("Sentry initialized")
+else:
+    logger.info("Sentry not configured")
 
 app = FastAPI(
     title="Wedding RSVP API",

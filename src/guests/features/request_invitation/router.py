@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 
+from src.config.logging import get_logger
 from src.email_service import get_email_service
 from src.guests.features.request_invitation.dtos import (
     RequestInvitationRequest,
@@ -9,6 +10,8 @@ from src.guests.features.request_invitation.write_model import (
     RequestInvitationWriteModel,
     SqlRequestInvitationWriteModel,
 )
+
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -39,6 +42,9 @@ async def request_invitation(
     All fields are required: email, first_name, last_name.
     Optional: language (defaults to English).
     """
+    logger.info(
+        f"Request invitation for email={request.email}, first_name={request.first_name}, last_name={request.last_name}"
+    )
     return await write_model.request_invitation(
         email=request.email,
         first_name=request.first_name,

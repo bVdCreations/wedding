@@ -4,10 +4,13 @@ from uuid import UUID
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.config.logging import get_logger
 from src.email_service.base import EmailServiceBase
 from src.email_service.email_logger import EmailLogger, NoOpEmailLogger
 from src.email_service.template_builder import EmailTemplates
 from src.guests.dtos import Language
+
+logger = get_logger(__name__)
 
 
 class ResendEmailConfig(Protocol):
@@ -38,6 +41,8 @@ class ResendEmailService(EmailServiceBase):
         language: Language | None = None,
     ) -> str:
         """Send email via Resend and log via injected logger."""
+
+        logger.info(f"Sending {email_type} email to {to_address}")
 
         log_uuid = await self.email_logger.log_email_attempt(
             to_address=to_address,
@@ -77,9 +82,13 @@ class ResendEmailService(EmailServiceBase):
                     resend_email_id=resend_email_id,
                 )
 
+                logger.info(
+                    f"Successfully sent {email_type} email to {to_address}, resend_id={resend_email_id}"
+                )
                 return resend_email_id
 
         except httpx.HTTPStatusError as e:
+            logger.error(f"Failed to send {email_type} email to {to_address}: {e}")
             await self.email_logger.log_email_failure(
                 log_uuid=log_uuid,
                 error_message=str(e),

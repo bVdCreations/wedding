@@ -5,6 +5,7 @@ from functools import singledispatchmethod
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import async_session_manager
+from src.config.logging import get_logger
 from src.email_service.base import EmailServiceBase
 from src.email_service.dtos import EmailResult, EmailStatus
 from src.guests.dtos import GuestAlreadyExistsError, Language
@@ -16,6 +17,8 @@ from src.guests.features.create_guest.command import (
     CreateGuestSeriesResult,
 )
 from src.guests.features.create_guest.write_model import GuestCreateWriteModel
+
+logger = get_logger(__name__)
 
 
 class CreateGuestHandler:
@@ -38,20 +41,28 @@ class CreateGuestHandler:
         self,
         command: CreateGuestCommand,
     ) -> CreateGuestCommandResult:
+        logger.info(f"Executing CreateGuestCommand for email={command.email}")
         async with async_session_manager(
             session_overwrite=self.session_overwrite, auto_commit=False
         ) as db_session:
-            return await self._execute_single(command, db_session)
+            result = await self._execute_single(command, db_session)
+            logger.info(f"CreateGuestCommand result: status={result.status}, email={result.email}")
+            return result
 
     @execute.register
     async def _(
         self,
         command: CreateGuestSeriesCommand,
     ) -> CreateGuestSeriesResult:
+        logger.info(f"Executing CreateGuestSeriesCommand for {len(command.commands)} guests")
         async with async_session_manager(
             session_overwrite=self.session_overwrite, auto_commit=False
         ) as db_session:
-            return await self._execute_series(command, db_session)
+            result = await self._execute_series(command, db_session)
+            logger.info(
+                f"CreateGuestSeriesCommand result: created={result.created}, skipped={result.skipped}, errors={result.errors}"
+            )
+            return result
 
     async def _execute_single(
         self,
@@ -61,12 +72,14 @@ class CreateGuestHandler:
         try:
             return await self._create_guest(command, session)
         except GuestAlreadyExistsError as e:
+            logger.warning(f"Guest already exists for email={command.email}: {e}")
             return CreateGuestCommandResult(
                 status=CommandStatus.SKIPPED,
                 email=command.email,
                 message=str(e),
             )
         except Exception as e:
+            logger.error(f"Error creating guest for email={command.email}: {e}")
             return CreateGuestCommandResult(
                 status=CommandStatus.ERROR,
                 email=command.email,
@@ -90,6 +103,7 @@ class CreateGuestHandler:
             send_email=False,
         )
 
+        logger.info(f"Guest created successfully: email={command.email}, guest_id={guest_dto.id}")
         return CreateGuestCommandResult(
             status=CommandStatus.CREATED,
             email=command.email,
@@ -137,6 +151,7 @@ class CreateGuestHandler:
 
         except Exception as e:
             await session.rollback()
+            logger.error(f"Transaction failed for CreateGuestSeriesCommand: {e}")
             for i in range(len(results), len(command.commands)):
                 results[command.commands[i].email] = CreateGuestCommandResult(
                     status=CommandStatus.ERROR,

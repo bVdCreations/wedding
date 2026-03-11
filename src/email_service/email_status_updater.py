@@ -4,7 +4,10 @@ from datetime import UTC, datetime
 from sqlalchemy import select
 
 from src.config.database import async_session_manager
+from src.config.logging import get_logger
 from src.guests.repository.orm_models import EmailLog
+
+logger = get_logger(__name__)
 
 
 class EmailStatusUpdater(ABC):
@@ -40,7 +43,8 @@ class SQLEmailStatusUpdater(EmailStatusUpdater):
         event_type: str,
         event_data: dict,
     ) -> bool:
-        # Map Resend event types to our statuses
+        logger.info(f"Updating email status for {resend_email_id} to {event_type}")
+
         event_to_status = {
             "email.sent": "sent",
             "email.delivered": "delivered",
@@ -51,9 +55,9 @@ class SQLEmailStatusUpdater(EmailStatusUpdater):
 
         new_status = event_to_status.get(event_type)
         if not new_status:
+            logger.warning(f"Unknown event type: {event_type}")
             return False
 
-        # Update EmailLog
         async with async_session_manager() as session:
             result = await session.execute(
                 select(EmailLog).where(EmailLog.resend_email_id == resend_email_id)
@@ -61,19 +65,23 @@ class SQLEmailStatusUpdater(EmailStatusUpdater):
             email_log = result.scalar_one_or_none()
 
             if not email_log:
+                logger.warning(f"No EmailLog found for resend_email_id={resend_email_id}")
                 return False
 
             email_log.status = new_status
             email_log.last_webhook_event = event_type
             email_log.last_webhook_at = datetime.now(UTC)
 
-            # Store error info for bounces
             if event_type == "email.bounced":
                 bounce_type = event_data.get("bounce_type")
                 bounce_reason = event_data.get("reason")
                 email_log.error_message = f"Bounced: {bounce_type} - {bounce_reason}"
+                logger.warning(
+                    f"Email bounced for {resend_email_id}: {bounce_type} - {bounce_reason}"
+                )
 
             await session.commit()
+            logger.info(f"Successfully updated email status for {resend_email_id} to {new_status}")
             return True
 
 
