@@ -1,9 +1,10 @@
-name: wedding-webhook
+name: wedding-caddy
 
 on:
   push:
     paths:
-      - "deploy/webhook/**"
+      - 'deploy/caddy/**'
+      - 'Caddyfile'
 
 jobs:
   build-and-push:
@@ -13,14 +14,11 @@ jobs:
       packages: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+      - uses: docker/setup-buildx-action@v4
 
-      - name: Login to GHCR
-        uses: docker/login-action@v4
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -30,13 +28,12 @@ jobs:
         id: lowercase-owner
         run: echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
-      - name: Build and push
-        uses: docker/build-push-action@v7
+      - uses: docker/build-push-action@v7
         with:
-          context: ./deploy/webhook
+          context: ./deploy/caddy
           push: true
           tags: |
-            ghcr.io/${{ steps.lowercase-owner.outputs.owner }}/wedding-webhook:c-${{ github.sha }}
-            ghcr.io/${{ steps.lowercase-owner.outputs.owner }}/wedding-webhook:latest
+            ghcr.io/${{ steps.lowercase-owner.outputs.owner }}/wedding-caddy:c-${{ github.sha }}
+            ghcr.io/${{ steps.lowercase-owner.outputs.owner }}/wedding-caddy:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
