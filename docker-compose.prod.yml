@@ -12,11 +12,12 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
     depends_on:
       - api
 
   api:
-    image: ${API_IMAGE:-ghcr.io/bvdcreations/wedding-api:latest}
+    image: ${API_IMAGE}
     container_name: wedding_api
     restart: unless-stopped
     pull_policy: always
