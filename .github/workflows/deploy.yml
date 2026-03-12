@@ -43,27 +43,7 @@ jobs:
 
       - name: Notify webhook
         run: |
-          echo "Sending webhook notification..."
-          echo "Webhook URL: ${{ vars.WEBHOOK_URL }}"
-          echo "Tag: c-${{ github.sha }}"
-          echo "Commit SHA: ${{ github.sha }}"
-          echo "Branch: ${{ github.ref_name }}"
-          echo "Actor: ${{ github.actor }}"
-          echo "Repository: ${{ github.repository }}"
-          
-          RESPONSE=$(curl -f -X POST "${{ vars.WEBHOOK_URL }}" \
+          curl -f -X POST "${{ vars.WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.WEBHOOK_SECRET }}" \
-            -d '{"tag": "c-${{ github.sha }}"}' \
-            2>&1)
-          
-          CURL_EXIT_CODE=$?
-          echo "Webhook response: $RESPONSE"
-          echo "Curl exit code: $CURL_EXIT_CODE"
-          
-          if [ $CURL_EXIT_CODE -ne 0 ]; then
-            echo "Webhook notification failed!"
-            exit 1
-          fi
-          
-          echo "Webhook notification successful"
+            -d '{"tag": "c-${{ github.sha }}"}'
