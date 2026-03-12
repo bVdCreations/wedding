@@ -91,7 +91,7 @@ async def deploy(http_request: Request, request: DeployRequest, authorization: s
         image_base = os.getenv("API_IMAGE_BASE", "ghcr.io/owner/wedding-api")
 
         logger.info(
-            f"Configuration: compose_file={compose_file}, env_file={env_file}, image_base={image_base}"
+            f"Configuration: compose_file={compose_file}, env_file={env_file}, image_base={image_base}, tag={request.tag}"
         )
 
         update_env_file(env_file, image_base, request.tag)
