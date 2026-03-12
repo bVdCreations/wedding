@@ -44,7 +44,7 @@ COPY . .
 EXPOSE 8000
 
 # Health check
-HEALTHCHECK CMD curl --fail http://localhost:8500/healthz || exit 1
+HEALTHCHECK CMD curl --fail http://localhost:8000/healthz || exit 1
 
 # Run the application
 CMD ["uv", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
