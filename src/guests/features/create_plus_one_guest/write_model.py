@@ -5,6 +5,7 @@ Returns DTOs instead of ORM models.
 """
 
 from abc import ABC, abstractmethod
+from datetime import UTC, datetime
 from functools import partial
 from uuid import UUID, uuid4
 
@@ -209,6 +210,8 @@ class SqlPlusOneGuestWriteModel(PlusOneGuestWriteModel):
                         guest_id=guest.uuid,
                         user_id=inviter_user_id,
                     )
+                    rsvp_info.email_sent_on = datetime.now(UTC)
+                    await session.flush()
 
                 # 5. Build and return GuestDTO with plus-one guest UUID
                 return (
