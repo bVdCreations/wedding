@@ -1,3 +1,7 @@
+http:// {
+    redir https://{host}{uri}
+}
+
 api.gemma-bastiaan.wedding {
     reverse_proxy api:8000
     tls {
