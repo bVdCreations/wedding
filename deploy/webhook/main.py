@@ -96,7 +96,18 @@ async def deploy(http_request: Request, request: DeployRequest, authorization: s
 
         update_env_file(env_file, image_base, request.tag)
 
-        pull_cmd = ["docker", "compose", "-f", compose_file, "--env-file", env_file, "pull", "api"]
+        pull_cmd = [
+            "docker",
+            "compose",
+            "-f",
+            compose_file,
+            "--env-file",
+            env_file,
+            "--env",
+            f"API_IMAGE={image_base}:{request.tag}",
+            "pull",
+            "api",
+        ]
         logger.info(f"Executing pull command: {' '.join(pull_cmd)}")
         pull_result = subprocess.run(pull_cmd, capture_output=True, text=True)
         logger.debug(f"Pull stdout: {pull_result.stdout}")
@@ -116,6 +127,8 @@ async def deploy(http_request: Request, request: DeployRequest, authorization: s
             compose_file,
             "--env-file",
             env_file,
+            "--env",
+            f"API_IMAGE={image_base}:{request.tag}",
             "up",
             "-d",
             "api",
