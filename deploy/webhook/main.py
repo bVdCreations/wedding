@@ -93,6 +93,7 @@ async def deploy(http_request: Request, request: DeployRequest, authorization: s
         logger.info(
             f"Configuration: compose_file={compose_file}, env_file={env_file}, image_base={image_base}, tag={request.tag}"
         )
+        logger.debug(f"Environment: {os.environ}")
 
         update_env_file(env_file, image_base, request.tag)
 
@@ -103,13 +104,12 @@ async def deploy(http_request: Request, request: DeployRequest, authorization: s
             compose_file,
             "--env-file",
             env_file,
-            "--env",
-            f"API_IMAGE={image_base}:{request.tag}",
             "pull",
             "api",
         ]
+        pull_and_up_env = {"API_IMAGE": f"{image_base}:{request.tag}"}
         logger.info(f"Executing pull command: {' '.join(pull_cmd)}")
-        pull_result = subprocess.run(pull_cmd, capture_output=True, text=True)
+        pull_result = subprocess.run(pull_cmd, capture_output=True, text=True, env=pull_and_up_env)
         logger.debug(f"Pull stdout: {pull_result.stdout}")
         logger.debug(f"Pull stderr: {pull_result.stderr}")
         if pull_result.returncode != 0:
@@ -127,14 +127,12 @@ async def deploy(http_request: Request, request: DeployRequest, authorization: s
             compose_file,
             "--env-file",
             env_file,
-            "--env",
-            f"API_IMAGE={image_base}:{request.tag}",
             "up",
             "-d",
             "api",
         ]
         logger.info(f"Executing up command: {' '.join(up_cmd)}")
-        up_result = subprocess.run(up_cmd, capture_output=True, text=True)
+        up_result = subprocess.run(up_cmd, capture_output=True, text=True, env=pull_and_up_env)
         logger.debug(f"Up stdout: {up_result.stdout}")
         logger.debug(f"Up stderr: {up_result.stderr}")
         if up_result.returncode != 0:
