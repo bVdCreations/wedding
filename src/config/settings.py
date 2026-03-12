@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     # App
     app_host: str = "0.0.0.0"
     app_port: int = 8000
-    debug: bool = True
+    debug: bool = False
     frontend_url: str = "http://localhost:4321"
     cors_origins: list[str] = ["*"]
 
