@@ -1,5 +1,6 @@
 """Tests for SqlPlusOneGuestWriteModel."""
 
+from datetime import datetime
 from unittest.mock import AsyncMock
 
 import pytest
@@ -498,6 +499,50 @@ async def test_plus_one_guest_sends_email_when_inviter_details_provided():
             assert call_kwargs["guest_name"] == "Plus One"
             assert call_kwargs["inviter_name"] == "Original Guest"
             assert call_kwargs["language"] == Language.EN
+        finally:
+            await db_session.rollback()
+
+
+async def test_plus_one_guest_email_sent_on_updated_when_email_sent():
+    """Test that email_sent_on is updated when invitation email is sent to plus-one."""
+    mock_email_service = AsyncMock()
+
+    async with async_session_maker() as db_session:
+        try:
+            guest_write_model = SqlGuestCreateWriteModel(session_overwrite=db_session)
+            original_guest = await guest_write_model.create_guest(
+                email="original_email_sent@test.com",
+                first_name="Original",
+                last_name="Guest",
+            )
+
+            plus_one_write_model = SqlPlusOneGuestWriteModel(session_overwrite=db_session)
+            plus_one_write_model.set_email_service(mock_email_service)
+
+            plus_one_data = PlusOneDTO(
+                email="plusone_email_sent@test.com",
+                first_name="Plus",
+                last_name="One",
+            )
+            result, _ = await plus_one_write_model.create_plus_one_guest(
+                original_guest_id=original_guest.id,
+                plus_one_data=plus_one_data,
+                inviter_name="Original Guest",
+                inviter_language=Language.EN,
+                inviter_user_id=original_guest.id,
+            )
+
+            mock_email_service.send_invite_one_plus_one.assert_called_once()
+
+            rsvp_result = await db_session.execute(
+                select(RSVPInfo).where(RSVPInfo.guest_id == result.id)
+            )
+            rsvp_db = rsvp_result.scalar_one_or_none()
+            assert rsvp_db is not None
+            assert rsvp_db.email_sent_on is not None, (
+                "email_sent_on should be set when email is sent"
+            )
+            assert isinstance(rsvp_db.email_sent_on, datetime)
         finally:
             await db_session.rollback()
 
